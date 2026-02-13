@@ -6,10 +6,6 @@ import {
   Search,
   User,
   ChevronDown,
-  Calendar,
-  Activity,
-  Plus,
-  Clock,
   LogOut as LogOutIcon,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
@@ -20,12 +16,6 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ setIsSidebarOpen }) => {
-  const [currentTime, setCurrentTime] = useState<string>(
-    new Date().toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-  );
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -42,18 +32,6 @@ const Header: React.FC<HeaderProps> = ({ setIsSidebarOpen }) => {
     }
   };
 
-  // Update time every minute
-  React.useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(
-        new Date().toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      );
-    }, 60000);
-    return () => clearInterval(timer);
-  }, []);
 
   const { user, isAuthenticated } = useAuth();
 

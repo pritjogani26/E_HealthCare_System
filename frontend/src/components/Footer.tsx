@@ -23,25 +23,25 @@ const Footer: React.FC = () => {
           {/* Links */}
           <div className="flex items-center gap-6">
             <a
-              href="#"
+              href="/"
               className="text-sm text-slate-400 hover:text-emerald-400 transition-colors"
             >
               About
             </a>
             <a
-              href="#"
+              href="/"
               className="text-sm text-slate-400 hover:text-emerald-400 transition-colors"
             >
               Support
             </a>
             <a
-              href="#"
+              href="/"
               className="text-sm text-slate-400 hover:text-emerald-400 transition-colors"
             >
               Privacy
             </a>
             <a
-              href="#"
+              href="/"
               className="text-sm text-slate-400 hover:text-emerald-400 transition-colors"
             >
               Terms

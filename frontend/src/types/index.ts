@@ -126,27 +126,24 @@ export interface AdminStaffProfile {
 
 export interface Tokens {
   access_token: string;
-  refresh_token: string;
-  token_type: string;
-  expires_in: number;
+  refresh_token: string; // Keep for now as frontend might still use it or backend might send it
 }
 
 export interface LoginResponse {
-  success: boolean;
-  message: string;
-  data: {
-    user: PatientProfile | DoctorProfile | LabProfile | AdminStaffProfile;
-    tokens: Tokens;
-  };
+  access_token: string;
+  user: PatientProfile | DoctorProfile | LabProfile | AdminStaffProfile;
 }
 
 export interface RegisterResponse {
+  access_token: string;
+  user: PatientProfile | DoctorProfile | LabProfile;
+}
+
+// Backend wraps responses in this structure
+export interface ApiResponse<T> {
   success: boolean;
   message: string;
-  data: {
-    user: PatientProfile | DoctorProfile | LabProfile;
-    tokens: Tokens;
-  };
+  data: T;
 }
 
 export interface ApiError {

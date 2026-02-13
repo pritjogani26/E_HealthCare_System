@@ -7,7 +7,6 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  TrendingUp,
 } from "lucide-react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
@@ -242,13 +241,12 @@ const Dashboard: React.FC = () => {
                     className="flex items-start gap-4 p-3 rounded-lg hover:bg-slate-50 transition-colors"
                   >
                     <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        activity.type === "create"
+                      className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${activity.type === "create"
                           ? "bg-emerald-100 text-emerald-600"
                           : activity.type === "update"
                             ? "bg-blue-100 text-blue-600"
                             : "bg-purple-100 text-purple-600"
-                      }`}
+                        }`}
                     >
                       {activity.type === "create" && "✓"}
                       {activity.type === "update" && "⟳"}
@@ -394,21 +392,19 @@ const Dashboard: React.FC = () => {
                       </td>
                       <td className="py-4 px-4 text-slate-600">{stat.sales}</td>
                       <td className="py-4 px-4">
-                        <span className={`inline-flex px-2 py-1 rounded-md text-xs font-medium ${
-                          stat.revenue === "Online" || stat.revenue === "Active" 
-                            ? "bg-emerald-100 text-emerald-700" 
+                        <span className={`inline-flex px-2 py-1 rounded-md text-xs font-medium ${stat.revenue === "Online" || stat.revenue === "Active"
+                            ? "bg-emerald-100 text-emerald-700"
                             : "bg-orange-100 text-orange-700"
-                        }`}>
+                          }`}>
                           {stat.revenue}
                         </span>
                       </td>
                       <td className="py-4 px-4">
                         <span
-                          className={`inline-flex items-center gap-1 text-sm font-semibold ${
-                            stat.trend === "up"
+                          className={`inline-flex items-center gap-1 text-sm font-semibold ${stat.trend === "up"
                               ? "text-emerald-600"
                               : "text-orange-600"
-                          }`}
+                            }`}
                         >
                           {stat.trend === "up" ? "↑" : "↓"}
                           {stat.trend === "up" ? "+12%" : "6 pending"}

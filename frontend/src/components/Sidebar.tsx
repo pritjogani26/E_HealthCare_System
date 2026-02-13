@@ -9,7 +9,6 @@ import {
   FileText,
   Pill,
   Activity,
-  ClipboardList,
   DollarSign,
   UserCog,
   BarChart3,
@@ -20,7 +19,7 @@ import {
   AlertCircle,
   Heart,
 } from "lucide-react";
-import { MenuItem, SupportMenuItem, ExpandedSections } from "./types";
+import { ExpandedSections } from "./types";
 import { apiService } from "../services/api";
 
 interface SidebarProps {

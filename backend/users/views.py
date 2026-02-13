@@ -44,6 +44,34 @@ User = get_user_model()
 
 
 # ===================================================================================
+# ============================ HELPER FUNCTIONS =====================================
+# ===================================================================================
+
+
+def set_auth_response_with_tokens(user, user_data, message):
+    """
+    Helper function to create a response with tokens.
+    - Access token: returned in response body
+    - Refresh token: set in HttpOnly cookie
+    
+    Returns a tuple: (response_dict, refresh_token)
+    The caller should set the cookie on the Response object.
+    """
+    tokens = generate_tokens(user)
+    
+    response_dict = {
+        'success': True,
+        'message': message,
+        'data': {
+            'user': user_data,
+            'access_token': tokens['access_token']
+        }
+    }
+    
+    return response_dict, tokens['refresh_token']
+
+
+# ===================================================================================
 # ============================ PERMISSIONS ==========================================
 # ===================================================================================
 
@@ -82,23 +110,32 @@ class PatientRegistrationView(generics.GenericAPIView):
             try:
                 user = serializer.save()
 
-                # Generate tokens
-                tokens = generate_tokens(user)
-
                 # Get patient profile
                 patient = Patient.objects.get(user=user)
                 patient_data = PatientProfileSerializer(patient).data
+                
+                # Prepare response with tokens
+                response_dict, refresh_token = set_auth_response_with_tokens(
+                    user=user,
+                    user_data=patient_data,
+                    message="Patient registered successfully"
+                )
+                
+                # Create response and set refresh token in HttpOnly cookie
+                response = Response(response_dict, status=status.HTTP_201_CREATED)
+                response.set_cookie(
+                    key='refresh_token',
+                    value=refresh_token,
+                    max_age=settings.JWT_REFRESH_EXPIRE_DAYS * 24 * 60 * 60,
+                    httponly=True,
+                    secure=not settings.DEBUG,
+                    samesite='Lax'
+                )
+                
                 print(
-                    f"PatientRegistrationView: SUCCESS - patient created user_email={user.email} patient_id={getattr(patient,'patient_id',None)} tokens_keys={list(tokens.keys())}"
+                    f"PatientRegistrationView: SUCCESS - patient created user_email={user.email} patient_id={getattr(patient,'patient_id',None)}"
                 )
-                return Response(
-                    {
-                        "success": True,
-                        "message": "Patient registered successfully",
-                        "data": {"user": patient_data, "tokens": tokens},
-                    },
-                    status=status.HTTP_201_CREATED,
-                )
+                return response
             except Exception as e:
                 print(
                     "PatientRegistrationView: EXCEPTION while saving patient registration:"
@@ -144,24 +181,32 @@ class DoctorRegistrationView(generics.GenericAPIView):
             try:
                 user = serializer.save()
 
-                # Generate tokens
-                tokens = generate_tokens(user)
-
                 # Get doctor profile
                 doctor = Doctor.objects.get(user=user)
                 doctor_data = DoctorProfileSerializer(doctor).data
-
+                
+                # Prepare response with tokens
+                response_dict, refresh_token = set_auth_response_with_tokens(
+                    user=user,
+                    user_data=doctor_data,
+                    message="Doctor registered successfully. Account pending verification."
+                )
+                
+                # Create response and set refresh token in HttpOnly cookie
+                response = Response(response_dict, status=status.HTTP_201_CREATED)
+                response.set_cookie(
+                    key='refresh_token',
+                    value=refresh_token,
+                    max_age=settings.JWT_REFRESH_EXPIRE_DAYS * 24 * 60 * 60,
+                    httponly=True,
+                    secure=not settings.DEBUG,
+                    samesite='Lax'
+                )
+                
                 print(
-                    f"DoctorRegistrationView: SUCCESS - doctor created user_email={user.email} doctor_id={getattr(doctor,'doctor_id',None)} tokens_keys={list(tokens.keys())}"
+                    f"DoctorRegistrationView: SUCCESS - doctor created user_email={user.email} doctor_id={getattr(doctor,'doctor_id',None)}"
                 )
-                return Response(
-                    {
-                        "success": True,
-                        "message": "Doctor registered successfully. Account pending verification.",
-                        "data": {"user": doctor_data, "tokens": tokens},
-                    },
-                    status=status.HTTP_201_CREATED,
-                )
+                return response
             except Exception as e:
                 print(
                     "DoctorRegistrationView: EXCEPTION while saving doctor registration:"
@@ -207,24 +252,32 @@ class LabRegistrationView(generics.GenericAPIView):
             try:
                 user = serializer.save()
 
-                # Generate tokens
-                tokens = generate_tokens(user)
-
                 # Get lab profile
                 lab = Lab.objects.get(user=user)
                 lab_data = LabProfileSerializer(lab).data
-
+                
+                # Prepare response with tokens
+                response_dict, refresh_token = set_auth_response_with_tokens(
+                    user=user,
+                    user_data=lab_data,
+                    message="Lab registered successfully. Account pending verification."
+                )
+                
+                # Create response and set refresh token in HttpOnly cookie
+                response = Response(response_dict, status=status.HTTP_201_CREATED)
+                response.set_cookie(
+                    key='refresh_token',
+                    value=refresh_token,
+                    max_age=settings.JWT_REFRESH_EXPIRE_DAYS * 24 * 60 * 60,
+                    httponly=True,
+                    secure=not settings.DEBUG,
+                    samesite='Lax'
+                )
+                
                 print(
-                    f"LabRegistrationView: SUCCESS - lab created user_email={user.email} lab_id={getattr(lab,'lab_id',None)} tokens_keys={list(tokens.keys())}"
+                    f"LabRegistrationView: SUCCESS - lab created user_email={user.email} lab_id={getattr(lab,'lab_id',None)}"
                 )
-                return Response(
-                    {
-                        "success": True,
-                        "message": "Lab registered successfully. Account pending verification.",
-                        "data": {"user": lab_data, "tokens": tokens},
-                    },
-                    status=status.HTTP_201_CREATED,
-                )
+                return response
             except Exception as e:
                 print("LabRegistrationView: EXCEPTION while saving lab registration:")
                 print(traceback.format_exc())
@@ -381,23 +434,31 @@ class LoginView(generics.GenericAPIView):
         user.last_login_at = timezone.now()
         user.save()
 
-        # Generate tokens
-        tokens = generate_tokens(user)
-
         # Get profile data based on user role
         profile_data = self._get_profile_data(user)
-
+        
+        # Prepare response with tokens
+        response_dict, refresh_token = set_auth_response_with_tokens(
+            user=user,
+            user_data=profile_data,
+            message="Login successful"
+        )
+        
+        # Create response and set refresh token in HttpOnly cookie
+        response = Response(response_dict, status=status.HTTP_200_OK)
+        response.set_cookie(
+            key='refresh_token',
+            value=refresh_token,
+            max_age=settings.JWT_REFRESH_EXPIRE_DAYS * 24 * 60 * 60,
+            httponly=True,
+            secure=not settings.DEBUG,
+            samesite='Lax'
+        )
+        
         print(
             f"LoginView: SUCCESS - email={email} user_id={user.user_id} role={user.role} last_login_at={user.last_login_at}"
         )
-        return Response(
-            {
-                "success": True,
-                "message": "Login successful",
-                "data": {"user": profile_data, "tokens": tokens},
-            },
-            status=status.HTTP_200_OK,
-        )
+        return response
 
     def _get_profile_data(self, user):
         """Get profile data based on user role"""
@@ -441,6 +502,13 @@ class LogoutView(generics.GenericAPIView):
             # Get refresh token from request
             refresh_token = request.data.get("refresh_token")
 
+            # If the logout endpoint already revoked the token, clear the cookie
+            response = Response(
+                {"success": True, "message": "Logged out successfully"},
+                status=status.HTTP_200_OK,
+            )
+            response.delete_cookie('refresh_token')
+            
             if refresh_token:
                 # Revoke the token
                 from .models import UserTokens
@@ -460,10 +528,7 @@ class LogoutView(generics.GenericAPIView):
                     )
 
             print(f"LogoutView: SUCCESS - user_id={request.user.user_id}")
-            return Response(
-                {"success": True, "message": "Logged out successfully"},
-                status=status.HTTP_200_OK,
-            )
+            return response
 
         except Exception as e:
             print("LogoutView: EXCEPTION during logout:")
@@ -973,10 +1038,11 @@ class RefreshTokenView(generics.GenericAPIView):
     def post(self, request, *args, **kwargs):
         from .models import UserTokens
 
-        refresh_token = request.data.get("refresh_token")
+        # Read refresh token from HttpOnly cookie
+        refresh_token = request.COOKIES.get('refresh_token')
 
         if not refresh_token:
-            print("RefreshTokenView: MISSING refresh_token in request")
+            print("RefreshTokenView: MISSING refresh_token cookie")
             return Response(
                 {"success": False, "message": "Refresh token is required"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -991,13 +1057,20 @@ class RefreshTokenView(generics.GenericAPIView):
             )
 
             # Generate new access token
-            from .utils import generate_access_token
+            from .utils import generate_access_token, generate_refresh_token
 
             access_token = generate_access_token(token_obj.user)
-            print(
-                f"RefreshTokenView: SUCCESS - refreshed access token for user_id={token_obj.user.user_id}"
-            )
-            return Response(
+            
+            # Optional: Token rotation - generate new refresh token for added security
+            # Revoke old refresh token
+            token_obj.is_revoked = True
+            token_obj.save()
+            
+            # Generate new refresh token
+            new_refresh_token = generate_refresh_token(token_obj.user)
+            
+            # Prepare response
+            response = Response(
                 {
                     "success": True,
                     "message": "Token refreshed successfully",
@@ -1005,15 +1078,33 @@ class RefreshTokenView(generics.GenericAPIView):
                 },
                 status=status.HTTP_200_OK,
             )
+            
+            # Update refresh token cookie with new token
+            response.set_cookie(
+                key='refresh_token',
+                value=new_refresh_token,
+                max_age=settings.JWT_REFRESH_EXPIRE_DAYS * 24 * 60 * 60,
+                httponly=True,
+                secure=not settings.DEBUG,
+                samesite='Lax'
+            )
+            
+            print(
+                f"RefreshTokenView: SUCCESS - refreshed tokens for user_id={token_obj.user.user_id}"
+            )
+            return response
 
         except UserTokens.DoesNotExist:
             print(
-                f"RefreshTokenView: INVALID_OR_EXPIRED refresh_token provided: {refresh_token}"
+                f"RefreshTokenView: INVALID_OR_EXPIRED refresh_token cookie"
             )
-            return Response(
+            # Clear invalid cookie
+            response = Response(
                 {"success": False, "message": "Invalid or expired refresh token"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
+            response.delete_cookie('refresh_token')
+            return response
         except Exception as e:
             print("RefreshTokenView: EXCEPTION while refreshing token:")
             print(traceback.format_exc())

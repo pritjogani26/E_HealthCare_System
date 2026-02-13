@@ -9,6 +9,7 @@ import {
   LabRegistrationData,
   RegisterResponse,
   ApiError,
+  ApiResponse,
   PatientProfile,
   DoctorProfile,
   LabProfile,
@@ -29,12 +30,15 @@ class ApiService {
       headers: {
         'Content-Type': 'application/json',
       },
+      withCredentials: true,
     });
 
     // Request interceptor to add auth token
     this.api.interceptors.request.use(
       (config: any) => {
+        // Get access token from localStorage
         const token = localStorage.getItem('access_token');
+
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -55,22 +59,21 @@ class ApiService {
           originalRequest._retry = true;
 
           try {
-            const refreshToken = localStorage.getItem('refresh_token');
-            if (refreshToken) {
-              const response = await axios.post(`${API_BASE_URL}/auth/refresh/`, {
-                refresh_token: refreshToken,
-              });
+            // Refresh token is in HttpOnly cookie, backend will read it automatically
+            const response = await axios.post(`${API_BASE_URL}/auth/refresh/`, {}, { withCredentials: true });
 
-              const { access_token } = response.data.data;
-              localStorage.setItem('access_token', access_token);
+            // Backend returns new access_token in body
+            const { data } = response.data;
+            const access_token = data.access_token;
 
-              originalRequest.headers.Authorization = `Bearer ${access_token}`;
-              return this.api(originalRequest);
-            }
+            // Store new access token in localStorage
+            localStorage.setItem('access_token', access_token);
+
+            originalRequest.headers.Authorization = `Bearer ${access_token}`;
+            return this.api(originalRequest);
           } catch (refreshError) {
             // Refresh failed, logout user
             localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
             localStorage.removeItem('user');
             window.location.href = '/';
             return Promise.reject(refreshError);
@@ -85,40 +88,37 @@ class ApiService {
   // ==================== AUTHENTICATION ====================
 
   async login(data: LoginData): Promise<LoginResponse> {
-    const response = await this.api.post<LoginResponse>('/auth/login/', data);
-    return response.data;
+    const response = await this.api.post<ApiResponse<LoginResponse>>('/auth/login/', data);
+    return response.data.data;  // Unwrap the data
   }
 
   async logout(): Promise<void> {
-    const refreshToken = localStorage.getItem('refresh_token');
-    await this.api.post('/auth/logout/', { refresh_token: refreshToken });
+    await this.api.post('/auth/logout/');
     localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
     localStorage.removeItem('user');
   }
 
   async refreshToken(refreshToken: string): Promise<{ access_token: string }> {
-    const response = await this.api.post('/auth/refresh/', {
-      refresh_token: refreshToken,
-    });
-    return response.data.data;
+    // This method might not be needed explicitly if handled by interceptor, or updated to not take arg
+    const response = await this.api.post('/auth/refresh/');
+    return response.data;
   }
 
   // ==================== REGISTRATION ====================
 
   async registerPatient(data: PatientRegistrationData): Promise<RegisterResponse> {
-    const response = await this.api.post<RegisterResponse>('/auth/register/patient/', data);
-    return response.data;
+    const response = await this.api.post<ApiResponse<RegisterResponse>>('/auth/register/patient/', data);
+    return response.data.data;  // Unwrap the data
   }
 
   async registerDoctor(data: DoctorRegistrationData): Promise<RegisterResponse> {
-    const response = await this.api.post<RegisterResponse>('/auth/register/doctor/', data);
-    return response.data;
+    const response = await this.api.post<ApiResponse<RegisterResponse>>('/auth/register/doctor/', data);
+    return response.data.data;  // Unwrap the data
   }
 
   async registerLab(data: LabRegistrationData): Promise<RegisterResponse> {
-    const response = await this.api.post<RegisterResponse>('/auth/register/lab/', data);
-    return response.data;
+    const response = await this.api.post<ApiResponse<RegisterResponse>>('/auth/register/lab/', data);
+    return response.data.data;  // Unwrap the data
   }
 
   // ==================== PROFILES ====================

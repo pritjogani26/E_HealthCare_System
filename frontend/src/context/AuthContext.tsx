@@ -33,18 +33,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     const token = localStorage.getItem("access_token");
 
     if (storedUser && token) {
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        // Invalid JSON, clear it
+        localStorage.removeItem("user");
+        localStorage.removeItem("access_token");
+      }
+    } else {
+      // If no token but user data exists, clear user data as session is invalid
+      if (storedUser) localStorage.removeItem("user");
+      if (token) localStorage.removeItem("access_token");
     }
     setIsLoading(false);
   }, []);
 
   const login = async (data: LoginData) => {
     const response = await apiService.login(data);
-    const { user: userData, tokens } = response.data;
+    // API returns { success, message, data: { user, access_token } }
+    const { user: userData, access_token } = response;
 
-    // Store tokens
-    localStorage.setItem("access_token", tokens.access_token);
-    localStorage.setItem("refresh_token", tokens.refresh_token);
+    // Store access token in localStorage and user data
+    localStorage.setItem("access_token", access_token);
     localStorage.setItem("user", JSON.stringify(userData));
 
     setUser(userData);
@@ -57,7 +67,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       console.error("Logout error:", error);
     } finally {
       localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
       localStorage.removeItem("user");
       setUser(null);
     }
