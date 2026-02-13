@@ -1,13 +1,14 @@
-# backend/users/views_refactored.py
-# REFACTORED VERSION - Uses service layer for better code organization
+# backend/users/views.py
 
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from django.contrib.auth import get_user_model
+from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
+from django.contrib.auth import authenticate, get_user_model
 from django.utils import timezone
+from django.db import transaction
+from datetime import timedelta
 from django.conf import settings
-import traceback
+import traceback  # <-- added to print full tracebacks
 
 from .serializers import (
     PatientRegistrationSerializer,
@@ -32,17 +33,59 @@ from .models import (
     Lab,
     UserRole,
     VerificationStatus,
+    AccountStatus,
     Gender,
     BloodGroup,
     Qualification,
-    UserTokens,
 )
-from .services import AuthService, ProfileService, RegistrationService, AdminService
-from .helpers import set_auth_response_with_tokens, get_profile_data_by_role, set_refresh_token_cookie
-from .permissions import IsAdminOrStaff
-from .utils import generate_access_token, generate_refresh_token
+from .utils import generate_tokens, verify_access_token
 
 User = get_user_model()
+
+
+# ===================================================================================
+# ============================ HELPER FUNCTIONS =====================================
+# ===================================================================================
+
+
+def set_auth_response_with_tokens(user, user_data, message):
+    """
+    Helper function to create a response with tokens.
+    - Access token: returned in response body
+    - Refresh token: set in HttpOnly cookie
+    
+    Returns a tuple: (response_dict, refresh_token)
+    The caller should set the cookie on the Response object.
+    """
+    tokens = generate_tokens(user)
+    
+    response_dict = {
+        'success': True,
+        'message': message,
+        'data': {
+            'user': user_data,
+            'access_token': tokens['access_token']
+        }
+    }
+    
+    return response_dict, tokens['refresh_token']
+
+
+# ===================================================================================
+# ============================ PERMISSIONS ==========================================
+# ===================================================================================
+
+
+class IsAdminOrStaff(BasePermission):
+    """
+    Allows access only to users with ADMIN or STAFF role.
+    """
+
+    def has_permission(self, request, view):
+        user = request.user
+        if not user or not user.is_authenticated:
+            return False
+        return user.role in [UserRole.ADMIN, UserRole.STAFF]
 
 
 # ===================================================================================
@@ -65,25 +108,38 @@ class PatientRegistrationView(generics.GenericAPIView):
 
         if serializer.is_valid():
             try:
-                # Use RegistrationService to handle registration logic
-                user, patient_data = RegistrationService.register_patient(serializer)
+                user = serializer.save()
 
+                # Get patient profile
+                patient = Patient.objects.get(user=user)
+                patient_data = PatientProfileSerializer(patient).data
+                
                 # Prepare response with tokens
                 response_dict, refresh_token = set_auth_response_with_tokens(
                     user=user,
                     user_data=patient_data,
                     message="Patient registered successfully"
                 )
-
+                
                 # Create response and set refresh token in HttpOnly cookie
                 response = Response(response_dict, status=status.HTTP_201_CREATED)
-                set_refresh_token_cookie(response, refresh_token)
-
-                print(f"PatientRegistrationView: SUCCESS - patient created user_email={user.email}")
-                return response
+                response.set_cookie(
+                    key='refresh_token',
+                    value=refresh_token,
+                    max_age=settings.JWT_REFRESH_EXPIRE_DAYS * 24 * 60 * 60,
+                    httponly=True,
+                    secure=not settings.DEBUG,
+                    samesite='Lax'
+                )
                 
+                print(
+                    f"PatientRegistrationView: SUCCESS - patient created user_email={user.email} patient_id={getattr(patient,'patient_id',None)}"
+                )
+                return response
             except Exception as e:
-                print("PatientRegistrationView: EXCEPTION while saving patient registration:")
+                print(
+                    "PatientRegistrationView: EXCEPTION while saving patient registration:"
+                )
                 print(traceback.format_exc())
                 print(f"Request data: {request.data}")
                 return Response(
@@ -95,7 +151,9 @@ class PatientRegistrationView(generics.GenericAPIView):
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
 
-        print(f"PatientRegistrationView: INVALID INPUT - errors={serializer.errors}")
+        print(
+            f"PatientRegistrationView: INVALID INPUT - errors={serializer.errors} request_data={request.data}"
+        )
         return Response(
             {
                 "success": False,
@@ -121,25 +179,38 @@ class DoctorRegistrationView(generics.GenericAPIView):
 
         if serializer.is_valid():
             try:
-                # Use RegistrationService to handle registration logic
-                user, doctor_data = RegistrationService.register_doctor(serializer)
+                user = serializer.save()
 
+                # Get doctor profile
+                doctor = Doctor.objects.get(user=user)
+                doctor_data = DoctorProfileSerializer(doctor).data
+                
                 # Prepare response with tokens
                 response_dict, refresh_token = set_auth_response_with_tokens(
                     user=user,
                     user_data=doctor_data,
                     message="Doctor registered successfully. Account pending verification."
                 )
-
+                
                 # Create response and set refresh token in HttpOnly cookie
                 response = Response(response_dict, status=status.HTTP_201_CREATED)
-                set_refresh_token_cookie(response, refresh_token)
-
-                print(f"DoctorRegistrationView: SUCCESS - doctor created user_email={user.email}")
-                return response
+                response.set_cookie(
+                    key='refresh_token',
+                    value=refresh_token,
+                    max_age=settings.JWT_REFRESH_EXPIRE_DAYS * 24 * 60 * 60,
+                    httponly=True,
+                    secure=not settings.DEBUG,
+                    samesite='Lax'
+                )
                 
+                print(
+                    f"DoctorRegistrationView: SUCCESS - doctor created user_email={user.email} doctor_id={getattr(doctor,'doctor_id',None)}"
+                )
+                return response
             except Exception as e:
-                print("DoctorRegistrationView: EXCEPTION while saving doctor registration:")
+                print(
+                    "DoctorRegistrationView: EXCEPTION while saving doctor registration:"
+                )
                 print(traceback.format_exc())
                 print(f"Request data: {request.data}")
                 return Response(
@@ -151,7 +222,9 @@ class DoctorRegistrationView(generics.GenericAPIView):
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
 
-        print(f"DoctorRegistrationView: INVALID INPUT - errors={serializer.errors}")
+        print(
+            f"DoctorRegistrationView: INVALID INPUT - errors={serializer.errors} request_data={request.data}"
+        )
         return Response(
             {
                 "success": False,
@@ -177,23 +250,34 @@ class LabRegistrationView(generics.GenericAPIView):
 
         if serializer.is_valid():
             try:
-                # Use RegistrationService to handle registration logic
-                user, lab_data = RegistrationService.register_lab(serializer)
+                user = serializer.save()
 
+                # Get lab profile
+                lab = Lab.objects.get(user=user)
+                lab_data = LabProfileSerializer(lab).data
+                
                 # Prepare response with tokens
                 response_dict, refresh_token = set_auth_response_with_tokens(
                     user=user,
                     user_data=lab_data,
                     message="Lab registered successfully. Account pending verification."
                 )
-
+                
                 # Create response and set refresh token in HttpOnly cookie
                 response = Response(response_dict, status=status.HTTP_201_CREATED)
-                set_refresh_token_cookie(response, refresh_token)
-
-                print(f"LabRegistrationView: SUCCESS - lab created user_email={user.email}")
-                return response
+                response.set_cookie(
+                    key='refresh_token',
+                    value=refresh_token,
+                    max_age=settings.JWT_REFRESH_EXPIRE_DAYS * 24 * 60 * 60,
+                    httponly=True,
+                    secure=not settings.DEBUG,
+                    samesite='Lax'
+                )
                 
+                print(
+                    f"LabRegistrationView: SUCCESS - lab created user_email={user.email} lab_id={getattr(lab,'lab_id',None)}"
+                )
+                return response
             except Exception as e:
                 print("LabRegistrationView: EXCEPTION while saving lab registration:")
                 print(traceback.format_exc())
@@ -207,7 +291,9 @@ class LabRegistrationView(generics.GenericAPIView):
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
 
-        print(f"LabRegistrationView: INVALID INPUT - errors={serializer.errors}")
+        print(
+            f"LabRegistrationView: INVALID INPUT - errors={serializer.errors} request_data={request.data}"
+        )
         return Response(
             {
                 "success": False,
@@ -237,7 +323,9 @@ class LoginView(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
 
         if not serializer.is_valid():
-            print(f"\\nError in LoginView : {serializer.errors}")
+            print(
+                f"\nError in LoginView : {serializer.errors} request_data={request.data}"
+            )
             return Response(
                 {
                     "success": False,
@@ -253,69 +341,152 @@ class LoginView(generics.GenericAPIView):
         # Check if user exists
         try:
             user = User.objects.get(email=email)
-        except User.DoesNotExist:
-            print(f"\\nError in LoginView : User.DoesNotExist for email={email}")
+        except User.DoesNotExist as e:
+            print(f"\nError in LoginView : User.DoesNotExist for email={email}")
+            print(traceback.format_exc())
             return Response(
                 {"success": False, "message": "Invalid credentials"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
-        # Use AuthService to check account lockout
-        is_locked, lock_message = AuthService.check_account_lockout(user)
-        if is_locked:
-            print(f"\\nLoginView: LOCKED ACCOUNT - email={email}")
+        # Check account lockout
+        if user.lockout_until and user.lockout_until > timezone.now():
+            lock_msg = f"Account is locked. Try again after {user.lockout_until.strftime('%Y-%m-%d %H:%M:%S')}"
+            print(
+                f"\nLoginView: LOCKED ACCOUNT - email={email} lockout_until={user.lockout_until}"
+            )
             return Response(
-                {"success": False, "message": lock_message},
+                {
+                    "success": False,
+                    "message": lock_msg,
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        # Use AuthService to check account status
-        is_valid, status_message = AuthService.check_account_status(user)
-        if not is_valid:
-            print(f"\\nLoginView: INVALID ACCOUNT STATUS - email={email}")
+        # Check account status
+        if user.account_status == AccountStatus.SUSPENDED:
+            print(
+                f"\nLoginView: SUSPENDED ACCOUNT - email={email} account_status={user.account_status}"
+            )
             return Response(
-                {"success": False, "message": status_message},
+                {
+                    "success": False,
+                    "message": "Your account has been suspended. Please contact support.",
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        # Authenticate user using AuthService
-        authenticated_user = AuthService.authenticate_user(request, email, password)
+        if user.account_status == AccountStatus.DELETED:
+            print(
+                f"\nLoginView: DELETED ACCOUNT - email={email} account_status={user.account_status}"
+            )
+            return Response(
+                {"success": False, "message": "This account has been deleted."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if not user.is_active:
+            print(
+                f"\nLoginView: INACTIVE ACCOUNT - email={email} is_active={user.is_active}"
+            )
+            return Response(
+                {
+                    "success": False,
+                    "message": "Your account is inactive. Please contact support.",
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Authenticate user
+        authenticated_user = authenticate(request, email=email, password=password)
 
         if authenticated_user is None:
-            # Handle failed login using AuthService
-            should_lock, message = AuthService.handle_failed_login(user)
-            print(f"\\nLoginView: INVALID CREDENTIALS - email={email}")
-            
-            if should_lock:
+            # Increment failed login attempts
+            user.failed_login_attempts += 1
+
+            # Lock account after 5 failed attempts
+            if user.failed_login_attempts >= 5:
+                user.lockout_until = timezone.now() + timedelta(minutes=30)
+                user.save()
+                print(
+                    f"\nLoginView: ACCOUNT LOCKED DUE TO FAILED ATTEMPTS - email={email} failed_attempts={user.failed_login_attempts} lockout_until={user.lockout_until}"
+                )
                 return Response(
-                    {"success": False, "message": message},
+                    {
+                        "success": False,
+                        "message": "Too many failed login attempts. Account locked for 30 minutes.",
+                    },
                     status=status.HTTP_403_FORBIDDEN,
                 )
-            
+
+            user.save()
+            print(
+                f"\nLoginView: INVALID CREDENTIALS - email={email} failed_attempts={user.failed_login_attempts}"
+            )
             return Response(
-                {"success": False, "message": message},
+                {"success": False, "message": "Invalid credentials"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
-        # Handle successful login using AuthService
-        AuthService.handle_successful_login(user)
+        # Reset failed login attempts on successful login
+        user.failed_login_attempts = 0
+        user.lockout_until = None
+        user.last_login_at = timezone.now()
+        user.save()
 
-        # Get profile data using helper
-        profile_data = get_profile_data_by_role(user)
-
+        # Get profile data based on user role
+        profile_data = self._get_profile_data(user)
+        
         # Prepare response with tokens
         response_dict, refresh_token = set_auth_response_with_tokens(
             user=user,
             user_data=profile_data,
             message="Login successful"
         )
-
+        
         # Create response and set refresh token in HttpOnly cookie
         response = Response(response_dict, status=status.HTTP_200_OK)
-        set_refresh_token_cookie(response, refresh_token)
-
-        print(f"LoginView: SUCCESS - email={email} user_id={user.user_id} role={user.role}")
+        response.set_cookie(
+            key='refresh_token',
+            value=refresh_token,
+            max_age=settings.JWT_REFRESH_EXPIRE_DAYS * 24 * 60 * 60,
+            httponly=True,
+            secure=not settings.DEBUG,
+            samesite='Lax'
+        )
+        
+        print(
+            f"LoginView: SUCCESS - email={email} user_id={user.user_id} role={user.role} last_login_at={user.last_login_at}"
+        )
         return response
+
+    def _get_profile_data(self, user):
+        """Get profile data based on user role"""
+        if user.role == UserRole.PATIENT:
+            try:
+                patient = Patient.objects.get(user=user)
+                return PatientProfileSerializer(patient).data
+            except Patient.DoesNotExist:
+                return UserSerializer(user).data
+
+        elif user.role == UserRole.DOCTOR:
+            try:
+                doctor = Doctor.objects.get(user=user)
+                return DoctorProfileSerializer(doctor).data
+            except Doctor.DoesNotExist:
+                return UserSerializer(user).data
+
+        elif user.role == UserRole.LAB:
+            try:
+                lab = Lab.objects.get(user=user)
+                return LabProfileSerializer(lab).data
+            except Lab.DoesNotExist:
+                return UserSerializer(user).data
+
+        elif user.role in [UserRole.ADMIN, UserRole.STAFF]:
+            return AdminStaffProfileSerializer(user).data
+
+        return UserSerializer(user).data
 
 
 class LogoutView(generics.GenericAPIView):
@@ -328,21 +499,33 @@ class LogoutView(generics.GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         try:
+            # Get refresh token from request
             refresh_token = request.data.get("refresh_token")
 
+            # If the logout endpoint already revoked the token, clear the cookie
             response = Response(
                 {"success": True, "message": "Logged out successfully"},
                 status=status.HTTP_200_OK,
             )
             response.delete_cookie('refresh_token')
-
+            
             if refresh_token:
-                # Use AuthService to revoke token
-                revoked = AuthService.revoke_refresh_token(refresh_token, request.user)
-                if revoked:
-                    print(f"LogoutView: revoked refresh_token for user_id={request.user.user_id}")
-                else:
-                    print(f"LogoutView: refresh_token not found for user_id={request.user.user_id}")
+                # Revoke the token
+                from .models import UserTokens
+
+                try:
+                    token = UserTokens.objects.get(
+                        refresh_token=refresh_token, user=request.user
+                    )
+                    token.is_revoked = True
+                    token.save()
+                    print(
+                        f"LogoutView: revoked refresh_token for user_id={request.user.user_id}"
+                    )
+                except UserTokens.DoesNotExist:
+                    print(
+                        f"LogoutView: provided refresh_token not found for user_id={request.user.user_id} refresh_token={refresh_token}"
+                    )
 
             print(f"LogoutView: SUCCESS - user_id={request.user.user_id}")
             return response
@@ -376,12 +559,17 @@ class PatientProfileView(generics.GenericAPIView):
         return PatientProfileUpdateSerializer
 
     def get_object(self):
-        return ProfileService.get_patient_profile(self.request.user)
+        try:
+            return Patient.objects.get(user=self.request.user)
+        except Patient.DoesNotExist:
+            return None
 
     def get(self, request, *args, **kwargs):
         """Get patient profile"""
-        if not ProfileService.validate_user_role(request.user, UserRole.PATIENT):
-            print(f"PatientProfileView.GET: ACCESS DENIED - user_id={request.user.user_id}")
+        if request.user.role != UserRole.PATIENT:
+            print(
+                f"PatientProfileView.GET: ACCESS DENIED - user_id={request.user.user_id} role={request.user.role}"
+            )
             return Response(
                 {"success": False, "message": "Access denied. Patient role required."},
                 status=status.HTTP_403_FORBIDDEN,
@@ -389,14 +577,18 @@ class PatientProfileView(generics.GenericAPIView):
 
         patient = self.get_object()
         if not patient:
-            print(f"PatientProfileView.GET: NOT FOUND - user_id={request.user.user_id}")
+            print(
+                f"PatientProfileView.GET: NOT FOUND - patient profile not found for user_id={request.user.user_id}"
+            )
             return Response(
                 {"success": False, "message": "Patient profile not found"},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
         serializer = self.get_serializer(patient)
-        print(f"PatientProfileView.GET: SUCCESS - user_id={request.user.user_id}")
+        print(
+            f"PatientProfileView.GET: SUCCESS - returning profile for user_id={request.user.user_id} patient_id={getattr(patient,'patient_id',None)}"
+        )
         return Response(
             {"success": True, "data": serializer.data}, status=status.HTTP_200_OK
         )
@@ -410,8 +602,10 @@ class PatientProfileView(generics.GenericAPIView):
         return self._update_profile(request, partial=True)
 
     def _update_profile(self, request, partial=False):
-        if not ProfileService.validate_user_role(request.user, UserRole.PATIENT):
-            print(f"PatientProfileView._update_profile: ACCESS DENIED - user_id={request.user.user_id}")
+        if request.user.role != UserRole.PATIENT:
+            print(
+                f"PatientProfileView._update_profile: ACCESS DENIED - user_id={request.user.user_id} role={request.user.role}"
+            )
             return Response(
                 {"success": False, "message": "Access denied. Patient role required."},
                 status=status.HTTP_403_FORBIDDEN,
@@ -419,7 +613,9 @@ class PatientProfileView(generics.GenericAPIView):
 
         patient = self.get_object()
         if not patient:
-            print(f"PatientProfileView._update_profile: NOT FOUND - user_id={request.user.user_id}")
+            print(
+                f"PatientProfileView._update_profile: NOT FOUND - user_id={request.user.user_id}"
+            )
             return Response(
                 {"success": False, "message": "Patient profile not found"},
                 status=status.HTTP_404_NOT_FOUND,
@@ -429,20 +625,26 @@ class PatientProfileView(generics.GenericAPIView):
 
         if serializer.is_valid():
             try:
-                # Use ProfileService to update profile
-                updated_data = ProfileService.update_patient_profile(patient, serializer)
-                print(f"PatientProfileView._update_profile: SUCCESS - user_id={request.user.user_id}")
+                serializer.save()
+                # Return full profile data
+                profile_serializer = PatientProfileSerializer(patient, context={"request": request})
+                print(
+                    f"PatientProfileView._update_profile: SUCCESS - profile updated for user_id={request.user.user_id} patient_id={getattr(patient,'patient_id',None)}"
+                )
                 return Response(
                     {
                         "success": True,
                         "message": "Profile updated successfully",
-                        "data": updated_data,
+                        "data": profile_serializer.data,
                     },
                     status=status.HTTP_200_OK,
                 )
             except Exception as e:
-                print("PatientProfileView._update_profile: EXCEPTION while saving profile:")
+                print(
+                    "PatientProfileView._update_profile: EXCEPTION while saving profile:"
+                )
                 print(traceback.format_exc())
+                print(f"Request data: {request.data}")
                 return Response(
                     {
                         "success": False,
@@ -452,7 +654,9 @@ class PatientProfileView(generics.GenericAPIView):
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
 
-        print(f"PatientProfileView._update_profile: VALIDATION FAILED - errors={serializer.errors}")
+        print(
+            f"PatientProfileView._update_profile: VALIDATION FAILED - errors={serializer.errors} request_data={request.data}"
+        )
         return Response(
             {
                 "success": False,
@@ -478,12 +682,17 @@ class DoctorProfileView(generics.GenericAPIView):
         return DoctorProfileUpdateSerializer
 
     def get_object(self):
-        return ProfileService.get_doctor_profile(self.request.user)
+        try:
+            return Doctor.objects.get(user=self.request.user)
+        except Doctor.DoesNotExist:
+            return None
 
     def get(self, request, *args, **kwargs):
         """Get doctor profile"""
-        if not ProfileService.validate_user_role(request.user, UserRole.DOCTOR):
-            print(f"DoctorProfileView.GET: ACCESS DENIED - user_id={request.user.user_id}")
+        if request.user.role != UserRole.DOCTOR:
+            print(
+                f"DoctorProfileView.GET: ACCESS DENIED - user_id={request.user.user_id} role={request.user.role}"
+            )
             return Response(
                 {"success": False, "message": "Access denied. Doctor role required."},
                 status=status.HTTP_403_FORBIDDEN,
@@ -491,14 +700,18 @@ class DoctorProfileView(generics.GenericAPIView):
 
         doctor = self.get_object()
         if not doctor:
-            print(f"DoctorProfileView.GET: NOT FOUND - user_id={request.user.user_id}")
+            print(
+                f"DoctorProfileView.GET: NOT FOUND - doctor profile not found for user_id={request.user.user_id}"
+            )
             return Response(
                 {"success": False, "message": "Doctor profile not found"},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
         serializer = self.get_serializer(doctor)
-        print(f"DoctorProfileView.GET: SUCCESS - user_id={request.user.user_id}")
+        print(
+            f"DoctorProfileView.GET: SUCCESS - returning profile for user_id={request.user.user_id} doctor_id={getattr(doctor,'doctor_id',None)}"
+        )
         return Response(
             {"success": True, "data": serializer.data}, status=status.HTTP_200_OK
         )
@@ -512,8 +725,10 @@ class DoctorProfileView(generics.GenericAPIView):
         return self._update_profile(request, partial=True)
 
     def _update_profile(self, request, partial=False):
-        if not ProfileService.validate_user_role(request.user, UserRole.DOCTOR):
-            print(f"DoctorProfileView._update_profile: ACCESS DENIED - user_id={request.user.user_id}")
+        if request.user.role != UserRole.DOCTOR:
+            print(
+                f"DoctorProfileView._update_profile: ACCESS DENIED - user_id={request.user.user_id} role={request.user.role}"
+            )
             return Response(
                 {"success": False, "message": "Access denied. Doctor role required."},
                 status=status.HTTP_403_FORBIDDEN,
@@ -521,7 +736,9 @@ class DoctorProfileView(generics.GenericAPIView):
 
         doctor = self.get_object()
         if not doctor:
-            print(f"DoctorProfileView._update_profile: NOT FOUND - user_id={request.user.user_id}")
+            print(
+                f"DoctorProfileView._update_profile: NOT FOUND - user_id={request.user.user_id}"
+            )
             return Response(
                 {"success": False, "message": "Doctor profile not found"},
                 status=status.HTTP_404_NOT_FOUND,
@@ -531,20 +748,26 @@ class DoctorProfileView(generics.GenericAPIView):
 
         if serializer.is_valid():
             try:
-                # Use ProfileService to update profile
-                updated_data = ProfileService.update_doctor_profile(doctor, serializer)
-                print(f"DoctorProfileView._update_profile: SUCCESS - user_id={request.user.user_id}")
+                serializer.save()
+                # Return full profile data
+                profile_serializer = DoctorProfileSerializer(doctor, context={"request": request})
+                print(
+                    f"DoctorProfileView._update_profile: SUCCESS - profile updated for user_id={request.user.user_id} doctor_id={getattr(doctor,'doctor_id',None)}"
+                )
                 return Response(
                     {
                         "success": True,
                         "message": "Profile updated successfully",
-                        "data": updated_data,
+                        "data": profile_serializer.data,
                     },
                     status=status.HTTP_200_OK,
                 )
             except Exception as e:
-                print("DoctorProfileView._update_profile: EXCEPTION while saving profile:")
+                print(
+                    "DoctorProfileView._update_profile: EXCEPTION while saving profile:"
+                )
                 print(traceback.format_exc())
+                print(f"Request data: {request.data}")
                 return Response(
                     {
                         "success": False,
@@ -554,7 +777,9 @@ class DoctorProfileView(generics.GenericAPIView):
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
 
-        print(f"DoctorProfileView._update_profile: VALIDATION FAILED - errors={serializer.errors}")
+        print(
+            f"DoctorProfileView._update_profile: VALIDATION FAILED - errors={serializer.errors} request_data={request.data}"
+        )
         return Response(
             {
                 "success": False,
@@ -580,12 +805,17 @@ class LabProfileView(generics.GenericAPIView):
         return LabProfileUpdateSerializer
 
     def get_object(self):
-        return ProfileService.get_lab_profile(self.request.user)
+        try:
+            return Lab.objects.get(user=self.request.user)
+        except Lab.DoesNotExist:
+            return None
 
     def get(self, request, *args, **kwargs):
         """Get lab profile"""
-        if not ProfileService.validate_user_role(request.user, UserRole.LAB):
-            print(f"LabProfileView.GET: ACCESS DENIED - user_id={request.user.user_id}")
+        if request.user.role != UserRole.LAB:
+            print(
+                f"LabProfileView.GET: ACCESS DENIED - user_id={request.user.user_id} role={request.user.role}"
+            )
             return Response(
                 {"success": False, "message": "Access denied. Lab role required."},
                 status=status.HTTP_403_FORBIDDEN,
@@ -593,14 +823,18 @@ class LabProfileView(generics.GenericAPIView):
 
         lab = self.get_object()
         if not lab:
-            print(f"LabProfileView.GET: NOT FOUND - user_id={request.user.user_id}")
+            print(
+                f"LabProfileView.GET: NOT FOUND - lab profile not found for user_id={request.user.user_id}"
+            )
             return Response(
                 {"success": False, "message": "Lab profile not found"},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
         serializer = self.get_serializer(lab)
-        print(f"LabProfileView.GET: SUCCESS - user_id={request.user.user_id}")
+        print(
+            f"LabProfileView.GET: SUCCESS - returning profile for user_id={request.user.user_id} lab_id={getattr(lab,'lab_id',None)}"
+        )
         return Response(
             {"success": True, "data": serializer.data}, status=status.HTTP_200_OK
         )
@@ -614,8 +848,10 @@ class LabProfileView(generics.GenericAPIView):
         return self._update_profile(request, partial=True)
 
     def _update_profile(self, request, partial=False):
-        if not ProfileService.validate_user_role(request.user, UserRole.LAB):
-            print(f"LabProfileView._update_profile: ACCESS DENIED - user_id={request.user.user_id}")
+        if request.user.role != UserRole.LAB:
+            print(
+                f"LabProfileView._update_profile: ACCESS DENIED - user_id={request.user.user_id} role={request.user.role}"
+            )
             return Response(
                 {"success": False, "message": "Access denied. Lab role required."},
                 status=status.HTTP_403_FORBIDDEN,
@@ -623,7 +859,9 @@ class LabProfileView(generics.GenericAPIView):
 
         lab = self.get_object()
         if not lab:
-            print(f"LabProfileView._update_profile: NOT FOUND - user_id={request.user.user_id}")
+            print(
+                f"LabProfileView._update_profile: NOT FOUND - user_id={request.user.user_id}"
+            )
             return Response(
                 {"success": False, "message": "Lab profile not found"},
                 status=status.HTTP_404_NOT_FOUND,
@@ -633,20 +871,24 @@ class LabProfileView(generics.GenericAPIView):
 
         if serializer.is_valid():
             try:
-                # Use ProfileService to update profile
-                updated_data = ProfileService.update_lab_profile(lab, serializer)
-                print(f"LabProfileView._update_profile: SUCCESS - user_id={request.user.user_id}")
+                serializer.save()
+                # Return full profile data
+                profile_serializer = LabProfileSerializer(lab, context={"request": request})
+                print(
+                    f"LabProfileView._update_profile: SUCCESS - profile updated for user_id={request.user.user_id} lab_id={getattr(lab,'lab_id',None)}"
+                )
                 return Response(
                     {
                         "success": True,
                         "message": "Profile updated successfully",
-                        "data": updated_data,
+                        "data": profile_serializer.data,
                     },
                     status=status.HTTP_200_OK,
                 )
             except Exception as e:
                 print("LabProfileView._update_profile: EXCEPTION while saving profile:")
                 print(traceback.format_exc())
+                print(f"Request data: {request.data}")
                 return Response(
                     {
                         "success": False,
@@ -656,7 +898,9 @@ class LabProfileView(generics.GenericAPIView):
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
 
-        print(f"LabProfileView._update_profile: VALIDATION FAILED - errors={serializer.errors}")
+        print(
+            f"LabProfileView._update_profile: VALIDATION FAILED - errors={serializer.errors} request_data={request.data}"
+        )
         return Response(
             {
                 "success": False,
@@ -679,7 +923,9 @@ class AdminStaffProfileView(generics.GenericAPIView):
     def get(self, request, *args, **kwargs):
         """Get admin/staff profile"""
         if request.user.role not in [UserRole.ADMIN, UserRole.STAFF]:
-            print(f"AdminStaffProfileView.GET: ACCESS DENIED - user_id={request.user.user_id}")
+            print(
+                f"AdminStaffProfileView.GET: ACCESS DENIED - user_id={request.user.user_id} role={request.user.role}"
+            )
             return Response(
                 {
                     "success": False,
@@ -689,7 +935,9 @@ class AdminStaffProfileView(generics.GenericAPIView):
             )
 
         serializer = self.get_serializer(request.user)
-        print(f"AdminStaffProfileView.GET: SUCCESS - user_id={request.user.user_id}")
+        print(
+            f"AdminStaffProfileView.GET: SUCCESS - returning admin/staff profile for user_id={request.user.user_id}"
+        )
         return Response(
             {"success": True, "data": serializer.data}, status=status.HTTP_200_OK
         )
@@ -706,13 +954,71 @@ class CurrentUserProfileView(generics.GenericAPIView):
     def get(self, request, *args, **kwargs):
         """Get current user's profile"""
         user = request.user
-        
-        # Use helper to get profile data by role
-        profile_data = get_profile_data_by_role(user)
-        
-        print(f"CurrentUserProfileView.GET: SUCCESS - user_id={user.user_id} role={user.role}")
+
+        if user.role == UserRole.PATIENT:
+            try:
+                patient = Patient.objects.get(user=user)
+                serializer = PatientProfileSerializer(patient, context={"request": request})
+                print(
+                    f"CurrentUserProfileView.GET: SUCCESS - returning PATIENT profile for user_id={user.user_id}"
+                )
+                return Response(
+                    {"success": True, "data": serializer.data},
+                    status=status.HTTP_200_OK,
+                )
+            except Patient.DoesNotExist:
+                print(
+                    f"CurrentUserProfileView.GET: PATIENT profile not found for user_id={user.user_id}"
+                )
+
+        elif user.role == UserRole.DOCTOR:
+            try:
+                doctor = Doctor.objects.get(user=user)
+                serializer = DoctorProfileSerializer(doctor, context={"request": request})
+                print(
+                    f"CurrentUserProfileView.GET: SUCCESS - returning DOCTOR profile for user_id={user.user_id}"
+                )
+                return Response(
+                    {"success": True, "data": serializer.data},
+                    status=status.HTTP_200_OK,
+                )
+            except Doctor.DoesNotExist:
+                print(
+                    f"CurrentUserProfileView.GET: DOCTOR profile not found for user_id={user.user_id}"
+                )
+
+        elif user.role == UserRole.LAB:
+            try:
+                lab = Lab.objects.get(user=user)
+                serializer = LabProfileSerializer(lab, context={"request": request})
+                print(
+                    f"CurrentUserProfileView.GET: SUCCESS - returning LAB profile for user_id={user.user_id}"
+                )
+                return Response(
+                    {"success": True, "data": serializer.data},
+                    status=status.HTTP_200_OK,
+                )
+            except Lab.DoesNotExist:
+                print(
+                    f"CurrentUserProfileView.GET: LAB profile not found for user_id={user.user_id}"
+                )
+
+        elif user.role in [UserRole.ADMIN, UserRole.STAFF]:
+            serializer = AdminStaffProfileSerializer(user, context={"request": request})
+            print(
+                f"CurrentUserProfileView.GET: SUCCESS - returning ADMIN/STAFF profile for user_id={user.user_id}"
+            )
+            return Response(
+                {"success": True, "data": serializer.data}, status=status.HTTP_200_OK
+            )
+
+        # Fallback to basic user serializer
+        serializer = UserSerializer(user)
+        print(
+            f"CurrentUserProfileView.GET: FALLBACK - returning basic user serializer for user_id={user.user_id}"
+        )
         return Response(
-            {"success": True, "data": profile_data}, status=status.HTTP_200_OK
+            {"success": True, "data": serializer.data}, status=status.HTTP_200_OK
         )
 
 
@@ -730,6 +1036,8 @@ class RefreshTokenView(generics.GenericAPIView):
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
+        from .models import UserTokens
+
         # Read refresh token from HttpOnly cookie
         refresh_token = request.COOKIES.get('refresh_token')
 
@@ -749,15 +1057,18 @@ class RefreshTokenView(generics.GenericAPIView):
             )
 
             # Generate new access token
-            access_token = generate_access_token(token_obj.user)
+            from .utils import generate_access_token, generate_refresh_token
 
-            # Token rotation - revoke old refresh token
+            access_token = generate_access_token(token_obj.user)
+            
+            # Optional: Token rotation - generate new refresh token for added security
+            # Revoke old refresh token
             token_obj.is_revoked = True
             token_obj.save()
-
+            
             # Generate new refresh token
             new_refresh_token = generate_refresh_token(token_obj.user)
-
+            
             # Prepare response
             response = Response(
                 {
@@ -767,15 +1078,26 @@ class RefreshTokenView(generics.GenericAPIView):
                 },
                 status=status.HTTP_200_OK,
             )
-
+            
             # Update refresh token cookie with new token
-            set_refresh_token_cookie(response, new_refresh_token)
-
-            print(f"RefreshTokenView: SUCCESS - user_id={token_obj.user.user_id}")
+            response.set_cookie(
+                key='refresh_token',
+                value=new_refresh_token,
+                max_age=settings.JWT_REFRESH_EXPIRE_DAYS * 24 * 60 * 60,
+                httponly=True,
+                secure=not settings.DEBUG,
+                samesite='Lax'
+            )
+            
+            print(
+                f"RefreshTokenView: SUCCESS - refreshed tokens for user_id={token_obj.user.user_id}"
+            )
             return response
 
         except UserTokens.DoesNotExist:
-            print("RefreshTokenView: INVALID_OR_EXPIRED refresh_token cookie")
+            print(
+                f"RefreshTokenView: INVALID_OR_EXPIRED refresh_token cookie"
+            )
             # Clear invalid cookie
             response = Response(
                 {"success": False, "message": "Invalid or expired refresh token"},
@@ -829,12 +1151,14 @@ class QualificationListView(generics.ListAPIView):
 
     permission_classes = [AllowAny]
     serializer_class = QualificationSerializer
-    queryset = Qualification.objects.all().order_by("qualification_code")
+    queryset = Qualification.objects.all().order_by(
+        "qualification_code"
+    )
     pagination_class = None
 
 
-# ==================================================================================
-# ============================ ADMIN LIST VIEWS ====================================
+# ===================================================================================
+# ============================ ADMIN LIST VIEWS =====================================
 # ===================================================================================
 
 
@@ -900,17 +1224,28 @@ class AdminTogglePatientStatusView(generics.GenericAPIView):
                 patient_id=patient_id
             )
         except Patient.DoesNotExist:
-            print(f"AdminTogglePatientStatusView: NOT FOUND - patient_id={patient_id}")
+            print(
+                f"AdminTogglePatientStatusView: NOT FOUND - patient_id={patient_id}"
+            )
             return Response(
                 {"success": False, "message": "Patient not found"},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        # Use AdminService to toggle status
-        patient, action = AdminService.toggle_patient_status(patient)
+        # Toggle the is_active status
+        patient.is_active = not patient.is_active
+        patient.save()
+
+        # Also update the user's is_active status
+        user = patient.user
+        user.is_active = patient.is_active
+        user.save()
 
         serializer = self.serializer_class(patient, context={"request": request})
-        print(f"AdminTogglePatientStatusView: SUCCESS - patient_id={patient_id} {action}")
+        action = "activated" if patient.is_active else "deactivated"
+        print(
+            f"AdminTogglePatientStatusView: SUCCESS - patient_id={patient_id} {action}"
+        )
 
         return Response(
             {
@@ -943,10 +1278,17 @@ class AdminToggleDoctorStatusView(generics.GenericAPIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        # Use AdminService to toggle status
-        doctor, action = AdminService.toggle_doctor_status(doctor)
+        # Toggle the is_active status
+        doctor.is_active = not doctor.is_active
+        doctor.save()
+
+        # Also update the user's is_active status
+        user = doctor.user
+        user.is_active = doctor.is_active
+        user.save()
 
         serializer = self.serializer_class(doctor, context={"request": request})
+        action = "activated" if doctor.is_active else "deactivated"
         print(f"AdminToggleDoctorStatusView: SUCCESS - user_id={user_id} {action}")
 
         return Response(
@@ -965,11 +1307,11 @@ class AdminVerifyDoctorView(generics.GenericAPIView):
     Verify or Reject a doctor account.
     Payload: { "status": "VERIFIED" | "REJECTED", "notes": "optional" }
     """
-
     permission_classes = [IsAuthenticated, IsAdminOrStaff]
     serializer_class = DoctorProfileSerializer
 
     def patch(self, request, user_id, *args, **kwargs):
+        
         try:
             doctor = Doctor.objects.select_related("user").get(user__user_id=user_id)
         except Doctor.DoesNotExist:
@@ -981,20 +1323,34 @@ class AdminVerifyDoctorView(generics.GenericAPIView):
         new_status = request.data.get("status")
         notes = request.data.get("notes", "")
 
-        # Validate status
+        # Only allow VERIFIED or REJECTED
         if new_status not in [VerificationStatus.VERIFIED, VerificationStatus.REJECTED]:
             return Response(
                 {"success": False, "message": "Invalid status. Must be VERIFIED or REJECTED."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Use AdminService to verify doctor
-        doctor = AdminService.verify_doctor(doctor, new_status, notes, request.user)
-
+        doctor.verification_status = new_status
+        doctor.verification_notes = notes
+        doctor.verified_by = request.user
+        doctor.verified_at = timezone.now()
+        
+        # If verified, also activate the account
+        if new_status == VerificationStatus.VERIFIED:
+            doctor.is_active = True
+            doctor.user.is_active = True
+            doctor.user.save()
+        elif new_status == VerificationStatus.REJECTED:
+            doctor.is_active = False
+            doctor.user.is_active = False
+            doctor.user.save()
+            
+        doctor.save()
+        
         serializer = self.get_serializer(doctor)
         return Response(
             {
-                "success": True,
+                "success": True, 
                 "message": f"Doctor {new_status.lower()} successfully",
                 "data": serializer.data
             },
@@ -1008,11 +1364,11 @@ class AdminVerifyLabView(generics.GenericAPIView):
     Verify or Reject a lab account.
     Payload: { "status": "VERIFIED" | "REJECTED", "notes": "optional" }
     """
-
     permission_classes = [IsAuthenticated, IsAdminOrStaff]
     serializer_class = LabProfileSerializer
 
     def patch(self, request, user_id, *args, **kwargs):
+        
         try:
             lab = Lab.objects.select_related("user").get(user__user_id=user_id)
         except Lab.DoesNotExist:
@@ -1024,20 +1380,33 @@ class AdminVerifyLabView(generics.GenericAPIView):
         new_status = request.data.get("status")
         notes = request.data.get("notes", "")
 
-        # Validate status
         if new_status not in [VerificationStatus.VERIFIED, VerificationStatus.REJECTED]:
             return Response(
                 {"success": False, "message": "Invalid status. Must be VERIFIED or REJECTED."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Use AdminService to verify lab
-        lab = AdminService.verify_lab(lab, new_status, notes, request.user)
+        lab.verification_status = new_status
+        lab.verification_notes = notes
+        lab.verified_by = request.user
+        lab.verified_at = timezone.now()
+        
+        # If verified, also activate the account
+        if new_status == VerificationStatus.VERIFIED:
+            lab.is_active = True
+            lab.user.is_active = True
+            lab.user.save()
+        elif new_status == VerificationStatus.REJECTED:
+            lab.is_active = False
+            lab.user.is_active = False
+            lab.user.save()
 
+        lab.save()
+        
         serializer = self.get_serializer(lab)
         return Response(
             {
-                "success": True,
+                "success": True, 
                 "message": f"Lab {new_status.lower()} successfully",
                 "data": serializer.data
             },
@@ -1050,14 +1419,21 @@ class PendingApprovalsCountView(generics.GenericAPIView):
     GET /api/admin/pending-approvals/count/
     Get the count of pending approvals for doctors and labs.
     """
-
     permission_classes = [IsAuthenticated, IsAdminOrStaff]
-
+    
     def get(self, request, *args, **kwargs):
-        # Use AdminService to get pending approvals count
-        count_data = AdminService.get_pending_approvals_count()
-
+        pending_doctors = Doctor.objects.filter(verification_status=VerificationStatus.PENDING).count()
+        pending_labs = Lab.objects.filter(verification_status=VerificationStatus.PENDING).count()
+        
         return Response(
-            {"success": True, "data": count_data},
+            {
+                "success": True,
+                "data": {
+                    "doctors": pending_doctors,
+                    "labs": pending_labs,
+                    "total": pending_doctors + pending_labs
+                }
+            },
             status=status.HTTP_200_OK
         )
+
