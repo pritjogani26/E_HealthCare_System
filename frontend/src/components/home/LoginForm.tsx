@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Lock, ArrowRight } from 'lucide-react';
+import GoogleLoginButton from '../GoogleLoginButton';
 
 interface LoginFormProps {
     onLogin: (e: React.FormEvent, data: { email: string; password: string }) => Promise<void>;
@@ -86,6 +87,17 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isSubmitting, err
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
             </form>
+
+            <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-200" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-white px-2 text-slate-500">Or continue with</span>
+                </div>
+            </div>
+
+            <GoogleLoginButton />
 
             <div className="mt-6 pt-4 border-t border-slate-200 text-center">
                 <p className="text-xs text-slate-600">

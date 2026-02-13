@@ -44,6 +44,14 @@ const ProfilePage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array - load profile only once on mount
 
+  const handleProfileUpdate = (updatedProfile: AnyProfile) => {
+    setProfile(updatedProfile);
+    if (updatedProfile) {
+      updateUser(updatedProfile);
+    }
+    toast.success("Profile updated successfully!");
+  };
+
   const baseUser = (profile as any)?.user ?? profile ?? user;
   const userRole = baseUser?.role;
 
@@ -51,7 +59,7 @@ const ProfilePage: React.FC = () => {
     <Layout>
       <PageHeader
         title="My Profile"
-        description="View your complete account information and details."
+        description="View and update your complete account information and details."
       />
 
       {loading && <LoadingState message="Loading profile..." />}
@@ -66,17 +74,26 @@ const ProfilePage: React.FC = () => {
 
             {/* PATIENT Details */}
             {userRole === "PATIENT" && (profile as PatientProfile) && (
-              <PatientProfileDetails profile={profile as PatientProfile} />
+              <PatientProfileDetails
+                profile={profile as PatientProfile}
+                onUpdate={handleProfileUpdate}
+              />
             )}
 
             {/* DOCTOR Details */}
             {userRole === "DOCTOR" && (profile as DoctorProfile) && (
-              <DoctorProfileDetails profile={profile as DoctorProfile} />
+              <DoctorProfileDetails
+                profile={profile as DoctorProfile}
+                onUpdate={handleProfileUpdate}
+              />
             )}
 
             {/* LAB Details */}
             {userRole === "LAB" && (profile as LabProfile) && (
-              <LabProfileDetails profile={profile as LabProfile} />
+              <LabProfileDetails
+                profile={profile as LabProfile}
+                onUpdate={handleProfileUpdate}
+              />
             )}
 
             {/* ADMIN/STAFF Details */}

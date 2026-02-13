@@ -18,7 +18,6 @@ interface HeaderProps {
   setIsSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-
 const Header: React.FC<HeaderProps> = ({ setIsSidebarOpen }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
@@ -36,7 +35,6 @@ const Header: React.FC<HeaderProps> = ({ setIsSidebarOpen }) => {
       window.location.href = "/";
     }
   };
-
 
   const { user, isAuthenticated } = useAuth();
 
@@ -90,9 +88,9 @@ const Header: React.FC<HeaderProps> = ({ setIsSidebarOpen }) => {
           <button
             onClick={toggleTheme}
             className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-            title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
           >
-            {theme === 'light' ? (
+            {theme === "light" ? (
               <Moon className="w-5 h-5 text-slate-600" />
             ) : (
               <Sun className="w-5 h-5 text-yellow-400" />
@@ -152,7 +150,9 @@ const Header: React.FC<HeaderProps> = ({ setIsSidebarOpen }) => {
                   <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
                     {displayName}
                   </p>
-                  <p className="text-xs text-slate-600 dark:text-slate-400">{displayRole}</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-400">
+                    {displayRole}
+                  </p>
                 </div>
 
                 <a
@@ -181,18 +181,30 @@ const Header: React.FC<HeaderProps> = ({ setIsSidebarOpen }) => {
         <div className="flex items-center gap-6 text-xs">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-            <span className="text-slate-600 dark:text-slate-400">System Status:</span>
-            <span className="font-semibold text-emerald-600 dark:text-emerald-400">Operational</span>
+            <span className="text-slate-600 dark:text-slate-400">
+              System Status:
+            </span>
+            <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+              Operational
+            </span>
           </div>
           <div className="h-4 w-px bg-slate-300 dark:bg-slate-600" />
           <div className="flex items-center gap-2">
-            <span className="text-slate-600 dark:text-slate-400">Today's Appointments:</span>
-            <span className="font-semibold text-slate-800 dark:text-slate-200">24 Scheduled</span>
+            <span className="text-slate-600 dark:text-slate-400">
+              Today's Appointments:
+            </span>
+            <span className="font-semibold text-slate-800 dark:text-slate-200">
+              24 Scheduled
+            </span>
           </div>
           <div className="h-4 w-px bg-slate-300 dark:bg-slate-600" />
           <div className="flex items-center gap-2">
-            <span className="text-slate-600 dark:text-slate-400">Active Patients:</span>
-            <span className="font-semibold text-slate-800 dark:text-slate-200">156</span>
+            <span className="text-slate-600 dark:text-slate-400">
+              Active Patients:
+            </span>
+            <span className="font-semibold text-slate-800 dark:text-slate-200">
+              156
+            </span>
           </div>
         </div>
         <div className="text-xs text-slate-500 dark:text-slate-400">

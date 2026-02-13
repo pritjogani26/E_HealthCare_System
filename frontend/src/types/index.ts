@@ -165,6 +165,8 @@ export interface PatientRegistrationData {
   city?: string;
   state?: string;
   pincode?: string;
+  oauth_provider?: string;
+  oauth_provider_id?: string;
 }
 
 export interface DoctorRegistrationData {
@@ -178,6 +180,8 @@ export interface DoctorRegistrationData {
   experience_years: number;
   consultation_fee?: number;
   qualifications?: DoctorQualification[];
+  oauth_provider?: string;
+  oauth_provider_id?: string;
 }
 
 export interface LabRegistrationData {
@@ -192,6 +196,8 @@ export interface LabRegistrationData {
   pincode: string;
   phone_number?: string;
   operating_hours?: { [key: string]: string };
+  oauth_provider?: string;
+  oauth_provider_id?: string;
 }
 
 export interface LoginData {

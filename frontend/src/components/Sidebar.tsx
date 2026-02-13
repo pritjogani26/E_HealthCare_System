@@ -39,7 +39,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     reports: false,
   });
 
-  const [pendingCounts, setPendingCounts] = useState<{ doctors: number; labs: number; total: number } | null>(null);
+  const [pendingCounts, setPendingCounts] = useState<{
+    doctors: number;
+    labs: number;
+    total: number;
+  } | null>(null);
 
   React.useEffect(() => {
     const fetchCounts = async () => {
@@ -76,12 +80,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const isActive = (route?: string) => {
     if (!route) return false;
     if (route === "/profile" && location.pathname === "/profile") return true;
-    if (route !== "/profile" && location.pathname.startsWith(route)) return true;
+    if (route !== "/profile" && location.pathname.startsWith(route))
+      return true;
     return false;
   };
 
   const menuItems: any[] = [
-    { icon: Home, label: "Dashboard", route: "/profile" },
+    { icon: Home, label: "Dashboard", route: "/dashboard" },
     {
       icon: Users,
       label: "Patients",
@@ -158,13 +163,22 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     {
       icon: AlertCircle,
       label: "Pending Approvals",
-      badge: pendingCounts && pendingCounts.total > 0 ? pendingCounts.total.toString() : "",
+      badge:
+        pendingCounts && pendingCounts.total > 0
+          ? pendingCounts.total.toString()
+          : "",
       badgeColor: "bg-orange-500",
       section: "approvals",
       subitems: [
-        { label: `Doctor Approvals ${pendingCounts && pendingCounts.doctors > 0 ? `(${pendingCounts.doctors})` : ''}`, route: "/admin/doctors?status=PENDING" },
-        { label: `Lab Approvals ${pendingCounts && pendingCounts.labs > 0 ? `(${pendingCounts.labs})` : ''}`, route: "/admin/labs?status=PENDING" },
-      ]
+        {
+          label: `Doctor Approvals ${pendingCounts && pendingCounts.doctors > 0 ? `(${pendingCounts.doctors})` : ""}`,
+          route: "/admin/doctors?status=PENDING",
+        },
+        {
+          label: `Lab Approvals ${pendingCounts && pendingCounts.labs > 0 ? `(${pendingCounts.labs})` : ""}`,
+          route: "/admin/labs?status=PENDING",
+        },
+      ],
     },
     {
       icon: Bell,
@@ -210,7 +224,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
               <h1 className="text-xl font-bold text-slate-800 dark:text-white tracking-tight">
                 E-Health Care
               </h1>
-              <p className="text-xs text-slate-600 dark:text-slate-400">Hospital Management System</p>
+              <p className="text-xs text-slate-600 dark:text-slate-400">
+                Hospital Management System
+              </p>
             </div>
           </div>
         </div>
@@ -222,7 +238,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           </p>
           <nav className="space-y-1">
             {menuItems.map((item: any, idx: any) => {
-              const active = isActive(item.route) || (item.subitems && item.subitems.some((sub: any) => isActive(sub.route)));
+              const active =
+                isActive(item.route) ||
+                (item.subitems &&
+                  item.subitems.some((sub: any) => isActive(sub.route)));
 
               return (
                 <div key={idx}>
@@ -237,9 +256,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                     className={`
                       w-full flex items-center justify-between px-3 py-2.5 rounded-lg
                       transition-all duration-200 group
-                      ${active
-                        ? "bg-emerald-50 dark:bg-gradient-to-r dark:from-emerald-500/10 dark:to-teal-500/10 text-emerald-600 dark:text-emerald-400 shadow-sm dark:shadow-lg dark:shadow-emerald-500/5"
-                        : "text-slate-700 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50"
+                      ${
+                        active
+                          ? "bg-emerald-50 dark:bg-gradient-to-r dark:from-emerald-500/10 dark:to-teal-500/10 text-emerald-600 dark:text-emerald-400 shadow-sm dark:shadow-lg dark:shadow-emerald-500/5"
+                          : "text-slate-700 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50"
                       }
                     `}
                   >
@@ -251,8 +271,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                     </div>
                     {item.section && (
                       <ChevronDown
-                        className={`w-4 h-4 transition-transform duration-200 ${expandedSections[item.section] ? "rotate-180" : ""
-                          }`}
+                        className={`w-4 h-4 transition-transform duration-200 ${
+                          expandedSections[item.section] ? "rotate-180" : ""
+                        }`}
                       />
                     )}
                   </button>
@@ -268,10 +289,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                             <button
                               key={subIdx}
                               onClick={() => handleNavigation(subitem.route)}
-                              className={`w-full flex items-center justify-between px-3 py-2 rounded-md transition-all duration-200 ${subActive
-                                ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-slate-800/50 font-medium"
-                                : "text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-800/30"
-                                }`}
+                              className={`w-full flex items-center justify-between px-3 py-2 rounded-md transition-all duration-200 ${
+                                subActive
+                                  ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-slate-800/50 font-medium"
+                                  : "text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-800/30"
+                              }`}
                             >
                               <span className="text-sm">{subitem.label}</span>
                               {subitem.badge && (
@@ -295,7 +317,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           </p>
           <nav className="space-y-1">
             {supportItems.map((item, idx) => {
-              const active = isActive(item.route) || (item.subitems && item.subitems.some((sub: any) => isActive(sub.route)));
+              const active =
+                isActive(item.route) ||
+                (item.subitems &&
+                  item.subitems.some((sub: any) => isActive(sub.route)));
 
               return (
                 <div key={idx}>
@@ -310,14 +335,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                     className={`
                   w-full flex items-center justify-between px-3 py-2.5 rounded-lg
                   transition-all duration-200 group
-                  ${active
-                        ? "bg-emerald-50 dark:bg-gradient-to-r dark:from-emerald-500/10 dark:to-teal-500/10 text-emerald-600 dark:text-emerald-400 shadow-sm dark:shadow-lg dark:shadow-emerald-500/5"
-                        : "text-slate-700 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50"
-                      }
+                  ${
+                    active
+                      ? "bg-emerald-50 dark:bg-gradient-to-r dark:from-emerald-500/10 dark:to-teal-500/10 text-emerald-600 dark:text-emerald-400 shadow-sm dark:shadow-lg dark:shadow-emerald-500/5"
+                      : "text-slate-700 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50"
+                  }
                 `}
                   >
                     <div className="flex items-center gap-3">
-                      <item.icon className={`w-5 h-5 ${active ? "text-emerald-600 dark:text-emerald-400" : "text-slate-600 dark:text-slate-400"}`} />
+                      <item.icon
+                        className={`w-5 h-5 ${active ? "text-emerald-600 dark:text-emerald-400" : "text-slate-600 dark:text-slate-400"}`}
+                      />
                       <span className="font-medium text-sm">{item.label}</span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -330,8 +358,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                       )}
                       {item.section && (
                         <ChevronDown
-                          className={`w-4 h-4 transition-transform duration-200 ${expandedSections[item.section] ? "rotate-180" : ""
-                            }`}
+                          className={`w-4 h-4 transition-transform duration-200 ${
+                            expandedSections[item.section] ? "rotate-180" : ""
+                          }`}
                         />
                       )}
                     </div>
@@ -348,10 +377,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                             <button
                               key={subIdx}
                               onClick={() => handleNavigation(subitem.route)}
-                              className={`w-full flex items-center justify-between px-3 py-2 rounded-md transition-all duration-200 ${subActive
-                                ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-slate-800/50 font-medium"
-                                : "text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-800/30"
-                                }`}
+                              className={`w-full flex items-center justify-between px-3 py-2 rounded-md transition-all duration-200 ${
+                                subActive
+                                  ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-slate-800/50 font-medium"
+                                  : "text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-800/30"
+                              }`}
                             >
                               <span className="text-sm">{subitem.label}</span>
                             </button>
@@ -369,20 +399,28 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
             <div className="bg-emerald-50 dark:bg-gradient-to-br dark:from-emerald-500/10 dark:to-teal-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-xl p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Activity className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                <h3 className="text-sm font-semibold text-slate-800 dark:text-white">Quick Stats</h3>
+                <h3 className="text-sm font-semibold text-slate-800 dark:text-white">
+                  Quick Stats
+                </h3>
               </div>
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between text-slate-600 dark:text-slate-400">
                   <span>Today's Appointments</span>
-                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">24</span>
+                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                    24
+                  </span>
                 </div>
                 <div className="flex justify-between text-slate-600 dark:text-slate-400">
                   <span>Active Patients</span>
-                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">156</span>
+                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                    156
+                  </span>
                 </div>
                 <div className="flex justify-between text-slate-600 dark:text-slate-400">
                   <span>Available Beds</span>
-                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">12/50</span>
+                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                    12/50
+                  </span>
                 </div>
               </div>
             </div>

@@ -37,7 +37,7 @@ from .models import (
     Qualification,
     UserTokens,
 )
-from .services import AuthService, ProfileService, RegistrationService, AdminService
+from .services import AuthService, ProfileService, RegistrationService, AdminService, EmailService, OAuthService
 from .helpers import set_auth_response_with_tokens, get_profile_data_by_role, set_refresh_token_cookie
 from .permissions import IsAdminOrStaff
 from .utils import generate_access_token, generate_refresh_token
@@ -66,20 +66,23 @@ class PatientRegistrationView(generics.GenericAPIView):
         if serializer.is_valid():
             try:
                 # Use RegistrationService to handle registration logic
-                user, patient_data = RegistrationService.register_patient(serializer)
+                user, patient_data, email_sent = RegistrationService.register_patient(serializer)
 
                 # Prepare response with tokens
                 response_dict, refresh_token = set_auth_response_with_tokens(
                     user=user,
                     user_data=patient_data,
-                    message="Patient registered successfully"
+                    message="Patient registered successfully. Please check your email to verify your account." if email_sent else "Patient registered successfully. Verification email could not be sent."
                 )
+
+                # Add email verification status to response
+                response_dict["email_verification_sent"] = email_sent
 
                 # Create response and set refresh token in HttpOnly cookie
                 response = Response(response_dict, status=status.HTTP_201_CREATED)
                 set_refresh_token_cookie(response, refresh_token)
 
-                print(f"PatientRegistrationView: SUCCESS - patient created user_email={user.email}")
+                print(f"PatientRegistrationView: SUCCESS - patient created user_email={user.email}, email_sent={email_sent}")
                 return response
                 
             except Exception as e:
@@ -122,20 +125,23 @@ class DoctorRegistrationView(generics.GenericAPIView):
         if serializer.is_valid():
             try:
                 # Use RegistrationService to handle registration logic
-                user, doctor_data = RegistrationService.register_doctor(serializer)
+                user, doctor_data, email_sent = RegistrationService.register_doctor(serializer)
 
                 # Prepare response with tokens
                 response_dict, refresh_token = set_auth_response_with_tokens(
                     user=user,
                     user_data=doctor_data,
-                    message="Doctor registered successfully. Account pending verification."
+                    message="Doctor registered successfully. Account pending verification. Please check your email." if email_sent else "Doctor registered successfully. Account pending verification. Verification email could not be sent."
                 )
+
+                # Add email verification status to response
+                response_dict["email_verification_sent"] = email_sent
 
                 # Create response and set refresh token in HttpOnly cookie
                 response = Response(response_dict, status=status.HTTP_201_CREATED)
                 set_refresh_token_cookie(response, refresh_token)
 
-                print(f"DoctorRegistrationView: SUCCESS - doctor created user_email={user.email}")
+                print(f"DoctorRegistrationView: SUCCESS - doctor created user_email={user.email}, email_sent={email_sent}")
                 return response
                 
             except Exception as e:
@@ -178,20 +184,23 @@ class LabRegistrationView(generics.GenericAPIView):
         if serializer.is_valid():
             try:
                 # Use RegistrationService to handle registration logic
-                user, lab_data = RegistrationService.register_lab(serializer)
+                user, lab_data, email_sent = RegistrationService.register_lab(serializer)
 
                 # Prepare response with tokens
                 response_dict, refresh_token = set_auth_response_with_tokens(
                     user=user,
                     user_data=lab_data,
-                    message="Lab registered successfully. Account pending verification."
+                    message="Lab registered successfully. Account pending verification. Please check your email." if email_sent else "Lab registered successfully. Account pending verification. Verification email could not be sent."
                 )
+
+                # Add email verification status to response
+                response_dict["email_verification_sent"] = email_sent
 
                 # Create response and set refresh token in HttpOnly cookie
                 response = Response(response_dict, status=status.HTTP_201_CREATED)
                 set_refresh_token_cookie(response, refresh_token)
 
-                print(f"LabRegistrationView: SUCCESS - lab created user_email={user.email}")
+                print(f"LabRegistrationView: SUCCESS - lab created user_email={user.email}, email_sent={email_sent}")
                 return response
                 
             except Exception as e:
@@ -353,6 +362,142 @@ class LogoutView(generics.GenericAPIView):
             return Response(
                 {"success": False, "message": "Logout failed", "error": str(e)},
                 status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+
+class GoogleAuthView(generics.GenericAPIView):
+    """
+    POST /api/auth/google/
+    Authenticate with Google ID Token.
+    Returns:
+    - 200 OK + Tokens if user exists.
+    - 200 OK + { registered: False, ... } if user not found.
+    """
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    
+    def post(self, request, *args, **kwargs):
+        token = request.data.get("token")
+        
+        # Verify Token using OAuthService
+        idinfo, error = OAuthService.verify_google_token(token)
+        if error:
+            return Response({"success": False, "message": error}, status=status.HTTP_400_BAD_REQUEST)
+            
+        email = idinfo.get("email")
+        
+        # Check if user exists
+        try:
+            user = User.objects.get(email=email)
+            
+            # Check account status
+            is_valid, status_message = AuthService.check_account_status(user)
+            if not is_valid:
+                return Response({"success": False, "message": status_message}, status=status.HTTP_403_FORBIDDEN)
+            
+            # Update oauth provider if missing
+            if not user.oauth_provider:
+                user.oauth_provider = "google"
+                user.oauth_provider_id = idinfo.get("sub")
+                user.save()
+            
+            # Handle successful login logic (reset failures etc)
+            AuthService.handle_successful_login(user)
+            
+            # Get profile data
+            profile_data = get_profile_data_by_role(user)
+            
+            # Generate tokens
+            response_dict, refresh_token = set_auth_response_with_tokens(
+                user=user,
+                user_data=profile_data,
+                message="Google login successful"
+            )
+            
+            response = Response(response_dict, status=status.HTTP_200_OK)
+            set_refresh_token_cookie(response, refresh_token)
+            return response
+            
+        except User.DoesNotExist:
+            # User not found -> Return data for registration prompt
+            return Response({
+                "registered": False,
+                "email": email,
+                "first_name": idinfo.get("given_name", ""),
+                "last_name": idinfo.get("family_name", ""),
+                "picture": idinfo.get("picture", ""),
+                "oauth_provider": "google",
+                "oauth_provider_id": idinfo.get("sub"),
+                "success": True,
+                "message": "User not registered. Please complete registration."
+            }, status=status.HTTP_200_OK)
+
+
+# ===================================================================================
+# ============================ EMAIL VERIFICATION VIEWS =============================
+# ===================================================================================
+
+
+class VerifyEmailView(generics.GenericAPIView):
+    """
+    POST /api/auth/verify-email/
+    Verify user email with token
+    """
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        token = request.data.get("token")
+        
+        if not token:
+            return Response(
+                {"success": False, "message": "Verification token is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        success, error = EmailService.verify_email_token(token)
+        
+        if success:
+            return Response(
+                {"success": True, "message": "Email verified successfully"},
+                status=status.HTTP_200_OK
+            )
+        else:
+            return Response(
+                {"success": False, "message": error},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+class ResendVerificationEmailView(generics.GenericAPIView):
+    """
+    POST /api/auth/resend-verification/
+    Resend verification email
+    """
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        email = request.data.get("email")
+        
+        if not email:
+            return Response(
+                {"success": False, "message": "Email is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        success, message = EmailService.resend_verification_email(email)
+        
+        if success:
+            return Response(
+                {"success": True, "message": message},
+                status=status.HTTP_200_OK
+            )
+        else:
+            return Response(
+                {"success": False, "message": message},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
 

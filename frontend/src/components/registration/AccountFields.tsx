@@ -8,6 +8,7 @@ interface AccountFieldsProps {
     setPassword: (val: string) => void;
     passwordConfirm: string;
     setPasswordConfirm: (val: string) => void;
+    readOnlyEmail?: boolean;
 }
 
 export const AccountFields: React.FC<AccountFieldsProps> = ({
@@ -16,7 +17,8 @@ export const AccountFields: React.FC<AccountFieldsProps> = ({
     password,
     setPassword,
     passwordConfirm,
-    setPasswordConfirm
+    setPasswordConfirm,
+    readOnlyEmail = false
 }) => {
     return (
         <>
@@ -31,7 +33,8 @@ export const AccountFields: React.FC<AccountFieldsProps> = ({
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                        readOnly={readOnlyEmail}
+                        className={`w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all ${readOnlyEmail ? 'cursor-not-allowed opacity-70' : ''}`}
                         placeholder="email@example.com"
                     />
                 </div>

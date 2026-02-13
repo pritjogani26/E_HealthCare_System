@@ -54,6 +54,10 @@ class PatientRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password_confirm = serializers.CharField(write_only=True, required=True)
     
+    # OAuth fields
+    oauth_provider = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    oauth_provider_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    
     # Patient fields
     full_name = serializers.CharField(required=True, max_length=255)
     mobile = serializers.CharField(required=True, max_length=15)
@@ -69,6 +73,7 @@ class PatientRegistrationSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'email', 'password', 'password_confirm',
+            'oauth_provider', 'oauth_provider_id',
             'full_name', 'mobile', 'date_of_birth', 
             'gender_id', 'blood_group_id', 'address',
             'city', 'state', 'pincode'
@@ -103,11 +108,17 @@ class PatientRegistrationSerializer(serializers.ModelSerializer):
         pincode = validated_data.pop('pincode', None)
         validated_data.pop('password_confirm')
         
+        # Extract OAuth fields
+        oauth_provider = validated_data.pop('oauth_provider', None)
+        oauth_provider_id = validated_data.pop('oauth_provider_id', None)
+        
         # Create user
         user = User.objects.create_user(
             email=validated_data['email'],
             password=validated_data['password'],
-            role=UserRole.PATIENT
+            role=UserRole.PATIENT,
+            oauth_provider=oauth_provider,
+            oauth_provider_id=oauth_provider_id
         )
         
         # Get blood group if provided
@@ -150,6 +161,10 @@ class DoctorRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password_confirm = serializers.CharField(write_only=True, required=True)
     
+    # OAuth fields
+    oauth_provider = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    oauth_provider_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    
     # Doctor fields
     full_name = serializers.CharField(required=True, max_length=255)
     phone_number = serializers.CharField(required=True, max_length=15)
@@ -163,6 +178,7 @@ class DoctorRegistrationSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'email', 'password', 'password_confirm',
+            'oauth_provider', 'oauth_provider_id',
             'full_name', 'phone_number', 'registration_number',
             'gender_id', 'experience_years', 'consultation_fee',
             'qualifications'
@@ -206,11 +222,17 @@ class DoctorRegistrationSerializer(serializers.ModelSerializer):
         qualifications_data = validated_data.pop('qualifications', [])
         validated_data.pop('password_confirm')
         
+        # Extract OAuth fields
+        oauth_provider = validated_data.pop('oauth_provider', None)
+        oauth_provider_id = validated_data.pop('oauth_provider_id', None)
+        
         # Create user
         user = User.objects.create_user(
             email=validated_data['email'],
             password=validated_data['password'],
-            role=UserRole.DOCTOR
+            role=UserRole.DOCTOR,
+            oauth_provider=oauth_provider,
+            oauth_provider_id=oauth_provider_id
         )
         
         # Get gender
@@ -247,6 +269,10 @@ class LabRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password_confirm = serializers.CharField(write_only=True, required=True)
     
+    # OAuth fields
+    oauth_provider = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    oauth_provider_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    
     # Lab fields
     lab_name = serializers.CharField(required=True, max_length=255)
     license_number = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=100)
@@ -261,6 +287,7 @@ class LabRegistrationSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'email', 'password', 'password_confirm',
+            'oauth_provider', 'oauth_provider_id',
             'lab_name', 'license_number', 'address',
             'city', 'state', 'pincode', 'phone_number',
             'operating_hours'
@@ -294,11 +321,17 @@ class LabRegistrationSerializer(serializers.ModelSerializer):
         operating_hours = validated_data.pop('operating_hours', None)
         validated_data.pop('password_confirm')
         
+        # Extract OAuth fields
+        oauth_provider = validated_data.pop('oauth_provider', None)
+        oauth_provider_id = validated_data.pop('oauth_provider_id', None)
+        
         # Create user
         user = User.objects.create_user(
             email=validated_data['email'],
             password=validated_data['password'],
-            role=UserRole.LAB
+            role=UserRole.LAB,
+            oauth_provider=oauth_provider,
+            oauth_provider_id=oauth_provider_id
         )
         
         # Create lab profile

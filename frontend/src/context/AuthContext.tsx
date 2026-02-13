@@ -17,6 +17,7 @@ interface AuthContextType {
   login: (data: LoginData) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (userData: any) => void;
+  setAuth: (userData: any, accessToken: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -47,6 +48,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
     setIsLoading(false);
   }, []);
+
+  const setAuth = (userData: any, accessToken: string) => {
+    setUser(userData);
+    localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("access_token", accessToken);
+  };
 
   const login = async (data: LoginData) => {
     const response = await apiService.login(data);
@@ -84,6 +91,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     login,
     logout,
     updateUser,
+    setAuth,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

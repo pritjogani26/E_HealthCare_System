@@ -121,6 +121,23 @@ class ApiService {
     return response.data.data;  // Unwrap the data
   }
 
+  // ==================== EMAIL VERIFICATION ====================
+
+  async verifyEmail(token: string): Promise<any> {
+    const response = await this.api.post('/auth/verify-email/', { token });
+    return response.data;
+  }
+
+  async resendVerification(email: string): Promise<any> {
+    const response = await this.api.post('/auth/resend-verification/', { email });
+    return response.data;
+  }
+
+  async googleLogin(token: string): Promise<any> {
+    const response = await this.api.post('/auth/google/', { token });
+    return response.data;
+  }
+
   // ==================== PROFILES ====================
 
   async getCurrentUserProfile(): Promise<any> {

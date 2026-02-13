@@ -1,5 +1,6 @@
 # backend/users/services/registration_service.py
 
+import logging
 from django.contrib.auth import get_user_model
 from ..models import Patient, Doctor, Lab
 from ..serializers import (
@@ -7,8 +8,10 @@ from ..serializers import (
     DoctorProfileSerializer,
     LabProfileSerializer,
 )
+from .email_service import EmailService
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 class RegistrationService:
@@ -20,13 +23,13 @@ class RegistrationService:
     @staticmethod
     def register_patient(serializer):
         """
-        Register a new patient user.
+        Register a new patient user and send verification email.
         
         Args:
             serializer: Validated PatientRegistrationSerializer instance
         
         Returns:
-            tuple: (user, patient_data)
+            tuple: (user, patient_data, email_sent)
         
         Raises:
             Exception: If registration fails
@@ -34,18 +37,30 @@ class RegistrationService:
         user = serializer.save()
         patient = Patient.objects.get(user=user)
         patient_data = PatientProfileSerializer(patient).data
-        return user, patient_data
+        
+        # Send verification email or verify if OAuth
+        email_sent = False
+        if user.oauth_provider:
+            user.email_verified = True
+            user.save()
+            email_sent = True
+        else:
+            email_sent = EmailService.send_verification_email(user)
+            if not email_sent:
+                logger.warning(f"Failed to send verification email to {user.email}")
+        
+        return user, patient_data, email_sent
 
     @staticmethod
     def register_doctor(serializer):
         """
-        Register a new doctor user.
+        Register a new doctor user and send verification email.
         
         Args:
             serializer: Validated DoctorRegistrationSerializer instance
         
         Returns:
-            tuple: (user, doctor_data)
+            tuple: (user, doctor_data, email_sent)
         
         Raises:
             Exception: If registration fails
@@ -53,18 +68,30 @@ class RegistrationService:
         user = serializer.save()
         doctor = Doctor.objects.get(user=user)
         doctor_data = DoctorProfileSerializer(doctor).data
-        return user, doctor_data
+        
+        # Send verification email or verify if OAuth
+        email_sent = False
+        if user.oauth_provider:
+            user.email_verified = True
+            user.save()
+            email_sent = True
+        else:
+            email_sent = EmailService.send_verification_email(user)
+            if not email_sent:
+                logger.warning(f"Failed to send verification email to {user.email}")
+        
+        return user, doctor_data, email_sent
 
     @staticmethod
     def register_lab(serializer):
         """
-        Register a new lab user.
+        Register a new lab user and send verification email.
         
         Args:
             serializer: Validated LabRegistrationSerializer instance
         
         Returns:
-            tuple: (user, lab_data)
+            tuple: (user, lab_data, email_sent)
         
         Raises:
             Exception: If registration fails
@@ -72,4 +99,16 @@ class RegistrationService:
         user = serializer.save()
         lab = Lab.objects.get(user=user)
         lab_data = LabProfileSerializer(lab).data
-        return user, lab_data
+        
+        # Send verification email or verify if OAuth
+        email_sent = False
+        if user.oauth_provider:
+            user.email_verified = True
+            user.save()
+            email_sent = True
+        else:
+            email_sent = EmailService.send_verification_email(user)
+            if not email_sent:
+                logger.warning(f"Failed to send verification email to {user.email}")
+        
+        return user, lab_data, email_sent

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Header from "../components/Header";
 import { useAuth } from "../context/AuthContext";
 import { apiService, handleApiError } from "../services/api";
@@ -79,6 +79,20 @@ const RegistrationPage: React.FC = () => {
 
   const { updateUser } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const googleData = location.state?.googleData;
+
+  useEffect(() => {
+    if (googleData) {
+      if (googleData.email) setEmail(googleData.email);
+      if (googleData.first_name || googleData.last_name) {
+        setFullName(`${googleData.first_name || ''} ${googleData.last_name || ''}`.trim());
+      }
+      if (location.state?.role) {
+        setRole(location.state.role);
+      }
+    }
+  }, [googleData, location.state]);
 
   useEffect(() => {
     const loadSupportingData = async () => {
@@ -192,6 +206,8 @@ const RegistrationPage: React.FC = () => {
             city: city || undefined,
             state: stateName || undefined,
             pincode: pincode || undefined,
+            oauth_provider: googleData?.oauth_provider,
+            oauth_provider_id: googleData?.oauth_provider_id,
           };
 
 
@@ -232,6 +248,8 @@ const RegistrationPage: React.FC = () => {
             experience_years: parseFloat(experienceYears || "0"),
             consultation_fee: consultationFee ? parseFloat(consultationFee) : undefined,
             qualifications: mappedQualifications,
+            oauth_provider: googleData?.oauth_provider,
+            oauth_provider_id: googleData?.oauth_provider_id,
           };
 
           const response = await apiService.registerDoctor(payload);
@@ -267,6 +285,8 @@ const RegistrationPage: React.FC = () => {
             pincode,
             phone_number: labPhone || undefined,
             operating_hours: operating_hours || undefined,
+            oauth_provider: googleData?.oauth_provider,
+            oauth_provider_id: googleData?.oauth_provider_id,
           };
 
           const response = await apiService.registerLab(payload);
@@ -305,6 +325,7 @@ const RegistrationPage: React.FC = () => {
               email={email} setEmail={setEmail}
               password={password} setPassword={setPassword}
               passwordConfirm={passwordConfirm} setPasswordConfirm={setPasswordConfirm}
+              readOnlyEmail={!!googleData}
             />
 
             {role === "PATIENT" && (

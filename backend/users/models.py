@@ -8,7 +8,6 @@ from django.contrib.auth.models import PermissionsMixin
 from django.utils import timezone
 
 
-
 class AccountStatus(models.TextChoices):
     ACTIVE = "ACTIVE", "Active"
     INACTIVE = "INACTIVE", "Inactive"
@@ -118,6 +117,27 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+
+
+class EmailVerificationTable(models.Model):
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="email_verify"
+    )
+    token = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_used = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = "email_verification_table"
+        indexes = [
+            models.Index(fields=["token"]),
+            models.Index(fields=["user", "is_used"]),
+        ]
+
+    def __str__(self):
+        return f"EmailVerification({self.user.email}, {self.token})"
 
 
 class Gender(models.Model):

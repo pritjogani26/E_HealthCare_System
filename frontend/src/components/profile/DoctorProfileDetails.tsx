@@ -1,20 +1,39 @@
-import React from "react";
-import { User, Phone, FileText, Award, Activity, Calendar, Shield, Stethoscope } from "lucide-react";
+import React, { useState } from "react";
+import { User, Phone, FileText, Award, Activity, Calendar, Shield, Stethoscope, Edit } from "lucide-react";
 import { DoctorProfile } from "../../types";
 import { InfoRow } from "../common/InfoRow";
+import { EditDoctorProfile } from "./EditDoctorProfile";
 
 interface DoctorProfileDetailsProps {
     profile: DoctorProfile;
+    onUpdate?: (updatedProfile: DoctorProfile) => void;
 }
 
-export const DoctorProfileDetails: React.FC<DoctorProfileDetailsProps> = ({ profile }) => {
+export const DoctorProfileDetails: React.FC<DoctorProfileDetailsProps> = ({ profile, onUpdate }) => {
+    const [showEditModal, setShowEditModal] = useState(false);
+
+    const handleUpdate = (updatedProfile: DoctorProfile) => {
+        if (onUpdate) {
+            onUpdate(updatedProfile);
+        }
+    };
+
     return (
         <>
             <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-                <h4 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                    <Stethoscope className="w-5 h-5 text-emerald-600" />
-                    Doctor Information
-                </h4>
+                <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <Stethoscope className="w-5 h-5 text-emerald-600" />
+                        Doctor Information
+                    </h4>
+                    <button
+                        onClick={() => setShowEditModal(true)}
+                        className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2"
+                    >
+                        <Edit className="w-4 h-4" />
+                        Edit Profile
+                    </button>
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <InfoRow icon={User} label="Full Name" value={profile.full_name} />
                     <InfoRow icon={Phone} label="Phone Number" value={profile.phone_number} />
@@ -96,6 +115,14 @@ export const DoctorProfileDetails: React.FC<DoctorProfileDetailsProps> = ({ prof
                         ))}
                     </div>
                 </div>
+            )}
+
+            {showEditModal && (
+                <EditDoctorProfile
+                    profile={profile}
+                    onClose={() => setShowEditModal(false)}
+                    onUpdate={handleUpdate}
+                />
             )}
         </>
     );

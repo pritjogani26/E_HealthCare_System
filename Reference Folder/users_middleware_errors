@@ -1,0 +1,200 @@
+
+
+2026-02-03 16:13:53.517837 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PUT /user/profile_update/1
+
+2026-02-03 17:00:16.867511 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PUT /user/profile_update/1
+
+2026-02-03 17:01:34.075594 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PUT /user/profile_update/1
+
+2026-02-03 17:02:37.014405 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PUT /user/profile_update/1
+
+2026-02-03 17:02:48.156423 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PUT /user/profile_update/1
+
+2026-02-03 17:03:35.710158 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PUT /user/profile_update/1
+
+2026-02-03 17:05:24.403403 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PUT /user/profile_update/1
+
+2026-02-03 17:07:31.089990 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PUT /user/profile_update/1
+
+2026-02-03 17:09:45.703883 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PUT /user/profile_update/1
+
+2026-02-03 17:14:36.694103 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PUT /user/profile_update/1
+
+2026-02-03 17:15:15.255567 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PUT /user/profile_update/1
+
+2026-02-03 17:15:57.700761 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PUT /user/profile_update/1
+
+2026-02-03 17:17:27.755947 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PUT /user/profile_update/1
+
+2026-02-03 17:18:29.996495 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PUT /user/profile_update/1
+
+2026-02-03 17:22:38.673496 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PUT /user/profile_update/1
+
+2026-02-03 17:25:59.695448 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1
+
+2026-02-03 17:31:06.568448 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/
+2026-02-03 17:33:10.311304 | Middleware Error: startswith first arg must be str or a tuple of str, not list | PATCH /user/profile_update/1/

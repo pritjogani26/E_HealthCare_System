@@ -9,8 +9,11 @@ from .views import (
 
     # Authentication
     LoginView,
+    GoogleAuthView,
     LogoutView,
     RefreshTokenView,
+    VerifyEmailView,
+    ResendVerificationEmailView,
 
     # Profiles
     PatientProfileView,
@@ -47,8 +50,13 @@ urlpatterns = [
     
     # ============ AUTHENTICATION ENDPOINTS ============
     path('auth/login/', LoginView.as_view(), name='login'),
+    path('auth/google/', GoogleAuthView.as_view(), name='google-auth'),
     path('auth/logout/', LogoutView.as_view(), name='logout'),
     path('auth/refresh/', RefreshTokenView.as_view(), name='refresh-token'),
+    
+    # ============ EMAIL VERIFICATION ENDPOINTS ============
+    path('auth/verify-email/', VerifyEmailView.as_view(), name='verify-email'),
+    path('auth/resend-verification/', ResendVerificationEmailView.as_view(), name='resend-verification'),
     
     # ============ PROFILE ENDPOINTS ============
     path('profile/me/', CurrentUserProfileView.as_view(), name='current-profile'),
