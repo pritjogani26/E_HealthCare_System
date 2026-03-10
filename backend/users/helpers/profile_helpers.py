@@ -5,15 +5,12 @@ import db.lab_queries as lq
 
 
 def get_profile_data_by_role(user):
-    """
-    Return the full role-specific profile dict/serialized data for a user.
-    """
-    role    = getattr(user, "role", None)
+    role = getattr(user, "role", None)
     user_id = str(getattr(user, "user_id", ""))
 
     try:
         if role == UserRole.PATIENT:
-            patient = pq.get_patient_by_user_id(user_id)
+            patient = pq.get_patient_by_id(user_id)
             if patient:
                 return patient
 
@@ -22,11 +19,13 @@ def get_profile_data_by_role(user):
 
             doctor = dq.get_doctor_by_user_id(user_id)
             if doctor:
-                doctor["qualifications"]  = dq.get_doctor_qualifications(user_id)
+                doctor["qualifications"] = dq.get_doctor_qualifications(user_id)
                 doctor["specializations"] = dq.get_doctor_specializations(user_id)
                 schedule = dq.get_schedule_by_doctor(user_id)
                 if schedule:
-                    schedule["working_days"] = dq.get_working_days(schedule["schedule_id"])
+                    schedule["working_days"] = dq.get_working_days(
+                        schedule["schedule_id"]
+                    )
                 doctor["schedule"] = schedule
                 return DoctorProfileSerializer(doctor).data
 
@@ -36,7 +35,7 @@ def get_profile_data_by_role(user):
             lab = lq.get_lab_by_user_id(user_id)
             if lab:
                 lab["operating_hours"] = lq.get_lab_operating_hours(user_id)
-                lab["services"]        = lq.get_lab_services(user_id)
+                lab["services"] = lq.get_lab_services(user_id)
                 return LabProfileSerializer(lab).data
 
         elif role in (UserRole.ADMIN, UserRole.STAFF):
@@ -49,7 +48,11 @@ def get_profile_data_by_role(user):
                 return UserSerializer(u).data
 
     except Exception as exc:
-        print("get_profile_data_by_role: could not load role profile for %s: %s", user_id, exc)
+        print(
+            "get_profile_data_by_role: could not load role profile for %s: %s",
+            user_id,
+            exc,
+        )
 
     # Fallback to bare user data
     from users.serializers import UserSerializer

@@ -25,7 +25,13 @@ export const PatientProfileDetails: React.FC<PatientProfileDetailsProps> = ({
 }) => {
   const [showEditModal, setShowEditModal] = useState(false);
 
-  const addr = profile.address;
+  const addr = profile.address || {
+    address_line: (profile as any).address_line,
+    city: (profile as any).city,
+    state: (profile as any).state,
+    pincode: (profile as any).pincode
+  };
+  const hasAddr = addr.address_line || addr.city || addr.state || addr.pincode;
 
   return (
     <>
@@ -65,17 +71,17 @@ export const PatientProfileDetails: React.FC<PatientProfileDetailsProps> = ({
           <InfoRow
             icon={User}
             label="Gender"
-            value={profile.gender_details?.gender_value}
+            value={profile.gender_details?.gender_value || (profile as any).gender}
           />
           <InfoRow
             icon={Droplets}
             label="Blood Group"
-            value={profile.blood_group_details?.blood_group_value}
+            value={profile.blood_group_details?.blood_group_value || (profile as any).blood_group}
           />
         </div>
 
         {/* Address */}
-        {addr && (
+        {hasAddr ? (
           <div className="border-t border-slate-100 pt-4 mb-4">
             <h5 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-1.5">
               <MapPin className="w-4 h-4 text-emerald-600" /> Address
@@ -84,11 +90,11 @@ export const PatientProfileDetails: React.FC<PatientProfileDetailsProps> = ({
               {addr.address_line && <p>{addr.address_line}</p>}
               <p>
                 {[addr.city, addr.state].filter(Boolean).join(", ")}
-                {addr.pincode ? ` – ${addr.pincode}` : ""}
+                {addr.pincode ? ` - ${addr.pincode}` : ""}
               </p>
             </div>
           </div>
-        )}
+        ) : null}
 
         {/* Emergency Contact */}
         {(profile.emergency_contact_name ||

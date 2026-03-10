@@ -32,7 +32,9 @@ RETURNS TABLE(
     blood_group varchar,
     gender varchar,
 
-    created_at timestamptz
+    created_at timestamptz,
+    updated_at timestamptz,
+    last_login_at timestamptz
 )
 LANGUAGE plpgsql
 AS $$
@@ -60,7 +62,9 @@ SELECT
     bg.blood_group_value,
     g.gender_value,
 
-    p.created_at
+    p.created_at,
+    u.updated_at,
+    u.last_login_at
 
 FROM patients p
 JOIN users u

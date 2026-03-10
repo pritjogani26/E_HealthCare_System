@@ -96,6 +96,18 @@ $$;
 
 
 
+CREATE OR REPLACE FUNCTION auth_toggle_patient_is_active(u_user_id uuid)
+RETURNS void
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE users
+    SET is_active = NOT is_active
+    WHERE user_id = u_user_id;
+END;
+$$;
+
+
 -- ============================================================
 -- 2. REFRESH TOKENS
 -- ============================================================
@@ -357,6 +369,7 @@ RETURN v_user_id;
 
 END;
 $$;
+
 
 
 

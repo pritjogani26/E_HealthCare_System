@@ -7,84 +7,58 @@ import db.lab_queries as lq
 class RegistrationService:
 
     @staticmethod
-    def _post_register(user_dict: dict, profile_dict, profile_type: str, request=None):
-        if profile_type == "patient":
-            AuditLogger.patient_registered(profile_dict, request=request)
-        elif profile_type == "doctor":
-            AuditLogger.doctor_registered(profile_dict, request=request)
-        elif profile_type == "lab":
-            AuditLogger.lab_registered(profile_dict, request=request)
+    def _post_register(user_dict: dict, profile_type, request=None):
+        # def _post_register(user_dict: dict, request=None):
+        # if profile_type == "patient":
+        #     AuditLogger.patient_registered(profile_dict, request=request)
+        # elif profile_type == "doctor":
+        #     AuditLogger.doctor_registered(profile_dict, request=request)
+        # elif profile_type == "lab":
+        #     AuditLogger.lab_registered(profile_dict, request=request)
 
-        if user_dict.get("oauth_provider"):
-            from db.user_queries import update_user_fields
+        email_sent = EmailService.send_verification_email(user_dict)
+        if not email_sent:
+            print("Failed to send verification email to %s", user_dict.get("email"))
 
-            update_user_fields(user_dict["user_id"], email_verified=True)
-            email_sent = True
-        else:
-            email_sent = EmailService.send_verification_email(user_dict)
-            if not email_sent:
-                print("Failed to send verification email to %s", user_dict.get("email"))
-
-        return user_dict, profile_dict, email_sent
+        return user_dict, email_sent
 
     # -------------------------------------------------------------------------
 
     @staticmethod
     def register_patient(data: dict, request=None, image_path: str = None):
-        try:
-            from users.services.password_service import hash_password
+        from users.services.password_service import hash_password
 
-            hashed_password = hash_password(data["password"])
-            profile_image = image_path or "/media/defaults/patient.png"
-            address_line = data.get("address_line") or ""
-            city = data.get("city") or ""
-            state = data.get("state") or ""
-            pincode = data.get("pincode") or ""
+        hashed_password = hash_password(data["password"])
+        profile_image = image_path or "/media/defaults/patient.png"
+        address_line = data.get("address_line") or ""
+        city = data.get("city") or ""
+        state = data.get("state") or ""
+        pincode = data.get("pincode") or ""
 
-            res = fn_fetchone("o_insert_address", [address_line, city, state, pincode])
-            address_id = list(res.values())[0]
+        res = fn_fetchone("o_insert_address", [address_line, city, state, pincode])
+        address_id = list(res.values())[0]
 
-            res = fn_fetchone(
-                "register_patient_user",
-                [
-                    data["email"],
-                    data["full_name"],
-                    data.get("date_of_birth"),
-                    data["mobile"],
-                    data.get("emergency_contact_name") or "",
-                    data.get("emergency_contact_phone") or "",
-                    profile_image,
-                    address_id,
-                    data.get("blood_group_id"),
-                    data["gender_id"],
-                    hashed_password,
-                ],
-            )
-            user_id = list(res.values())[0]
+        user_dict = fn_fetchone(
+            "register_patient_user",
+            [
+                data["email"],
+                data["full_name"],
+                data.get("date_of_birth"),
+                data["mobile"],
+                data.get("emergency_contact_name") or "",
+                data.get("emergency_contact_phone") or "",
+                profile_image,
+                address_id,
+                data.get("blood_group_id"),
+                data["gender_id"],
+                hashed_password,
+            ],
+        )
+        print(f"Response After Register Patient : {user_dict}")
+        # Response After Register Patient : {'user_id': UUID('90ef8108-1770-48f1-b887-b4ef74df5394'),
+        # 'email': 'yiyih70694@7novels.com', 'is_active': True, 'email_verified': False}
 
-            user_dict = {"user_id": user_id, "email": data["email"]}
-            patient_dict = {
-                "user_id": user_id,
-                "full_name": data["full_name"],
-                "mobile": data["mobile"],
-                "date_of_birth": data.get("date_of_birth"),
-                "gender_id": data["gender_id"],
-                "blood_group_id": data.get("blood_group_id"),
-                "emergency_contact_name": data.get("emergency_contact_name") or "",
-                "emergency_contact_phone": data.get("emergency_contact_phone") or "",
-                "profile_image": profile_image,
-                "address_id": address_id,
-                "address_line": address_line,
-                "city": city,
-                "state": state,
-                "pincode": pincode,
-            }
-            return RegistrationService._post_register(
-                user_dict, patient_dict, "patient", request=request
-            )
-        except Exception as e:
-            print(e)
-            raise
+        return RegistrationService._post_register(user_dict, "patient", request=request)
 
     # -------------------------------------------------------------------------
 

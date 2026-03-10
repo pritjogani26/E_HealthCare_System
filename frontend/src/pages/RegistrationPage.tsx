@@ -328,16 +328,24 @@ const RegistrationPage: React.FC = () => {
 
         const { user, access_token } = response;
         const baseUser = (user as any)?.user ?? user;
-        localStorage.setItem("access_token", access_token);
-        localStorage.setItem("user", JSON.stringify(baseUser));
-        setAuthUser(baseUser, access_token);
 
-        const msg =
-          role === "PATIENT"
-            ? "Patient registered successfully!"
-            : `${role.charAt(0) + role.slice(1).toLowerCase()} registered successfully! Account pending verification.`;
-        toast.success(msg);
-        setTimeout(() => navigate("/profile"), 1500);
+        if (baseUser?.email_verified === false) {
+           toast.success("Registration successful! Please verify your email.");
+           setTimeout(() => {
+             navigate("/check-email", { state: { email: baseUser.email } });
+           }, 1000);
+        } else {
+           localStorage.setItem("access_token", access_token);
+           localStorage.setItem("user", JSON.stringify(baseUser));
+           setAuthUser(baseUser, access_token);
+
+           const msg =
+             role === "PATIENT"
+               ? "Patient registered successfully!"
+               : `${role.charAt(0) + role.slice(1).toLowerCase()} registered successfully! Account pending verification.`;
+           toast.success(msg);
+           setTimeout(() => navigate("/profile"), 1500);
+        }
       } catch (err: any) {
         const fieldErrs = getFieldErrors(err);
         if (Object.keys(fieldErrs).length > 0) {

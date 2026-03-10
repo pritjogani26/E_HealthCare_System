@@ -5,6 +5,7 @@ import Dashboard from "./components/Dashboard";
 import LoginPage from "./pages/LoginPage";
 import RegistrationPage from "./pages/RegistrationPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
+import CheckEmailPage from "./pages/CheckEmailPage";
 import RoleSelectionPage from "./pages/RoleSelectionPage";
 import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -41,6 +42,7 @@ function App() {
               />
               <Route path="/registration" element={<RegistrationPage />} />
               <Route path="/verify-email" element={<VerifyEmailPage />} />
+              <Route path="/check-email" element={<CheckEmailPage />} />
               <Route path="/role-selection" element={<RoleSelectionPage />} />
               <Route
                 path="/profile"

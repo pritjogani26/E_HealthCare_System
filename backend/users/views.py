@@ -66,8 +66,13 @@ class LoginView(generics.GenericAPIView):
         is_active, active_msg = AuthService.check_account_status(user)
         if not is_active:
             return _error(active_msg, http_status=status.HTTP_403_FORBIDDEN)
+        
+        # is_email_verified, active_msg = AuthService.check_email_verified(user)
+        # if not is_email_verified:
+        #     return _error(active_msg, http_status=status.HTTP_403_FORBIDDEN)
 
         authenticated = password_service.verify_password(password, user.get("password", ""))
+
         if not authenticated:
             should_lock, msg = AuthService.handle_failed_login(user)
             AuditLogger.login_failed(email, reason="Invalid password", request=request)
@@ -77,16 +82,22 @@ class LoginView(generics.GenericAPIView):
             )
 
         AuthService.handle_successful_login(user["email"])
-        user     = uq.get_user_by_id(user["user_id"])
-        user_wrap = UserWrapper(user)
-        request.user  = user_wrap
-        profile_data  = get_profile_data_by_role(user_wrap)
+        user = uq.get_user_by_id(user["user_id"])
+
+        user_dict = user
+        # user_dict = {
+        #     "user_id" : user["user_id"],
+        #     "email" : user["email"],
+        #     "email_verified" : user["email_verified"],
+        #     "is_active" : user["is_active"],
+        #     "role" : user["role"]
+        # }
+        print(f"User : {user_dict}")
         response_dict, refresh_token = set_auth_response_with_tokens(
-            user_wrap, profile_data, "Login successful"
+            user_dict, "Login successful"
         )
         response = Response(response_dict, status=status.HTTP_200_OK)
         set_refresh_token_cookie(response, refresh_token)
-        AuditLogger.login_success(user_wrap, request=request)
         return response
 
 

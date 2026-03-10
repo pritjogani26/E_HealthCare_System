@@ -29,7 +29,7 @@ def _ok(data=None, message="Success", http_status=status.HTTP_200_OK):
     return Response(body, status=http_status)
 
 
-class PatientRegistrationView(AuditMixin, generics.GenericAPIView):
+class PatientRegistrationView(generics.GenericAPIView):
     authentication_classes = []
     permission_classes = [AllowAny]
     serializer_class = PatientRegistrationSerializer
@@ -41,7 +41,7 @@ class PatientRegistrationView(AuditMixin, generics.GenericAPIView):
         data = serializer.validated_data
         image_path = get_image_path(data, request, name="patients")
         try:
-            user, patient_data, email_sent = RegistrationService.register_patient(
+            user, email_sent = RegistrationService.register_patient(
                 data, request=request, image_path=image_path
             )
             msg = (
@@ -49,26 +49,31 @@ class PatientRegistrationView(AuditMixin, generics.GenericAPIView):
                 if email_sent
                 else "Patient registered successfully. Verification email could not be sent."
             )
-            response_dict, refresh_token = set_auth_response_with_tokens(
-                user, patient_data, msg
-            )
+            response_dict = {
+                "success": True,
+                "message": msg,
+                "data": {
+                    "user": user
+                },
+            }
             response_dict["email_verification_sent"] = email_sent
             response = Response(response_dict, status=status.HTTP_201_CREATED)
-            set_refresh_token_cookie(response, refresh_token)
             return response
-        except Exception:
+
+        except Exception as e:
             print(
                 "EXCEPTION:",
                 traceback.format_exc(),
                 "PatientRegistrationView: exception",
             )
+            error_msg = str(e).split("\n")[0] or "a server error"
             return _error(
-                "Registration failed due to a server error.",
+                f"Registration failed due to {error_msg}.",
                 http_status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
-class PatientProfileView(AuditMixin, generics.GenericAPIView):
+class PatientProfileView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
@@ -118,7 +123,7 @@ class PatientProfileView(AuditMixin, generics.GenericAPIView):
             image_path = get_image_path(request.data, request, name="patients")
             if image_path:
                 serializer.validated_data["profile_image"] = image_path
-            build_changes_dict(patient, serializer.validated_data)
+            # build_changes_dict(patient, serializer.validated_data)
             updated_data = ProfileService.update_patient_profile(
                 patient, serializer, request=request
             )

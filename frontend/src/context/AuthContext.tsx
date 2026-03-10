@@ -1,17 +1,4 @@
 // frontend/src/context/AuthContext.tsx
-// Key optimizations:
-//   1. login / logout / refreshUser wrapped in useCallback — stable identities
-//      prevent consumer components from re-rendering whenever AuthContext
-//      re-renders for any reason.
-//   2. Token validation strengthened: decodes the JWT payload and rejects tokens
-//      that are missing the `exp` field or are already expired before treating
-//      the session as authenticated. Previously only presence of the token
-//      string was checked, allowing stale/malformed tokens to appear valid.
-//   3. isAuthenticated derived from `user !== null` — single source of truth.
-//   4. Replaced `any` casts with typed JwtPayload interface.
-//   5. initAuth moved into a useCallback so it can be called from both the
-//      initial useEffect and from refreshUser() without duplication.
-
 import React, {
   createContext,
   useCallback,
@@ -58,10 +45,18 @@ interface AuthContextValue {
  */
 function extractBaseUser(profile: any): AuthUser {
   const base = profile.user || profile;
+
+  let role = base.role;
+  if (!role) {
+    if (base.patient_id) role = "PATIENT";
+    else if (base.doctor_id) role = "DOCTOR";
+    else if (base.lab_id) role = "LAB";
+  }
+
   return {
-    user_id: base.user_id,
+    user_id: base.user_id || base.patient_id || base.doctor_id || base.lab_id,
     email: base.email,
-    role: base.role,
+    role: role,
     is_email_verified: base.email_verified ?? base.is_email_verified,
     is_active: base.is_active,
   };

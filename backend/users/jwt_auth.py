@@ -1,7 +1,3 @@
-"""
-PyJWT-based token generation and authentication backend.
-"""
-
 import uuid
 import jwt
 from datetime import timedelta
@@ -13,7 +9,6 @@ from db import user_queries
 
 
 def access_exp() -> timedelta:
-    # BUG FIX: was "JWTaccess_expIRE_MINUTES" (typo) → correct setting name
     return timedelta(minutes=getattr(settings, "JWT_ACCESS_EXPIRE_MINUTES", 15))
 
 
@@ -29,11 +24,6 @@ ALGORITHM = "HS256"
 
 
 class TokenUser:
-    """
-    Lightweight object that quacks like request.user for DRF.
-    Populated from JWT payload — no DB hit on every request.
-    """
-
     def __init__(self, payload: dict):
         self.user_id = payload.get("user_id")
         self.email = payload.get("email", "")
@@ -50,7 +40,6 @@ class TokenUser:
 
 
 class UserWrapper:
-    """Wraps a raw user dict from DB to expose attribute-style access."""
 
     def __init__(self, user_dict: dict):
         self._d = user_dict
@@ -83,25 +72,24 @@ class UserWrapper:
 
 
 def generate_tokens(user) -> dict:
-    if isinstance(user, dict):
-        user = UserWrapper(user)
     now = timezone.now()
+    print(f"\n\n\n{user}")
     access_payload = {
         "token_type": "access",
-        "jti": str(uuid.uuid4()),
-        "user_id": str(user.user_id),
-        "email": user.email,
-        "role": user.role,
-        "is_active": user.is_active,
+        "user_id": str(user["user_id"]),
+        "email": user["email"],
+        "role": user["role"],
+        "is_active": user["is_active"],
         "iat": int(now.timestamp()),
         "exp": int((now + access_exp()).timestamp()),
     }
     refresh_payload = {
         "token_type": "refresh",
         "jti": str(uuid.uuid4()),
-        "user_id": str(user.user_id),
-        "email": user.email,
-        "role": user.role,
+        "user_id": str(user["user_id"]),
+        "email": user["email"],
+        "role": user["role"],
+        "is_active": user["is_active"],
         "iat": int(now.timestamp()),
         "exp": int((now + _refresh_exp()).timestamp()),
     }
@@ -130,10 +118,6 @@ def decode_refresh_token(token: str) -> dict:
 
 
 def rotate_refresh_token(old_refresh_token: str) -> tuple[dict, str, str]:
-    """
-    Validate old refresh token, issue fresh access + refresh pair.
-    Returns (user_dict, new_access_token, new_refresh_token).
-    """
     try:
         payload = decode_refresh_token(old_refresh_token)
     except jwt.ExpiredSignatureError:
@@ -153,11 +137,6 @@ def rotate_refresh_token(old_refresh_token: str) -> tuple[dict, str, str]:
 
 
 class PyJWTAuthentication(BaseAuthentication):
-    """
-    Reads 'Authorization: Bearer <token>', decodes the access JWT,
-    returns (TokenUser, token). No DB hit for valid tokens.
-    """
-
     def authenticate(self, request):
         auth_header = request.META.get("HTTP_AUTHORIZATION", "")
         if not auth_header.startswith("Bearer "):

@@ -100,31 +100,6 @@ def update_oauth_provider(user_id: str, provider: str, provider_id: str):
     )
 
 
-def update_user_fields(user_id: str, **fields):
-    if not fields:
-        return
-    fn_map = {
-        "email_verified": lambda v: (
-            fn_scalar("u_set_email_verified", [str(user_id)]) if v else None
-        ),
-        "email": lambda v: fn_scalar("u_update_email", [str(user_id), v]),
-        # Pass the boolean value explicitly — SQL expects (uuid, boolean)
-        "two_factor_enabled": lambda v: fn_scalar(
-            "u_toggle_two_factor", [str(user_id), bool(v)]
-        ),
-    }
-    from db.connection import execute
-
-    for key, value in fields.items():
-        if key in fn_map:
-            fn_map[key](value)
-        else:
-            execute(
-                f"UPDATE users SET {key}=%s, updated_at=NOW() WHERE user_id=%s",
-                [value, str(user_id)],
-            )
-
-
 def toggle_user_status(admin_id: str, target_id: str, is_active: bool) -> bool:
     """Calls u_toggle_user_status(admin_id, target_id, is_active)."""
     return fn_scalar(

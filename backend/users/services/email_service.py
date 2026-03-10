@@ -9,6 +9,7 @@ import db.user_queries as uq
 class EmailService:
     @staticmethod
     def send_verification_email(user: dict) -> bool:
+        print(f"\nEmailService : f{user}")
         token = eq.create_email_verification_token(
             user_id=user["user_id"], expires_hours=24
         )

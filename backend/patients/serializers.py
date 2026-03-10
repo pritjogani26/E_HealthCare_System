@@ -15,6 +15,7 @@ import db.patient_queries as pq
 # Output sub-serializers (response shaping)
 # ------------------------------------------------------------
 
+
 class _UserOut(serializers.Serializer):
     user_id = serializers.UUIDField()
     email = serializers.EmailField()
@@ -49,6 +50,7 @@ class _AddressOut(serializers.Serializer):
 # Patient profile response serializer
 # ------------------------------------------------------------
 
+
 class PatientProfileSerializer(serializers.Serializer):
     """Reads flat DB dict and shapes it into a nested response."""
 
@@ -80,38 +82,45 @@ class PatientProfileSerializer(serializers.Serializer):
         if not d.get("gender_id"):
             return None
         # using _GenderOut instead of inline dict
-        return _GenderOut({
-            "gender_id": d["gender_id"],
-            "gender_value": d.get("gender_value"),
-        }).data
+        return _GenderOut(
+            {
+                "gender_id": d["gender_id"],
+                "gender_value": d.get("gender_value"),
+            }
+        ).data
 
     def get_blood_group(self, obj):
         d = self._src(obj)
         if not d.get("blood_group_id"):
             return None
         # using _BloodGroupOut instead of inline dict
-        return _BloodGroupOut({
-            "blood_group_id": d["blood_group_id"],
-            "blood_group_value": d.get("blood_group_value"),
-        }).data
+        return _BloodGroupOut(
+            {
+                "blood_group_id": d["blood_group_id"],
+                "blood_group_value": d.get("blood_group_value"),
+            }
+        ).data
 
     def get_address(self, obj):
         d = self._src(obj)
         if not d.get("address_id"):
             return None
         # removed latitude/longitude — not in DB schema
-        return _AddressOut({
-            "address_id": d["address_id"],
-            "address_line": d.get("address_line", ""),
-            "city": d.get("city", ""),
-            "state": d.get("state", ""),
-            "pincode": d.get("pincode", ""),
-        }).data
+        return _AddressOut(
+            {
+                "address_id": d["address_id"],
+                "address_line": d.get("address_line", ""),
+                "city": d.get("city", ""),
+                "state": d.get("state", ""),
+                "pincode": d.get("pincode", ""),
+            }
+        ).data
 
 
 # ------------------------------------------------------------
 # Patient registration serializer (validation only)
 # ------------------------------------------------------------
+
 
 class PatientRegistrationSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
@@ -143,33 +152,29 @@ class PatientRegistrationSerializer(serializers.Serializer):
         required=False, allow_blank=True, allow_null=True, max_length=10
     )
     emergency_contact_name = serializers.CharField(
-        required=False, allow_blank=True, allow_null=True, max_length=255  # fixed: was 100, DB is VARCHAR(255)
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+        max_length=255,  # fixed: was 100, DB is VARCHAR(255)
     )
     emergency_contact_phone = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, max_length=15
     )
 
-    def validate_email(self, value):
-        if uq.email_exists(value):
-            raise serializers.ValidationError("A user with this email already exists.")
-        return value
+    # def validate_email(self, value):
+    #     if uq.email_exists(value):
+    #         raise serializers.ValidationError("A user with this email already exists.")
+    #     return value
 
-    def validate_mobile(self, value):
-        if pq.mobile_exists(value):
-            raise serializers.ValidationError(
-                "A patient with this mobile number already exists."
-            )
-        return value
+    # def validate_gender_id(self, value):
+    #     if not uq.gender_exists(value):
+    #         raise serializers.ValidationError("Invalid gender ID.")
+    #     return value
 
-    def validate_gender_id(self, value):
-        if not uq.gender_exists(value):
-            raise serializers.ValidationError("Invalid gender ID.")
-        return value
-
-    def validate_blood_group_id(self, value):
-        if value and not uq.blood_group_exists(value):
-            raise serializers.ValidationError("Invalid blood group ID.")
-        return value
+    # def validate_blood_group_id(self, value):
+    #     if value and not uq.blood_group_exists(value):
+    #         raise serializers.ValidationError("Invalid blood group ID.")
+    #     return value
 
     def validate_date_of_birth(self, value):
         # future date of birth is not valid
@@ -191,6 +196,7 @@ class PatientRegistrationSerializer(serializers.Serializer):
 # Patient profile update serializer (validation only)
 # ------------------------------------------------------------
 
+
 class PatientProfileUpdateSerializer(serializers.Serializer):
     full_name = serializers.CharField(required=False, max_length=255)
     date_of_birth = serializers.DateField(required=False, allow_null=True)
@@ -198,13 +204,18 @@ class PatientProfileUpdateSerializer(serializers.Serializer):
     blood_group_id = serializers.IntegerField(required=False, allow_null=True)
     mobile = serializers.CharField(required=False, max_length=15)
     emergency_contact_name = serializers.CharField(
-        required=False, allow_blank=True, allow_null=True, max_length=255  # fixed: DB is VARCHAR(255)
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+        max_length=255,  # fixed: DB is VARCHAR(255)
     )
     emergency_contact_phone = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, max_length=15
     )
     address_line = serializers.CharField(
-        required=False, allow_blank=True, allow_null=True  # flattened — removed _AddressWriteSerializer
+        required=False,
+        allow_blank=True,
+        allow_null=True,  # flattened — removed _AddressWriteSerializer
     )
     city = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, max_length=100
@@ -215,7 +226,9 @@ class PatientProfileUpdateSerializer(serializers.Serializer):
     pincode = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, max_length=10
     )
-    profile_image = serializers.CharField(required=False)  # removed allow_blank — DB col is NOT NULL
+    profile_image = serializers.CharField(
+        required=False
+    )  # removed allow_blank — DB col is NOT NULL
 
     def validate_mobile(self, value):
         patient_id = self.context.get("patient_id")

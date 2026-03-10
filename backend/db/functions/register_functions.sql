@@ -8,7 +8,6 @@
 -- ============================================================
 -- 1. REGISTER PATIENT
 -- ============================================================
-
 CREATE OR REPLACE FUNCTION register_patient_user(
     u_email varchar,
     u_full_name varchar,
@@ -24,12 +23,18 @@ CREATE OR REPLACE FUNCTION register_patient_user(
     u_oauth_provider varchar DEFAULT NULL,
     u_oauth_provider_id varchar DEFAULT NULL
 )
-RETURNS uuid
+RETURNS Table (
+    user_id uuid,
+    email varchar,
+    is_active boolean,
+    email_verified boolean
+)
 LANGUAGE plpgsql
 AS $$
 DECLARE
     v_user_id uuid;
     v_role_id int;
+    v_email_verified boolean;
 BEGIN
 
 -- Validate auth method
@@ -42,14 +47,14 @@ IF NOT (
 END IF;
 
 -- Email uniqueness
-IF EXISTS (SELECT 1 FROM users WHERE email = u_email) THEN
+IF EXISTS (SELECT 1 FROM users u WHERE u.email = u_email) THEN
     RAISE EXCEPTION 'EMAIL_ALREADY_EXISTS';
 END IF;
 
 -- Get role id
-SELECT role_id INTO v_role_id
-FROM user_roles
-WHERE role = 'patient';
+SELECT ur.role_id INTO v_role_id
+FROM user_roles ur
+WHERE ur.role = 'patient';
 
 IF v_role_id IS NULL THEN
     RAISE EXCEPTION 'ROLE_NOT_FOUND';
@@ -57,6 +62,11 @@ END IF;
 
 -- Generate user id
 v_user_id := gen_random_uuid();
+v_email_verified := FALSE;  -- ✅ Added missing semicolon
+
+IF u_oauth_provider_id IS NOT NULL AND u_oauth_provider IS NOT NULL THEN
+    v_email_verified := TRUE;  -- ✅ Added missing semicolon
+END IF;
 
 -- Insert user
 INSERT INTO users (
@@ -79,7 +89,7 @@ VALUES (
     u_password,
     u_oauth_provider,
     u_oauth_provider_id,
-    FALSE,
+    v_email_verified,
     TRUE,
     FALSE,
     0,
@@ -120,11 +130,10 @@ VALUES (
     NOW()
 );
 
-RETURN v_user_id;
-
+RETURN QUERY
+    SELECT u.user_id, u.email, u.is_active, u.email_verified FROM users u WHERE u.user_id = v_user_id;
 END;
 $$;
-
 
 
 -- ============================================================

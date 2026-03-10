@@ -3,14 +3,14 @@ from django.http import HttpResponse
 from users.jwt_auth import generate_tokens
 
 
-def set_auth_response_with_tokens(user, user_data, message):
+def set_auth_response_with_tokens(user, message):
     print(f"\n\nUser : {user}")
     tokens = generate_tokens(user)
     response_dict = {
         "success": True,
         "message": message,
         "data": {
-            "user": user_data,
+            "user": user,
             "access_token": tokens["access_token"],
             "token_type": tokens["token_type"],
             "expires_in": tokens["expires_in"],

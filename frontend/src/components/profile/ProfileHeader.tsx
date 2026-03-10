@@ -6,11 +6,13 @@ import { InfoRow } from "../common/InfoRow";
 interface ProfileHeaderProps {
   user: any;
   profile: any;
+  role?: string;
 }
 
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   user,
   profile,
+  role: propRole,
 }) => {
   // Resolve display name across all profile shapes
   const displayName =
@@ -21,20 +23,27 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     "—";
 
   // Resolve avatar initials / image
-  const profileImage =
+  let profileImage =
     profile?.profile_image && !profile.profile_image.includes("/defaults/")
       ? profile.profile_image
       : profile?.lab_logo && !profile.lab_logo.includes("/defaults/")
         ? profile.lab_logo
         : null;
 
+  if (profileImage && profileImage.startsWith('/')) {
+    const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
+    profileImage = `${baseUrl}${profileImage}`;
+  }
+
   const initials = (displayName[0] ?? "U").toUpperCase();
 
   // Account status & role
-  const role = user?.role_display ?? user?.role ?? "—";
+  const role = propRole || user?.role_display || user?.role || "—";
   const accountStatus =
-    user?.account_status_display ?? user?.account_status ?? "Active";
-  const emailVerified = user?.email_verified ?? false;
+    user?.account_status_display ??
+    user?.account_status ??
+    (user?.is_active === true ? "Active" : user?.is_active === false ? "Inactive" : "Active");
+  const emailVerified = user?.email_verified ?? user?.is_email_verified ?? false;
 
   return (
     <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
@@ -71,8 +80,8 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             )}
             <span
               className={`text-xs px-2 py-0.5 rounded-full font-medium border ${accountStatus === "ACTIVE" || accountStatus === "Active"
-                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                  : "bg-red-50 text-red-700 border-red-200"
+                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                : "bg-red-50 text-red-700 border-red-200"
                 }`}
             >
               {accountStatus}

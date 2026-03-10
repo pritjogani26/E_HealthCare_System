@@ -22,6 +22,14 @@ class AuthService:
         return True, None
 
     @staticmethod
+    def check_email_verified(user: dict):
+        if not user.get("email_verified", False):
+            return False, "Your email is not verified. Please verify email first."
+        return True, None
+
+
+
+    @staticmethod
     def handle_failed_login(user: dict):
         return uq.handle_failed_login(user, MAX_FAILED_ATTEMPTS, LOCKOUT_MINUTES)
 

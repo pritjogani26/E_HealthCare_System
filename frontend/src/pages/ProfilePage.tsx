@@ -37,6 +37,12 @@ const extractRole = (profile: AnyProfile, fallback?: string): string => {
   }
   // Nested profile: { user: { role } }
   if ((profile as any).user?.role) return (profile as any).user.role;
+
+  // Fallback to deriving from IDs
+  if ((profile as any).patient_id) return "PATIENT";
+  if ((profile as any).doctor_id) return "DOCTOR";
+  if ((profile as any).lab_id) return "LAB";
+
   return fallback ?? "";
 };
 
@@ -103,7 +109,7 @@ const ProfilePage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* ── Left column (2/3) ──────────────────────────────────────────── */}
           <div className="lg:col-span-2 space-y-6">
-            <ProfileHeader user={baseUser} profile={profile} />
+            <ProfileHeader user={baseUser} profile={profile} role={role} />
 
             {role === "PATIENT" && (
               <PatientProfileDetails
