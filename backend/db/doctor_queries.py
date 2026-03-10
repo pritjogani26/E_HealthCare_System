@@ -1,0 +1,446 @@
+from db.connection import (
+    fn_fetchone,
+    fn_fetchall,
+    fn_scalar,
+    fetchscalar,
+    fetchone,
+    fetchall,
+    execute,
+)
+
+
+def _normalize_doctor(row: dict) -> dict:
+    if not row:
+        return row
+    d = dict(row)
+    # d.setdefault("doctor_id", d.get("doctor_id"))
+    # d.setdefault("user_id", d.get("doctor_id"))
+    # # _UserOut serializer sources
+    # d.setdefault("is_active", d.get("is_active"))
+    # d.setdefault("created_at", d.get("created_at"))
+    # d.setdefault("updated_at", d.get("updated_at"))
+    # # DoctorProfileSerializer sources
+    # d.setdefault("created_at", d.get("created_at"))
+    # d.setdefault("updated_at", d.get("updated_at"))
+    # # Defaults for fields not always returned
+    # d.setdefault("role", "doctor")
+    # d.setdefault("two_factor_enabled", False)
+    # d.setdefault("last_login_at", None)
+    print(f"Doctor Dict : {d}")
+    return d
+
+
+def get_doctor_by_user_id(user_id: str) -> dict | None:
+    row = fn_fetchone("d_get_full_doctor_profile", [str(user_id)])
+    return _normalize_doctor(row) if row else None
+
+
+def get_all_doctors() -> list:
+    rows = fn_fetchall("d_list_doctors", [])
+    return [_normalize_doctor(r) for r in rows]
+
+
+def get_verified_active_doctors() -> list:
+    rows = fn_fetchall("d_list_doctors", [])
+    return [
+        _normalize_doctor(r)
+        for r in rows
+        if r.get("is_active") and r.get("verification_status") == "approved"
+    ]
+
+
+def phone_exists(phone: str, exclude_doctor_id: str = None) -> bool:
+    if exclude_doctor_id:
+        return (
+            fetchscalar(
+                "SELECT COUNT(*) FROM doctors WHERE phone_number=%s AND doctor_id!=%s",
+                [phone, str(exclude_doctor_id)],
+            )
+            > 0
+        )
+    return (
+        fetchscalar("SELECT COUNT(*) FROM doctors WHERE phone_number=%s", [phone]) > 0
+    )
+
+
+def registration_number_exists(reg_no: str, exclude_doctor_id: str = None) -> bool:
+    if exclude_doctor_id:
+        return (
+            fetchscalar(
+                "SELECT COUNT(*) FROM doctors WHERE registration_number=%s AND doctor_id!=%s",
+                [reg_no, str(exclude_doctor_id)],
+            )
+            > 0
+        )
+    return (
+        fetchscalar(
+            "SELECT COUNT(*) FROM doctors WHERE registration_number=%s", [reg_no]
+        )
+        > 0
+    )
+
+
+def create_doctor(
+    user_id: str,
+    full_name: str,
+    phone_number: str,
+    registration_number: str,
+    gender_id: int = None,
+    experience_years=0,
+    consultation_fee=None,
+    address_id: int = None,
+    profile_image: str = "/media/defaults/doctor.png",
+):
+    execute(
+        """
+        INSERT INTO doctors
+            (doctor_id, full_name, phone_number, registration_number, gender_id,
+             experience_years, consultation_fee, address_id, profile_image,
+             is_active, verification_status, created_at, updated_at)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, TRUE, 'pending', NOW(), NOW())
+        """,
+        [
+            str(user_id),
+            full_name,
+            phone_number,
+            registration_number,
+            gender_id,
+            experience_years,
+            consultation_fee,
+            address_id,
+            profile_image,
+        ],
+    )
+    return get_doctor_by_user_id(user_id)
+
+
+def update_doctor(user_id: str, **fields) -> dict:
+    if not fields:
+        return get_doctor_by_user_id(user_id)
+    fn_scalar(
+        "d_update_doctor_profile",
+        [
+            str(user_id),
+            fields.get("full_name"),
+            fields.get("experience_years"),
+            fields.get("phone_number"),
+            fields.get("consultation_fee"),
+            fields.get("registration_number"),
+            fields.get("profile_image"),
+            fields.get("address_id"),
+            fields.get("gender_id"),
+        ],
+    )
+    return get_doctor_by_user_id(user_id)
+
+
+def toggle_doctor_is_active(user_id: str) -> dict:
+    execute(
+        "UPDATE doctors SET is_active = NOT is_active, updated_at=NOW() WHERE doctor_id=%s",
+        [str(user_id)],
+    )
+    execute(
+        """
+        UPDATE users u SET is_active = d.is_active, updated_at=NOW()
+        FROM doctors d WHERE d.doctor_id=%s AND u.user_id = d.doctor_id
+        """,
+        [str(user_id)],
+    )
+    return get_doctor_by_user_id(user_id)
+
+
+def update_doctor_verification(user_id: str, status: str, notes: str, verified_by_id: str) -> dict:
+    """Calls a_verify_doctor(p_admin_id, p_doctor_id, p_status, p_notes)."""
+    fn_scalar(
+        "a_verify_doctor",
+        [str(verified_by_id), str(user_id), status, notes],
+    )
+    return get_doctor_by_user_id(user_id)
+
+
+def get_pending_doctors_count() -> int:
+    return (
+        fetchscalar(
+            "SELECT COUNT(*) FROM doctors WHERE verification_status='pending'", []
+        )
+        or 0
+    )
+
+
+# ---------------------------------------------------------------------------
+# Qualifications
+# ---------------------------------------------------------------------------
+
+def get_doctor_qualifications(doctor_id: str) -> list:
+    return fn_fetchall("d_get_qualifications", [str(doctor_id)])
+
+
+def delete_doctor_qualifications(doctor_id: str):
+    execute(
+        "DELETE FROM doctor_qualifications WHERE doctor_id=%s", [str(doctor_id)]
+    )
+
+
+def insert_doctor_qualification(
+    doctor_id: str,
+    qualification_id: int,
+    institution: str = None,
+    year_of_completion: int = None,
+):
+    fn_scalar(
+        "d_add_qualification",
+        [str(doctor_id), qualification_id, institution, year_of_completion],
+    )
+
+
+# ---------------------------------------------------------------------------
+# Specializations
+# ---------------------------------------------------------------------------
+
+def get_doctor_specializations(doctor_id: str) -> list:
+    return fn_fetchall("d_get_specializations", [str(doctor_id)])
+
+
+def delete_doctor_specializations(doctor_id: str):
+    execute(
+        "DELETE FROM doctor_specializations WHERE doctor_id=%s", [str(doctor_id)]
+    )
+
+
+def insert_doctor_specialization(
+    doctor_id: str,
+    specialization_id: int,
+    is_primary: bool = False,
+    years_in_specialty: int = None,
+):
+    fn_scalar(
+        "d_add_specialization",
+        [str(doctor_id), specialization_id, is_primary, years_in_specialty],
+    )
+
+
+# ---------------------------------------------------------------------------
+# Schedule & working days
+# ---------------------------------------------------------------------------
+
+def get_schedule_by_doctor(doctor_id: str) -> dict | None:
+    return fn_fetchone("d_get_full_schedule", [str(doctor_id)])
+
+
+def upsert_schedule(
+    doctor_id: str,
+    consultation_duration_min: int = 30,
+    appointment_contact: str = None,
+) -> dict:
+    fn_scalar(
+        "d_upsert_schedule",
+        [str(doctor_id), consultation_duration_min, appointment_contact],
+    )
+    return fetchone(
+        "SELECT * FROM doctor_schedules WHERE doctor_id=%s LIMIT 1",
+        [str(doctor_id)],
+    )
+
+
+def get_working_days(schedule_id: int) -> list:
+    return fetchall(
+        "SELECT * FROM doctor_working_days WHERE schedule_id=%s ORDER BY day_of_week",
+        [schedule_id],
+    )
+
+
+def delete_working_days(schedule_id: int):
+    execute("DELETE FROM doctor_working_days WHERE schedule_id=%s", [schedule_id])
+
+
+def insert_working_day(
+    schedule_id: int,
+    day_of_week: int,
+    arrival=None,
+    leaving=None,
+    lunch_start=None,
+    lunch_end=None,
+):
+    fn_scalar(
+        "d_upsert_working_day",
+        [schedule_id, day_of_week, arrival, leaving, lunch_start, lunch_end],
+    )
+
+
+# ---------------------------------------------------------------------------
+# Appointment slots
+# ---------------------------------------------------------------------------
+
+def get_or_create_slot(schedule_id: int, slot_date, start_time, end_time) -> tuple:
+    existing = fetchone(
+        "SELECT * FROM appointment_slots WHERE schedule_id=%s AND slot_date=%s AND start_time=%s",
+        [schedule_id, slot_date, start_time],
+    )
+    if existing:
+        return existing, False
+    row = fetchone(
+        """
+        INSERT INTO appointment_slots (schedule_id, slot_date, start_time, end_time,
+                                       is_booked, is_blocked, created_at)
+        VALUES (%s, %s, %s, %s, FALSE, FALSE, NOW())
+        RETURNING slot_id
+        """,
+        [schedule_id, slot_date, start_time, end_time],
+    )
+    slot = fetchone("SELECT * FROM appointment_slots WHERE slot_id=%s", [row["slot_id"]])
+    return slot, True
+
+
+def get_available_slots(schedule_id: int, today, target_date=None) -> list:
+    base = """
+        SELECT s.*, ds.doctor_id
+        FROM appointment_slots s
+        JOIN doctor_schedules ds ON ds.schedule_id = s.schedule_id
+        WHERE s.schedule_id=%s AND s.is_booked=FALSE AND s.is_blocked=FALSE
+          AND s.slot_date >= %s
+    """
+    params = [schedule_id, today]
+    if target_date:
+        base += " AND s.slot_date=%s"
+        params.append(target_date)
+    base += " ORDER BY s.slot_date, s.start_time"
+    return fetchall(base, params)
+
+
+def lock_slot_for_update(slot_id: int) -> dict | None:
+    from django.db import connection as dj_conn
+
+    with dj_conn.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT s.*, ds.doctor_id
+            FROM appointment_slots s
+            JOIN doctor_schedules ds ON ds.schedule_id = s.schedule_id
+            WHERE s.slot_id=%s FOR UPDATE
+            """,
+            [slot_id],
+        )
+        cols = [c[0] for c in cursor.description]
+        row = cursor.fetchone()
+    return dict(zip(cols, row)) if row else None
+
+
+def mark_slot_booked(slot_id: int, booked: bool):
+    execute(
+        "UPDATE appointment_slots SET is_booked=%s WHERE slot_id=%s", [booked, slot_id]
+    )
+
+
+def get_slot(slot_id: int) -> dict | None:
+    return fetchone(
+        """
+        SELECT s.*, ds.doctor_id
+        FROM appointment_slots s
+        JOIN doctor_schedules ds ON ds.schedule_id = s.schedule_id
+        WHERE s.slot_id=%s
+        """,
+        [slot_id],
+    )
+
+
+def slot_exists(slot_id: int) -> bool:
+    return (
+        fetchscalar("SELECT COUNT(*) FROM appointment_slots WHERE slot_id=%s", [slot_id]) > 0
+    )
+
+
+# ---------------------------------------------------------------------------
+# Appointments
+# ---------------------------------------------------------------------------
+
+def create_appointment(
+    doctor_id: str,
+    patient_id: str,
+    slot_id: int,
+    appointment_type: str,
+    status: str,
+    reason: str = "",
+) -> dict:
+    fn_scalar(
+        "d_book_appointment",
+        [str(patient_id), str(doctor_id), slot_id, appointment_type, reason],
+    )
+    return fetchone(
+        """
+        SELECT da.*, d.full_name AS doctor_name, pu.email AS patient_email,
+               s.slot_date, s.start_time, s.end_time
+        FROM doctor_appointments da
+        JOIN doctors d ON d.doctor_id = da.doctor_id
+        JOIN users pu ON pu.user_id = da.patient_id
+        LEFT JOIN appointment_slots s ON s.slot_id = da.slot_id
+        WHERE da.doctor_id=%s AND da.patient_id=%s AND da.slot_id=%s
+        ORDER BY da.created_at DESC LIMIT 1
+        """,
+        [str(doctor_id), str(patient_id), slot_id],
+    )
+
+
+def get_appointment_by_id(appointment_id: int) -> dict | None:
+    return fetchone(
+        """
+        SELECT da.*, d.full_name AS doctor_name, pu.email AS patient_email,
+               s.slot_date, s.start_time, s.end_time
+        FROM doctor_appointments da
+        JOIN doctors d ON d.doctor_id = da.doctor_id
+        JOIN users pu ON pu.user_id = da.patient_id
+        LEFT JOIN appointment_slots s ON s.slot_id = da.slot_id
+        WHERE da.appointment_id=%s
+        """,
+        [appointment_id],
+    )
+
+
+def lock_appointment_for_update(appointment_id: int) -> dict | None:
+    from django.db import connection as dj_conn
+
+    with dj_conn.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT da.*, d.full_name AS doctor_name, pu.email AS patient_email,
+                   s.slot_date, s.start_time, s.end_time
+            FROM doctor_appointments da
+            JOIN doctors d ON d.doctor_id = da.doctor_id
+            JOIN users pu ON pu.user_id = da.patient_id
+            LEFT JOIN appointment_slots s ON s.slot_id = da.slot_id
+            WHERE da.appointment_id = %s FOR UPDATE
+            """,
+            [appointment_id],
+        )
+        cols = [c[0] for c in cursor.description]
+        row = cursor.fetchone()
+    return dict(zip(cols, row)) if row else None
+
+
+def update_appointment(appointment_id: int, **fields) -> dict:
+    if not fields:
+        return get_appointment_by_id(appointment_id)
+    if fields.get("status") in ("cancelled", "CANCELLED"):
+        fn_scalar(
+            "d_cancel_appointment",
+            [
+                appointment_id,
+                str(fields.get("cancelled_by_id", "")),
+                fields.get("cancellation_reason", ""),
+            ],
+        )
+    else:
+        set_clause = ", ".join(f"{k}=%s" for k in fields)
+        values = list(fields.values()) + [appointment_id]
+        execute(
+            f"UPDATE doctor_appointments SET {set_clause}, updated_at=NOW() WHERE appointment_id=%s",
+            values,
+        )
+    return get_appointment_by_id(appointment_id)
+
+
+def get_patient_appointments(patient_user_id: str) -> list:
+    return fn_fetchall("d_get_appointments", [None, str(patient_user_id)])
+
+
+def get_doctor_appointments(doctor_id: str) -> list:
+    return fn_fetchall("d_get_appointments", [str(doctor_id), None])
