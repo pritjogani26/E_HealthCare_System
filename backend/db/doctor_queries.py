@@ -9,41 +9,20 @@ from db.connection import (
 )
 
 
-def _normalize_doctor(row: dict) -> dict:
-    if not row:
-        return row
-    d = dict(row)
-    # d.setdefault("doctor_id", d.get("doctor_id"))
-    # d.setdefault("user_id", d.get("doctor_id"))
-    # # _UserOut serializer sources
-    # d.setdefault("is_active", d.get("is_active"))
-    # d.setdefault("created_at", d.get("created_at"))
-    # d.setdefault("updated_at", d.get("updated_at"))
-    # # DoctorProfileSerializer sources
-    # d.setdefault("created_at", d.get("created_at"))
-    # d.setdefault("updated_at", d.get("updated_at"))
-    # # Defaults for fields not always returned
-    # d.setdefault("role", "doctor")
-    # d.setdefault("two_factor_enabled", False)
-    # d.setdefault("last_login_at", None)
-    print(f"Doctor Dict : {d}")
-    return d
-
-
 def get_doctor_by_user_id(user_id: str) -> dict | None:
     row = fn_fetchone("d_get_full_doctor_profile", [str(user_id)])
-    return _normalize_doctor(row) if row else None
+    return dict(row) if row else None
 
 
 def get_all_doctors() -> list:
     rows = fn_fetchall("d_list_doctors", [])
-    return [_normalize_doctor(r) for r in rows]
+    return [dict(r) for r in rows]
 
 
 def get_verified_active_doctors() -> list:
     rows = fn_fetchall("d_list_doctors", [])
     return [
-        _normalize_doctor(r)
+        dict(r)
         for r in rows
         if r.get("is_active") and r.get("verification_status") == "approved"
     ]
@@ -149,8 +128,10 @@ def toggle_doctor_is_active(user_id: str) -> dict:
     return get_doctor_by_user_id(user_id)
 
 
-def update_doctor_verification(user_id: str, status: str, notes: str, verified_by_id: str) -> dict:
-    """Calls a_verify_doctor(p_admin_id, p_doctor_id, p_status, p_notes)."""
+def update_doctor_verification(
+    user_id: str, status: str, notes: str, verified_by_id: str
+) -> dict:
+    print(f"status in Final : {status}")
     fn_scalar(
         "a_verify_doctor",
         [str(verified_by_id), str(user_id), status, notes],
@@ -171,14 +152,13 @@ def get_pending_doctors_count() -> int:
 # Qualifications
 # ---------------------------------------------------------------------------
 
+
 def get_doctor_qualifications(doctor_id: str) -> list:
     return fn_fetchall("d_get_qualifications", [str(doctor_id)])
 
 
 def delete_doctor_qualifications(doctor_id: str):
-    execute(
-        "DELETE FROM doctor_qualifications WHERE doctor_id=%s", [str(doctor_id)]
-    )
+    execute("DELETE FROM doctor_qualifications WHERE doctor_id=%s", [str(doctor_id)])
 
 
 def insert_doctor_qualification(
@@ -197,14 +177,13 @@ def insert_doctor_qualification(
 # Specializations
 # ---------------------------------------------------------------------------
 
+
 def get_doctor_specializations(doctor_id: str) -> list:
     return fn_fetchall("d_get_specializations", [str(doctor_id)])
 
 
 def delete_doctor_specializations(doctor_id: str):
-    execute(
-        "DELETE FROM doctor_specializations WHERE doctor_id=%s", [str(doctor_id)]
-    )
+    execute("DELETE FROM doctor_specializations WHERE doctor_id=%s", [str(doctor_id)])
 
 
 def insert_doctor_specialization(
@@ -222,6 +201,7 @@ def insert_doctor_specialization(
 # ---------------------------------------------------------------------------
 # Schedule & working days
 # ---------------------------------------------------------------------------
+
 
 def get_schedule_by_doctor(doctor_id: str) -> dict | None:
     return fn_fetchone("d_get_full_schedule", [str(doctor_id)])
@@ -271,6 +251,7 @@ def insert_working_day(
 # Appointment slots
 # ---------------------------------------------------------------------------
 
+
 def get_or_create_slot(schedule_id: int, slot_date, start_time, end_time) -> tuple:
     existing = fetchone(
         "SELECT * FROM appointment_slots WHERE schedule_id=%s AND slot_date=%s AND start_time=%s",
@@ -287,7 +268,9 @@ def get_or_create_slot(schedule_id: int, slot_date, start_time, end_time) -> tup
         """,
         [schedule_id, slot_date, start_time, end_time],
     )
-    slot = fetchone("SELECT * FROM appointment_slots WHERE slot_id=%s", [row["slot_id"]])
+    slot = fetchone(
+        "SELECT * FROM appointment_slots WHERE slot_id=%s", [row["slot_id"]]
+    )
     return slot, True
 
 
@@ -345,13 +328,17 @@ def get_slot(slot_id: int) -> dict | None:
 
 def slot_exists(slot_id: int) -> bool:
     return (
-        fetchscalar("SELECT COUNT(*) FROM appointment_slots WHERE slot_id=%s", [slot_id]) > 0
+        fetchscalar(
+            "SELECT COUNT(*) FROM appointment_slots WHERE slot_id=%s", [slot_id]
+        )
+        > 0
     )
 
 
 # ---------------------------------------------------------------------------
 # Appointments
 # ---------------------------------------------------------------------------
+
 
 def create_appointment(
     doctor_id: str,

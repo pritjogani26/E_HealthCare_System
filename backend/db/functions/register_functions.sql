@@ -54,7 +54,7 @@ END IF;
 -- Get role id
 SELECT ur.role_id INTO v_role_id
 FROM user_roles ur
-WHERE ur.role = 'patient';
+WHERE ur.role = 'PATIENT';
 
 IF v_role_id IS NULL THEN
     RAISE EXCEPTION 'ROLE_NOT_FOUND';
@@ -62,10 +62,10 @@ END IF;
 
 -- Generate user id
 v_user_id := gen_random_uuid();
-v_email_verified := FALSE;  -- ✅ Added missing semicolon
+v_email_verified := FALSE;
 
 IF u_oauth_provider_id IS NOT NULL AND u_oauth_provider IS NOT NULL THEN
-    v_email_verified := TRUE;  -- ✅ Added missing semicolon
+    v_email_verified := TRUE;
 END IF;
 
 -- Insert user
@@ -140,6 +140,7 @@ $$;
 -- 2. REGISTER DOCTOR
 -- ============================================================
 
+
 CREATE OR REPLACE FUNCTION register_doctor_user(
     u_email varchar,
     u_full_name varchar,
@@ -154,15 +155,20 @@ CREATE OR REPLACE FUNCTION register_doctor_user(
     u_oauth_provider varchar DEFAULT NULL,
     u_oauth_provider_id varchar DEFAULT NULL
 )
-RETURNS uuid
+RETURNS TABLE (
+    user_id uuid,
+    email varchar,
+    is_active boolean,
+    email_verified boolean
+)
 LANGUAGE plpgsql
 AS $$
 DECLARE
     v_user_id uuid;
     v_role_id int;
+    v_email_verified boolean;
 BEGIN
 
--- Validate auth
 IF NOT (
     (u_password IS NOT NULL AND u_oauth_provider_id IS NULL)
     OR
@@ -171,95 +177,56 @@ IF NOT (
     RAISE EXCEPTION 'INVALID_AUTH_METHOD';
 END IF;
 
--- Email check
-IF EXISTS (SELECT 1 FROM users WHERE email = u_email) THEN
+IF EXISTS (SELECT 1 FROM users u WHERE u.email = u_email) THEN
     RAISE EXCEPTION 'EMAIL_ALREADY_EXISTS';
 END IF;
 
--- Registration number check
-IF EXISTS (SELECT 1 FROM doctors WHERE registration_number = u_registration_number) THEN
+IF EXISTS (SELECT 1 FROM doctors d WHERE d.registration_number = u_registration_number) THEN
     RAISE EXCEPTION 'REGISTRATION_NUMBER_EXISTS';
 END IF;
 
--- Get role
-SELECT role_id INTO v_role_id
-FROM user_roles
-WHERE role = 'doctor';
+SELECT ur.role_id INTO v_role_id
+FROM user_roles ur
+WHERE ur.role = 'DOCTOR';
 
 IF v_role_id IS NULL THEN
     RAISE EXCEPTION 'ROLE_NOT_FOUND';
 END IF;
 
 v_user_id := gen_random_uuid();
+v_email_verified := FALSE;
 
--- Create user
+IF u_oauth_provider_id IS NOT NULL AND u_oauth_provider IS NOT NULL THEN
+    v_email_verified := TRUE;
+END IF;
+
 INSERT INTO users (
-    user_id,
-    email,
-    password,
-    oauth_provider,
-    oauth_provider_id,
-    email_verified,
-    is_active,
-    two_factor_enabled,
-    failed_login_attempts,
-    role_id,
-    created_at,
-    updated_at
+    user_id, email, password, oauth_provider, oauth_provider_id,
+    email_verified, is_active, two_factor_enabled, failed_login_attempts,
+    role_id, created_at, updated_at
 )
 VALUES (
-    v_user_id,
-    u_email,
-    u_password,
-    u_oauth_provider,
-    u_oauth_provider_id,
-    FALSE,
-    TRUE,
-    FALSE,
-    0,
-    v_role_id,
-    NOW(),
-    NOW()
+    v_user_id, u_email, u_password, u_oauth_provider, u_oauth_provider_id,
+    v_email_verified, TRUE, FALSE, 0, v_role_id, NOW(), NOW()
 );
 
--- Create doctor profile
 INSERT INTO doctors (
-    doctor_id,
-    full_name,
-    experience_years,
-    phone_number,
-    consultation_fee,
-    registration_number,
-    profile_image,
-    address_id,
-    gender_id,
-    verification_status,
-    is_active,
-    created_at,
-    updated_at
+    doctor_id, full_name, experience_years, phone_number, consultation_fee,
+    registration_number, profile_image, address_id, gender_id,
+    verification_status, is_active, created_at, updated_at
 )
 VALUES (
-    v_user_id,
-    u_full_name,
-    u_experience_years,
-    u_phone_number,
-    u_consultation_fee,
-    u_registration_number,
-    u_profile_image,
-    u_address_id,
-    u_gender_id,
-    'pending',
-    TRUE,
-    NOW(),
-    NOW()
+    v_user_id, u_full_name, u_experience_years, u_phone_number, u_consultation_fee,
+    u_registration_number, u_profile_image, u_address_id, u_gender_id,
+    'PENDING', TRUE, NOW(), NOW()
 );
 
-RETURN v_user_id;
-
+RETURN QUERY
+    SELECT u.user_id, u.email, u.is_active, u.email_verified
+    FROM users u
+    WHERE u.user_id = v_user_id;
 END;
 $$;
-
-
 
 -- ============================================================
 -- 3. REGISTER LAB
@@ -306,7 +273,7 @@ END IF;
 -- Get role
 SELECT role_id INTO v_role_id
 FROM user_roles
-WHERE role = 'lab_technician';
+WHERE role = 'LAB_TECHNICIAN';
 
 IF v_role_id IS NULL THEN
     RAISE EXCEPTION 'ROLE_NOT_FOUND';

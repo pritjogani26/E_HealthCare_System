@@ -7,17 +7,17 @@ class AccountStatus:
 
 
 class UserRole:
-    ADMIN = "admin"
-    STAFF = "staff"
-    DOCTOR = "doctor"
-    PATIENT = "patient"
-    LAB = "lab_technician"
+    ADMIN = "ADMIN"
+    STAFF = "STAFF"
+    DOCTOR = "DOCTOR"
+    PATIENT = "PATIENT"
+    LAB = "LAB_TECHNICIAN"
     choices = [
-        (ADMIN, "Admin"),
-        (STAFF, "Staff"),
-        (DOCTOR, "Doctor"),
-        (PATIENT, "Patient"),
-        (LAB, "Lab"),
+        (ADMIN, "ADMIN"),
+        (STAFF, "STAFF"),
+        (DOCTOR, "DOCTOR"),
+        (PATIENT, "PATIENT"),
+        (LAB, "LAB"),
     ]
 
 

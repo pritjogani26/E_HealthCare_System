@@ -1,8 +1,8 @@
+# backend\doctors\views.py
 import traceback
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from users.AuditLog import AuditMixin
 from users.models import UserRole
 from users.services.registration_service import RegistrationService
 from users.helpers import set_auth_response_with_tokens, set_refresh_token_cookie
@@ -34,21 +34,25 @@ def _ok(data=None, message="Success", http_status=status.HTTP_200_OK):
     return Response(body, status=http_status)
 
 
-class DoctorRegistrationView(AuditMixin, generics.GenericAPIView):
+class DoctorRegistrationView(generics.GenericAPIView):
     authentication_classes = []
     permission_classes = [AllowAny]
     serializer_class = DoctorRegistrationSerializer
 
     def post(self, request, *args, **kwargs):
+        print("\n\nDone....")
         serializer = self.get_serializer(data=request.data)
+        print("Data.....")
         if not serializer.is_valid():
             return _error("Registration failed", serializer.errors)
+        print("Done Valid....\n\n")
         data = serializer.validated_data
         try:
             image_path = get_image_path(
                 data, request, name="doctors", image_key="profile_image"
             )
-            user, doctor_data, email_sent = RegistrationService.register_doctor(
+            print("\n\nDone Image path.....")
+            user, email_sent = RegistrationService.register_doctor(
                 data, request=request, image_path=image_path
             )
             msg = (
@@ -56,22 +60,28 @@ class DoctorRegistrationView(AuditMixin, generics.GenericAPIView):
                 if email_sent
                 else "Doctor registered successfully. Account pending verification. Verification email could not be sent."
             )
-            response_dict, refresh_token = set_auth_response_with_tokens(
-                user, doctor_data, msg
-            )
+
+            response_dict = {
+                "success": True,
+                "message": msg,
+                "data": {
+                    "user": user
+                },
+            }
+
             response_dict["email_verification_sent"] = email_sent
             response = Response(response_dict, status=status.HTTP_201_CREATED)
-            set_refresh_token_cookie(response, refresh_token)
             return response
         except Exception:
             print("EXCEPTION:", traceback.format_exc())
+            error_msg = str(e).split("\n")[0] or "a server error"
             return _error(
-                "Registration failed due to a server error.",
+                f"Registration failed due to {error_msg}.",
                 http_status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
-class DoctorProfileView(AuditMixin, generics.GenericAPIView):
+class DoctorProfileView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def _require_doctor(self, request):
@@ -91,7 +101,7 @@ class DoctorProfileView(AuditMixin, generics.GenericAPIView):
         doctor, err = self._require_doctor(request)
         if err:
             return err
-        return _ok(DoctorProfileSerializer(doctor).data)
+        return _ok(doctor)
 
     def put(self, request, *args, **kwargs):
         return self._update(request, partial=False)
@@ -182,7 +192,9 @@ class GenerateSlotsView(generics.GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         if getattr(request.user, "role", None) != UserRole.DOCTOR:
-            return _error("Doctor role required.", http_status=status.HTTP_403_FORBIDDEN)
+            return _error(
+                "Doctor role required.", http_status=status.HTTP_403_FORBIDDEN
+            )
         days = int(request.data.get("days", 7))
         count = AppointmentService.generate_slots_for_doctor(
             str(request.user.user_id), days=days
@@ -190,7 +202,7 @@ class GenerateSlotsView(generics.GenericAPIView):
         return _ok({"slots_created": count})
 
 
-class BookAppointmentView(AuditMixin, generics.GenericAPIView):
+class BookAppointmentView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = BookAppointmentSerializer
 
@@ -227,7 +239,7 @@ class BookAppointmentView(AuditMixin, generics.GenericAPIView):
             )
 
 
-class CancelAppointmentView(AuditMixin, generics.GenericAPIView):
+class CancelAppointmentView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def patch(self, request, appointment_id, *args, **kwargs):

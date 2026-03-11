@@ -1,7 +1,6 @@
 import db.lab_queries as lq
 import db.user_queries as uq
 from labs.serializers import LabProfileSerializer
-from users.AuditLog import AuditLogger, build_changes_dict
 from users.services.base_profile_service import BaseProfileService
 
 
@@ -88,6 +87,6 @@ class ProfileService(BaseProfileService):
         updated["services"] = lq.get_lab_services(user_id)
 
         if changes:
-            AuditLogger.lab_profile_updated(updated, changes=changes, request=request)
-
+            pass
+        
         return LabProfileSerializer(updated).data

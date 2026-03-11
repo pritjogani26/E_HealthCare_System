@@ -1,7 +1,7 @@
+# backend\doctors\services\profile_service.py
 import db.doctor_queries as dq
 import db.user_queries as uq
 from doctors.serializers import DoctorProfileSerializer
-from users.AuditLog import AuditLogger, build_changes_dict
 from users.services.base_profile_service import BaseProfileService
 
 
@@ -114,6 +114,6 @@ class ProfileService(BaseProfileService):
         updated["schedule"] = schedule
 
         if changes:
-            AuditLogger.doctor_profile_updated(updated, changes=changes, request=request)
-
-        return DoctorProfileSerializer(updated).data
+            pass
+        
+        return updated

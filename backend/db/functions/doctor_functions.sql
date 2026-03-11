@@ -97,9 +97,16 @@ RETURNS TABLE(
     email               varchar,
     phone_number        varchar,
     consultation_fee    numeric,
-    verification_status varchar,
+    experience_years    numeric,
+    registration_number varchar,
     is_active           boolean,
-    created_at          timestamptz
+    verification_status varchar,
+    verified_at timestamptz,
+    verification_notes text,
+    created_at          timestamptz,
+    updated_at timestamptz,
+    gender varchar,
+    verified_by uuid
 )
 LANGUAGE plpgsql AS $$
 BEGIN
@@ -110,15 +117,22 @@ BEGIN
         u.email,
         d.phone_number,
         d.consultation_fee,
-        d.verification_status,
+        d.experience_years,
+        d.registration_number,
         d.is_active,
-        d.created_at
+        d.verification_status,
+        d.verified_at,
+        d.verification_notes,
+        d.created_at,
+        d.updated_at,
+        g.gender_value,
+        d.verified_by_id
     FROM doctors d
-    JOIN users u ON u.user_id = d.doctor_id
+    Inner JOIN users u ON u.user_id = d.doctor_id
+    left Join genders g on d.gender_id = g.gender_id
     ORDER BY d.created_at DESC;
 END;
 $$;
-
 
 -- ============================================================
 -- 3. UPDATE DOCTOR PROFILE
@@ -173,7 +187,7 @@ CREATE OR REPLACE FUNCTION a_verify_doctor(
 RETURNS boolean
 LANGUAGE plpgsql AS $$
 BEGIN
-    IF p_verification_status NOT IN ('approved', 'rejected') THEN
+    IF p_verification_status NOT IN ('VERIFIED', 'REJECTED') THEN
         RAISE EXCEPTION 'INVALID_VERIFICATION_STATUS';
     END IF;
 

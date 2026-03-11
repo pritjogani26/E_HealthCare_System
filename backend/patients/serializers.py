@@ -52,8 +52,6 @@ class _AddressOut(serializers.Serializer):
 
 
 class PatientProfileSerializer(serializers.Serializer):
-    """Reads flat DB dict and shapes it into a nested response."""
-
     patient_id = serializers.UUIDField()
     user = serializers.SerializerMethodField()
     full_name = serializers.CharField()
@@ -63,8 +61,8 @@ class PatientProfileSerializer(serializers.Serializer):
     emergency_contact_phone = serializers.CharField(allow_null=True)
     profile_image = serializers.CharField()
     is_active = serializers.BooleanField()
-    created_at = serializers.DateTimeField(source="patient_created_at")
-    updated_at = serializers.DateTimeField(source="patient_updated_at")
+    created_at = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
 
     # removed raw gender/blood_group integer fields — redundant alongside detail fields
     gender = serializers.SerializerMethodField()
@@ -115,6 +113,19 @@ class PatientProfileSerializer(serializers.Serializer):
                 "pincode": d.get("pincode", ""),
             }
         ).data
+
+
+
+class PatientListSerializer(serializers.Serializer):
+    patient_id = serializers.UUIDField()
+    full_name = serializers.CharField()
+    email = serializers.EmailField()
+    mobile = serializers.CharField()
+    blood_group = serializers.CharField()
+    gender = serializers.CharField()
+    is_active = serializers.BooleanField()
+    created_at = serializers.DateTimeField()
+
 
 
 # ------------------------------------------------------------

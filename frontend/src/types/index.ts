@@ -4,9 +4,9 @@ export interface User {
   user_id: string;
   email: string;
   email_verified: boolean;
-  role: 'PATIENT' | 'DOCTOR' | 'LAB' | 'ADMIN' | 'STAFF';
+  role: "PATIENT" | "DOCTOR" | "LAB" | "ADMIN" | "STAFF";
   role_display?: string;
-  account_status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'DELETED';
+  account_status: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "DELETED";
   account_status_display?: string;
   is_active: boolean;
   is_staff: boolean;
@@ -60,7 +60,7 @@ export interface DoctorQualification {
  * `_QualWriteSerializer` on the backend.
  */
 export interface DoctorQualificationPayload {
-  qualification: number;        // qualification_id FK
+  qualification_id: number; // qualification_id FK
   institution?: string;
   year_of_completion?: number;
 }
@@ -74,10 +74,10 @@ export interface WorkingDay {
   id?: number;
   day_of_week: number;
   day_of_week_display?: string;
-  arrival?: string | null;     // "HH:MM:SS"
-  leaving?: string | null;     // "HH:MM:SS"
+  arrival?: string | null; // "HH:MM:SS"
+  leaving?: string | null; // "HH:MM:SS"
   lunch_start?: string | null; // "HH:MM:SS"
-  lunch_end?: string | null;   // "HH:MM:SS"
+  lunch_end?: string | null; // "HH:MM:SS"
 }
 
 /**
@@ -101,7 +101,7 @@ export interface LabOperatingHour {
 // ── Patient ──────────────────────────────────────────────────────────────────
 
 export interface PatientProfile {
-  patient_id: number;
+  patient_id: string;
   user: User;
   full_name: string;
   date_of_birth: string | null;
@@ -120,6 +120,17 @@ export interface PatientProfile {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface PatientList {
+  patient_id: string;
+  full_name: string;
+  email: string;
+  mobile: string;
+  blood_group?: string | null;
+  gender?: string | null;
+  is_active: boolean;
+  created_at: string;
 }
 
 // ── Doctor ───────────────────────────────────────────────────────────────────
@@ -143,7 +154,7 @@ export interface DoctorSpecialization {
  * Matches `_SpecWriteSerializer` on the backend.
  */
 export interface DoctorSpecializationPayload {
-  specialization: number;       // specialization_id FK
+  specialization_id: number; // specialization_id FK
   is_primary?: boolean;
   years_in_specialty?: number;
 }
@@ -160,7 +171,7 @@ export interface DoctorProfile {
   profile_image: string;
   joining_date: string | null;
   is_active: boolean;
-  verification_status: 'PENDING' | 'VERIFIED' | 'REJECTED';
+  verification_status: "PENDING" | "VERIFIED" | "REJECTED";
   verification_status_display: string;
   verified_by: string | null;
   verified_by_details?: User | null;
@@ -172,6 +183,25 @@ export interface DoctorProfile {
   schedule?: DoctorSchedule | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface DoctorList {
+  doctor_id: string;
+  full_name: string;
+  email: string;
+  phone_number: string;
+  consultation_fee?: string | number | null;
+  experience_years?: string | number | null;
+  registration_number: string;
+  is_active: boolean;
+  verification_status: "PENDING" | "VERIFIED" | "REJECTED";
+  verified_at: string | null;
+  verification_notes?: string;
+  created_at: string;
+  updated_at: string;
+  gender?: string | null;
+  verified_by_id?: string | null;
+  verified_by_email?: string | null;
 }
 
 // ── Lab ──────────────────────────────────────────────────────────────────────
@@ -192,7 +222,7 @@ export interface LabProfile {
   address?: Address | null;
   phone_number: string | null;
   lab_logo: string;
-  verification_status: 'PENDING' | 'VERIFIED' | 'REJECTED';
+  verification_status: "PENDING" | "VERIFIED" | "REJECTED";
   verification_status_display: string;
   verified_by: string | null;
   verified_by_details?: User | null;
@@ -211,7 +241,7 @@ export interface AdminStaffProfile {
   user_id: string;
   email: string;
   email_verified: boolean;
-  role: 'ADMIN' | 'STAFF';
+  role: "ADMIN" | "STAFF";
   role_display: string;
   account_status: string;
   account_status_display: string;
@@ -360,18 +390,33 @@ export interface LabProfileUpdateData {
 // ── Audit Log ─────────────────────────────────────────────────────────────────
 
 export type AuditAction =
-  | 'USER_LOGIN' | 'USER_LOGOUT' | 'USER_LOGIN_FAILED' | 'ACCOUNT_LOCKED'
-  | 'EMAIL_VERIFIED' | 'PASSWORD_RESET'
-  | 'PATIENT_REGISTERED' | 'DOCTOR_REGISTERED' | 'LAB_REGISTERED'
-  | 'PATIENT_PROFILE_UPDATED' | 'DOCTOR_PROFILE_UPDATED' | 'LAB_PROFILE_UPDATED'
-  | 'DOCTOR_VERIFIED' | 'DOCTOR_REJECTED' | 'LAB_VERIFIED' | 'LAB_REJECTED'
-  | 'PATIENT_ACTIVATED' | 'PATIENT_DEACTIVATED'
-  | 'DOCTOR_ACTIVATED' | 'DOCTOR_DEACTIVATED'
-  | 'LAB_ACTIVATED' | 'LAB_DEACTIVATED'
-  | 'ADMIN_ACTION' | 'SYSTEM_ERROR';
+  | "USER_LOGIN"
+  | "USER_LOGOUT"
+  | "USER_LOGIN_FAILED"
+  | "ACCOUNT_LOCKED"
+  | "EMAIL_VERIFIED"
+  | "PASSWORD_RESET"
+  | "PATIENT_REGISTERED"
+  | "DOCTOR_REGISTERED"
+  | "LAB_REGISTERED"
+  | "PATIENT_PROFILE_UPDATED"
+  | "DOCTOR_PROFILE_UPDATED"
+  | "LAB_PROFILE_UPDATED"
+  | "DOCTOR_VERIFIED"
+  | "DOCTOR_REJECTED"
+  | "LAB_VERIFIED"
+  | "LAB_REJECTED"
+  | "PATIENT_ACTIVATED"
+  | "PATIENT_DEACTIVATED"
+  | "DOCTOR_ACTIVATED"
+  | "DOCTOR_DEACTIVATED"
+  | "LAB_ACTIVATED"
+  | "LAB_DEACTIVATED"
+  | "ADMIN_ACTION"
+  | "SYSTEM_ERROR";
 
-export type AuditEntityType = 'Patient' | 'Doctor' | 'Lab' | 'User' | 'System';
-export type AuditStatus = 'SUCCESS' | 'FAILURE';
+export type AuditEntityType = "Patient" | "Doctor" | "Lab" | "User" | "System";
+export type AuditStatus = "SUCCESS" | "FAILURE";
 
 export interface AuditLog {
   log_id: number;
@@ -380,22 +425,22 @@ export interface AuditLog {
   entity_name: string | null;
   details: string;
   status: AuditStatus;
-  performed_by: string | null;   // email
-  target_user: string | null;    // email
+  performed_by: string | null; // email
+  target_user: string | null; // email
   ip_address: string | null;
   user_agent: string | null;
   duration_ms: number | null;
   request_path: string | null;
-  timestamp: string;             // ISO 8601
+  timestamp: string; // ISO 8601
 }
 
 // ── Appointments ──────────────────────────────────────────────────────────────
 
 export interface AppointmentSlot {
   slot_id: number;
-  slot_date: string;        // "YYYY-MM-DD"
-  start_time: string;       // "HH:MM:SS"
-  end_time: string;         // "HH:MM:SS"
+  slot_date: string; // "YYYY-MM-DD"
+  start_time: string; // "HH:MM:SS"
+  end_time: string; // "HH:MM:SS"
   is_booked: boolean;
   is_blocked: boolean;
   is_available: boolean;
@@ -412,9 +457,9 @@ export interface DoctorAppointment {
   slot_date: string | null;
   start_time: string | null;
   end_time: string | null;
-  appointment_type: 'in_person' | 'online';
+  appointment_type: "in_person" | "online";
   appointment_type_display: string;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show';
+  status: "pending" | "confirmed" | "cancelled" | "completed" | "no_show";
   status_display: string;
   reason: string | null;
   cancellation_reason: string | null;
@@ -435,5 +480,5 @@ export interface DoctorListItem {
 export interface BookAppointmentData {
   slot_id: number;
   reason?: string;
-  appointment_type?: 'in_person' | 'online';
+  appointment_type?: "in_person" | "online";
 }

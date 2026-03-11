@@ -95,7 +95,7 @@ const AdminLabsPage: React.FC = () => {
   };
 
   const filtered = labs.filter(
-    (l) => filterStatus === "ALL" || l.verification_status === filterStatus,
+    (l) => filterStatus === "ALL" || l.verification_status?.toUpperCase() === filterStatus,
   );
 
 
@@ -179,7 +179,7 @@ const AdminLabsPage: React.FC = () => {
                         >
                           <Eye className="w-4 h-4" />
                         </button>
-                        {lab.verification_status === "PENDING" && (
+                        {lab.verification_status?.toUpperCase() === "PENDING" && (
                           <>
                             <button
                               onClick={() => handleVerifyLab(lab, "VERIFIED")}

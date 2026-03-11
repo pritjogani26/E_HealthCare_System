@@ -2,7 +2,6 @@ import traceback
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from users.AuditLog import AuditMixin
 from users.models import UserRole
 from users.services.registration_service import RegistrationService
 from users.helpers import set_auth_response_with_tokens, set_refresh_token_cookie
@@ -29,7 +28,7 @@ def _ok(data=None, message="Success", http_status=status.HTTP_200_OK):
     return Response(body, status=http_status)
 
 
-class LabRegistrationView(AuditMixin, generics.GenericAPIView):
+class LabRegistrationView(generics.GenericAPIView):
     authentication_classes = []
     permission_classes = [AllowAny]
     serializer_class = LabRegistrationSerializer
@@ -65,7 +64,7 @@ class LabRegistrationView(AuditMixin, generics.GenericAPIView):
             )
 
 
-class LabProfileView(AuditMixin, generics.GenericAPIView):
+class LabProfileView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def _require_lab(self, request) -> tuple:

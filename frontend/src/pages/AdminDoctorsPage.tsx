@@ -17,13 +17,13 @@ import { Pagination } from "../components/common/Pagination";
 import { Modal } from "../components/common/Modal";
 import { InfoRow } from "../components/common/InfoRow";
 import { apiService, handleApiError } from "../services/api";
-import { DoctorProfile } from "../types";
+import { DoctorList } from "../types";
 
 const AdminDoctorsPage: React.FC = () => {
-  const [doctors, setDoctors] = useState<DoctorProfile[]>([]);
+  const [doctors, setDoctors] = useState<DoctorList[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedDoctor, setSelectedDoctor] = useState<DoctorProfile | null>(null);
+  const [selectedDoctor, setSelectedDoctor] = useState<DoctorList | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -53,12 +53,12 @@ const AdminDoctorsPage: React.FC = () => {
     }
   };
 
-  const handleToggleStatus = async (doctor: DoctorProfile) => {
+  const handleToggleStatus = async (doctor: DoctorList) => {
     try {
       setActionLoading(true);
-      const updated = await apiService.toggleDoctorStatus(doctor.user.user_id);
-      setDoctors((prev) => prev.map((d) => d.user.user_id === doctor.user.user_id ? updated : d));
-      if (selectedDoctor?.user.user_id === doctor.user.user_id) setSelectedDoctor(updated);
+      const updated = await apiService.toggleDoctorStatus(doctor.doctor_id);
+      setDoctors((prev) => prev.map((d) => d.doctor_id === doctor.doctor_id ? updated : d));
+      if (selectedDoctor?.doctor_id === doctor.doctor_id) setSelectedDoctor(updated);
       toast.success(updated.is_active ? "Doctor activated" : "Doctor deactivated");
     } catch (e) {
       toast.error(handleApiError(e));
@@ -67,13 +67,13 @@ const AdminDoctorsPage: React.FC = () => {
     }
   };
 
-  const handleVerify = async (doctor: DoctorProfile, status: "VERIFIED" | "REJECTED") => {
+  const handleVerify = async (doctor: DoctorList, status: "VERIFIED" | "REJECTED") => {
     if (!window.confirm(`Are you sure you want to ${status.toLowerCase()} this doctor?`)) return;
     try {
       setActionLoading(true);
-      const updated = await apiService.verifyDoctor(doctor.user.user_id, status);
-      setDoctors((prev) => prev.map((d) => d.user.user_id === doctor.user.user_id ? updated : d));
-      if (selectedDoctor?.user.user_id === doctor.user.user_id) setSelectedDoctor(updated);
+      const updated = await apiService.verifyDoctor(doctor.doctor_id, status);
+      setDoctors((prev) => prev.map((d) => d.doctor_id === doctor.doctor_id ? updated : d));
+      if (selectedDoctor?.doctor_id === doctor.doctor_id) setSelectedDoctor(updated);
       toast.success(`Doctor ${status.toLowerCase()} successfully`);
     } catch (e) {
       toast.error(handleApiError(e));
@@ -82,7 +82,7 @@ const AdminDoctorsPage: React.FC = () => {
     }
   };
 
-  const filtered = doctors.filter((d) => filterStatus === "ALL" || d.verification_status === filterStatus);
+  const filtered = doctors.filter((d) => filterStatus === "ALL" || d.verification_status?.toUpperCase() === filterStatus);
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
   const current = filtered.slice(indexOfFirst, indexOfLast);
@@ -119,13 +119,13 @@ const AdminDoctorsPage: React.FC = () => {
               </thead>
               <tbody>
                 {current.map((doc, idx) => (
-                  <tr key={doc.user.user_id} className="border-b border-slate-100 hover:bg-slate-50">
+                  <tr key={doc.doctor_id} className="border-b border-slate-100 hover:bg-slate-50">
                     <td className="py-3 px-4 text-slate-500">{indexOfFirst + idx + 1}</td>
                     <td className="py-3 px-4 font-medium text-slate-900">{doc.full_name}</td>
-                    <td className="py-3 px-4 text-slate-600">{doc.user.email}</td>
+                    <td className="py-3 px-4 text-slate-600">{doc.email}</td>
                     <td className="py-3 px-4 text-slate-600">{doc.phone_number}</td>
                     <td className="py-3 px-4">
-                      <StatusBadge status={doc.verification_status} label={doc.verification_status_display} />
+                      <StatusBadge status={doc.verification_status} label={doc.verification_status} />
                     </td>
                     <td className="py-3 px-4">
                       <StatusBadge type="active" status={doc.is_active} />
@@ -136,7 +136,7 @@ const AdminDoctorsPage: React.FC = () => {
                           className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100" title="View">
                           <Eye className="w-4 h-4" />
                         </button>
-                        {doc.verification_status === "PENDING" && (
+                        {doc.verification_status?.toUpperCase() === "PENDING" && (
                           <>
                             <button onClick={() => handleVerify(doc, "VERIFIED")} disabled={actionLoading}
                               className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100" title="Approve">
@@ -197,53 +197,18 @@ const AdminDoctorsPage: React.FC = () => {
               </h5>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <InfoRow icon={UserIcon} label="Full Name" value={selectedDoctor.full_name} />
-                <InfoRow icon={Mail} label="Email" value={selectedDoctor.user.email} />
+                <InfoRow icon={Mail} label="Email" value={selectedDoctor.email} />
                 <InfoRow icon={Phone} label="Phone" value={selectedDoctor.phone_number} />
-                <InfoRow icon={UserIcon} label="Gender" value={selectedDoctor.gender_details?.gender_value} />
+                <InfoRow icon={UserIcon} label="Gender" value={selectedDoctor.gender} />
                 <InfoRow icon={FileText} label="Reg. Number" value={selectedDoctor.registration_number} />
                 <InfoRow icon={Award} label="Experience" value={`${selectedDoctor.experience_years} years`} />
                 <InfoRow icon={Activity} label="Fee" value={selectedDoctor.consultation_fee ? `₹${selectedDoctor.consultation_fee}` : null} />
-                <InfoRow icon={Shield} label="Verification" value={selectedDoctor.verification_status_display} />
+                <InfoRow icon={Shield} label="Verification" value={selectedDoctor.verification_status} />
                 {selectedDoctor.verified_at && (
                   <InfoRow icon={Calendar} label="Verified At" value={new Date(selectedDoctor.verified_at).toLocaleString()} />
                 )}
               </div>
             </div>
-
-            {/* Address */}
-            {selectedDoctor.address && (
-              <div>
-                <h5 className="text-sm font-semibold text-slate-700 mb-2 flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4 text-emerald-600" /> Clinic Address
-                </h5>
-                <div className="bg-slate-50 rounded-lg p-3 text-sm text-slate-700 space-y-0.5">
-                  {selectedDoctor.address.address_line && <p>{selectedDoctor.address.address_line}</p>}
-                  <p>
-                    {[selectedDoctor.address.city, selectedDoctor.address.state].filter(Boolean).join(", ")}
-                    {selectedDoctor.address.pincode ? ` – ${selectedDoctor.address.pincode}` : ""}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Qualifications */}
-            {selectedDoctor.qualifications?.length > 0 && (
-              <div>
-                <h5 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-1.5">
-                  <Award className="w-4 h-4 text-emerald-600" /> Qualifications
-                </h5>
-                <div className="space-y-2">
-                  {selectedDoctor.qualifications.map((q, i) => (
-                    <div key={i} className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-sm">
-                      <p className="font-semibold text-slate-800">
-                        {q.qualification_details?.qualification_name} ({q.qualification_details?.qualification_code})
-                      </p>
-                      <p className="text-slate-600">{q.institution} · {q.year_of_completion}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {selectedDoctor.verification_notes && (
               <InfoRow icon={FileText} label="Verification Notes" value={selectedDoctor.verification_notes} />

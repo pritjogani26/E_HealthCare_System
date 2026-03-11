@@ -96,8 +96,12 @@ export const doctorRegistrationSchema = accountSchema.shape({
   experience_years: Yup.number()
     .min(0, "Experience cannot be negative")
     .max(60, "Please enter a realistic value")
-    .required("Experience is required"),
-  consultation_fee: Yup.number().min(0, "Fee cannot be negative").nullable(),
+    .required("Experience is required")
+    .transform((v, orig) => (orig === "" ? null : v)),
+  consultation_fee: Yup.number()
+    .min(0, "Fee cannot be negative")
+    .nullable()
+    .transform((v, orig) => (orig === "" ? null : v)),
   address_line: Yup.string().trim().nullable(),
   city: Yup.string().trim().nullable(),
   state: Yup.string().trim().nullable(),

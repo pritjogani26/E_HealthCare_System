@@ -2,7 +2,6 @@ import traceback
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from users.AuditLog import AuditMixin, build_changes_dict
 from users.models import UserRole
 from users.services.registration_service import RegistrationService
 from users.helpers import set_auth_response_with_tokens, set_refresh_token_cookie

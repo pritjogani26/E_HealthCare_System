@@ -1,7 +1,4 @@
-"""
-Appointment slot generation, booking, and cancellation — raw SQL version.
-"""
-
+# backend\doctors\services\appointment_service.py
 from datetime import datetime, timedelta
 from django.db import transaction
 from django.utils import timezone

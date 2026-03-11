@@ -1,5 +1,4 @@
 from .email_service import EmailService
-from users.AuditLog import AuditLogger
 from db.connection import fn_fetchone
 import db.lab_queries as lq
 
@@ -8,14 +7,6 @@ class RegistrationService:
 
     @staticmethod
     def _post_register(user_dict: dict, profile_type, request=None):
-        # def _post_register(user_dict: dict, request=None):
-        # if profile_type == "patient":
-        #     AuditLogger.patient_registered(profile_dict, request=request)
-        # elif profile_type == "doctor":
-        #     AuditLogger.doctor_registered(profile_dict, request=request)
-        # elif profile_type == "lab":
-        #     AuditLogger.lab_registered(profile_dict, request=request)
-
         email_sent = EmailService.send_verification_email(user_dict)
         if not email_sent:
             print("Failed to send verification email to %s", user_dict.get("email"))
@@ -64,58 +55,51 @@ class RegistrationService:
 
     @staticmethod
     def register_doctor(data: dict, request=None, image_path: str = None):
-        try:
-            from users.services.password_service import hash_password
+        from users.services.password_service import hash_password
 
-            hashed_password = hash_password(data["password"])
-            profile_image = image_path or "/media/defaults/doctor.png"
-            address_line = data.get("address_line") or ""
-            city = data.get("city") or ""
-            state = data.get("state") or ""
-            pincode = data.get("pincode") or ""
+        print(f"\n\nDoctor : {data}\n\n")
 
-            res = fn_fetchone("o_insert_address", [address_line, city, state, pincode])
-            address_id = list(res.values())[0]
+        hashed_password = hash_password(data["password"])
+        profile_image = image_path or "/media/defaults/doctor.png"
+        address_line = data.get("address_line") or ""
+        city = data.get("city") or ""
+        state = data.get("state") or ""
+        pincode = data.get("pincode") or ""
 
+        res = fn_fetchone("o_insert_address", [address_line, city, state, pincode])
+        address_id = list(res.values())[0]
+
+        user_dict = fn_fetchone(
+            "register_doctor_user",
+            [
+                data["email"],
+                data["full_name"],
+                data.get("experience_years"),
+                data["phone_number"],
+                data.get("consultation_fee") or 0,
+                data["registration_number"],
+                profile_image,
+                address_id,
+                data["gender_id"],
+                hashed_password,
+            ],
+        )
+
+        doctor_qualifications = data["qualifications"]
+        print(f"doctor_qualifications : {doctor_qualifications}")
+        for doctor_qualification in doctor_qualifications:
             res = fn_fetchone(
-                "register_doctor_user",
+                "d_add_qualification",
                 [
-                    data["email"],
-                    data["full_name"],
-                    data.get("experience_years"),
-                    data["phone_number"],
-                    data.get("consultation_fee") or 0,
-                    data["registration_number"],
-                    profile_image,
-                    address_id,
-                    data["gender_id"],
-                    hashed_password,
+                    user_dict["user_id"],
+                    doctor_qualification["qualification_id"],
+                    doctor_qualification["institution"],
+                    doctor_qualification["year_of_completion"],
                 ],
             )
-            user_id = list(res.values())[0]
+            print(f"Qualification Add id : {res}")
 
-            user_dict = {"user_id": user_id, "email": data["email"]}
-            doctor_dict = {
-                "user_id": user_id,
-                "full_name": data["full_name"],
-                "experience_years": data.get("experience_years"),
-                "phone_number": data["phone_number"],
-                "consultation_fee": data.get("consultation_fee") or 0,
-                "registration_number": data["registration_number"],
-                "gender_id": data["gender_id"],
-                "profile_image": profile_image,
-                "address_id": address_id,
-                "address_line": address_line,
-                "city": city,
-                "state": state,
-                "pincode": pincode,
-            }
-            return RegistrationService._post_register(
-                user_dict, doctor_dict, "doctor", request=request
-            )
-        except Exception as e:
-            print(e)
-            raise
+        return RegistrationService._post_register(user_dict, "doctor", request=request)
 
     # -------------------------------------------------------------------------
 

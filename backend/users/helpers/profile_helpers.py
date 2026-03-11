@@ -16,8 +16,9 @@ def get_profile_data_by_role(user):
 
         elif role == UserRole.DOCTOR:
             from doctors.serializers import DoctorProfileSerializer
-
+            print("\n\nThis is Doctor...............................")
             doctor = dq.get_doctor_by_user_id(user_id)
+            print(f"\n\nDoctor : {doctor}")
             if doctor:
                 doctor["qualifications"] = dq.get_doctor_qualifications(user_id)
                 doctor["specializations"] = dq.get_doctor_specializations(user_id)
@@ -27,7 +28,8 @@ def get_profile_data_by_role(user):
                         schedule["schedule_id"]
                     )
                 doctor["schedule"] = schedule
-                return DoctorProfileSerializer(doctor).data
+                print(f"\n\nDoctor : {doctor}")
+                return doctor
 
         elif role == UserRole.LAB:
             from labs.serializers import LabProfileSerializer

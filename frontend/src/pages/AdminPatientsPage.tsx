@@ -23,13 +23,13 @@ import { Pagination } from "../components/common/Pagination";
 import { Modal } from "../components/common/Modal";
 import { InfoRow } from "../components/common/InfoRow";
 import { apiService, handleApiError } from "../services/api";
-import { PatientProfile } from "../types";
+import { PatientList, PatientProfile } from "../types";
 
 const AdminPatientsPage: React.FC = () => {
-  const [patients, setPatients] = useState<PatientProfile[]>([]);
+  const [patients, setPatients] = useState<PatientList[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedPatient, setSelectedPatient] = useState<PatientProfile | null>(
+  const [selectedPatient, setSelectedPatient] = useState<PatientList | null>(
     null,
   );
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -49,6 +49,7 @@ const AdminPatientsPage: React.FC = () => {
       setError(null);
       const data = await apiService.getAllPatients();
       setPatients(data);
+      console.log(data);
     } catch (e) {
       setError("Unable to load patients list.");
       toast.error("Failed to load patients");
@@ -57,7 +58,7 @@ const AdminPatientsPage: React.FC = () => {
     }
   };
 
-  const handleToggleStatus = async (patient: PatientProfile) => {
+  const handleToggleStatus = async (patient: PatientList) => {
     try {
       setActionLoading(true);
       const updated = await apiService.togglePatientStatus(patient.patient_id);
@@ -81,18 +82,7 @@ const AdminPatientsPage: React.FC = () => {
   const currentPatients = patients.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(patients.length / itemsPerPage);
 
-  const buildAddressString = (p: PatientProfile) => {
-    const a = p.address;
-    if (!a) return null;
-    return [
-      a.address_line,
-      a.city,
-      a.state,
-      a.pincode ? `– ${a.pincode}` : null,
-    ]
-      .filter(Boolean)
-      .join(", ");
-  };
+
 
   return (
     <Layout>
@@ -143,7 +133,7 @@ const AdminPatientsPage: React.FC = () => {
                       {patient.full_name}
                     </td>
                     <td className="py-3 px-4 text-slate-600">
-                      {patient.user.email}
+                      {patient.email}
                     </td>
                     <td className="py-3 px-4 text-slate-600">
                       {patient.mobile}
@@ -239,8 +229,7 @@ const AdminPatientsPage: React.FC = () => {
 
             <div>
               <h5 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-1.5">
-                <Heart className="w-4 h-4 text-emerald-600" /> Patient
-                Information
+                <Heart className="w-4 h-4 text-emerald-600" /> Patient Information
               </h5>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <InfoRow
@@ -251,7 +240,7 @@ const AdminPatientsPage: React.FC = () => {
                 <InfoRow
                   icon={Mail}
                   label="Email"
-                  value={selectedPatient.user.email}
+                  value={selectedPatient.email}
                 />
                 <InfoRow
                   icon={Phone}
@@ -259,58 +248,21 @@ const AdminPatientsPage: React.FC = () => {
                   value={selectedPatient.mobile}
                 />
                 <InfoRow
-                  icon={Calendar}
-                  label="Date of Birth"
-                  value={
-                    selectedPatient.date_of_birth
-                      ? new Date(
-                        selectedPatient.date_of_birth,
-                      ).toLocaleDateString()
-                      : null
-                  }
-                />
-                <InfoRow
                   icon={UserIcon}
                   label="Gender"
-                  value={selectedPatient.gender_details?.gender_value}
+                  value={selectedPatient.gender}
                 />
                 <InfoRow
                   icon={Droplets}
                   label="Blood Group"
-                  value={selectedPatient.blood_group_details?.blood_group_value}
-                />
-                <InfoRow
-                  icon={UserIcon}
-                  label="Emergency Contact"
-                  value={selectedPatient.emergency_contact_name}
-                />
-                <InfoRow
-                  icon={Phone}
-                  label="Emergency Phone"
-                  value={selectedPatient.emergency_contact_phone}
+                  value={selectedPatient.blood_group}
                 />
               </div>
             </div>
 
-            {selectedPatient.address && (
-              <div>
-                <h5 className="text-sm font-semibold text-slate-700 mb-2 flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4 text-emerald-600" /> Address
-                </h5>
-                <div className="bg-slate-50 rounded-lg p-3 text-sm text-slate-700">
-                  <InfoRow
-                    icon={MapPin}
-                    label="Complete Address"
-                    value={buildAddressString(selectedPatient)}
-                  />
-                </div>
-              </div>
-            )}
-
             <div>
               <h5 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-1.5">
-                <Calendar className="w-4 h-4 text-emerald-600" /> Account
-                Details
+                <Calendar className="w-4 h-4 text-emerald-600" /> Account Details
               </h5>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <InfoRow
@@ -319,19 +271,9 @@ const AdminPatientsPage: React.FC = () => {
                   value={selectedPatient.is_active ? "Active" : "Inactive"}
                 />
                 <InfoRow
-                  icon={Activity}
-                  label="Email Verified"
-                  value={selectedPatient.user.email_verified ? "Yes" : "No"}
-                />
-                <InfoRow
                   icon={Calendar}
                   label="Joined"
                   value={new Date(selectedPatient.created_at).toLocaleString()}
-                />
-                <InfoRow
-                  icon={Calendar}
-                  label="Updated"
-                  value={new Date(selectedPatient.updated_at).toLocaleString()}
                 />
               </div>
             </div>

@@ -200,13 +200,11 @@ const RegistrationPage: React.FC = () => {
             oauth_provider_id: googleData?.oauth_provider_id,
           };
 
-          const body = profileImageFile
-            ? buildFormData(
-                payload as Record<string, any>,
-                profileImageFile,
-                "profile_image",
-              )
-            : payload;
+          const body = buildFormData(
+            payload as Record<string, any>,
+            profileImageFile,
+            "profile_image",
+          );
 
           response = await apiService.registerPatient(body as any);
         } else if (role === "DOCTOR") {
@@ -222,7 +220,7 @@ const RegistrationPage: React.FC = () => {
           const mappedQuals: DoctorQualificationPayload[] = qualifications
             .filter((q) => q.qualification_id !== null)
             .map((q) => ({
-              qualification: q.qualification_id as number,
+              qualification_id: q.qualification_id as number,
               institution: q.institution || undefined,
               year_of_completion: q.year_of_completion
                 ? Number(q.year_of_completion)
@@ -256,13 +254,11 @@ const RegistrationPage: React.FC = () => {
           // Qualifications array (and any other arrays/objects) will be
           // JSON-stringified by buildFormData so multipart can carry them.
           // The backend recovers them in DoctorRegistrationSerializer.to_internal_value.
-          const body = profileImageFile
-            ? buildFormData(
-                payload as Record<string, any>,
-                profileImageFile,
-                "profile_image",
-              )
-            : payload;
+          const body = buildFormData(
+            payload as Record<string, any>,
+            profileImageFile,
+            "profile_image",
+          );
 
           response = await apiService.registerDoctor(body as any);
         } else {
@@ -315,13 +311,11 @@ const RegistrationPage: React.FC = () => {
             oauth_provider_id: googleData?.oauth_provider_id,
           };
 
-          const body = labLogoFile
-            ? buildFormData(
-                payload as Record<string, any>,
-                labLogoFile,
-                "lab_logo",
-              )
-            : payload;
+          const body = buildFormData(
+            payload as Record<string, any>,
+            labLogoFile,
+            "lab_logo",
+          );
 
           response = await apiService.registerLab(body as any);
         }
@@ -330,21 +324,21 @@ const RegistrationPage: React.FC = () => {
         const baseUser = (user as any)?.user ?? user;
 
         if (baseUser?.email_verified === false) {
-           toast.success("Registration successful! Please verify your email.");
-           setTimeout(() => {
-             navigate("/check-email", { state: { email: baseUser.email } });
-           }, 1000);
+          toast.success("Registration successful! Please verify your email.");
+          setTimeout(() => {
+            navigate("/check-email", { state: { email: baseUser.email } });
+          }, 1000);
         } else {
-           localStorage.setItem("access_token", access_token);
-           localStorage.setItem("user", JSON.stringify(baseUser));
-           setAuthUser(baseUser, access_token);
+          localStorage.setItem("access_token", access_token);
+          localStorage.setItem("user", JSON.stringify(baseUser));
+          setAuthUser(baseUser, access_token);
 
-           const msg =
-             role === "PATIENT"
-               ? "Patient registered successfully!"
-               : `${role.charAt(0) + role.slice(1).toLowerCase()} registered successfully! Account pending verification.`;
-           toast.success(msg);
-           setTimeout(() => navigate("/profile"), 1500);
+          const msg =
+            role === "PATIENT"
+              ? "Patient registered successfully!"
+              : `${role.charAt(0) + role.slice(1).toLowerCase()} registered successfully! Account pending verification.`;
+          toast.success(msg);
+          setTimeout(() => navigate("/profile"), 1500);
         }
       } catch (err: any) {
         const fieldErrs = getFieldErrors(err);
@@ -566,7 +560,7 @@ const RegistrationPage: React.FC = () => {
                 registrationNumber={(formik.values as any).registration_number}
                 setRegistrationNumber={setField("registration_number")}
                 joiningDate={null}
-                setJoiningDate={() => {}}
+                setJoiningDate={() => { }}
                 addressLine={(formik.values as any).address_line}
                 setAddressLine={setField("address_line")}
                 city={(formik.values as any).city}

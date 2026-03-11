@@ -1,7 +1,6 @@
 import db.patient_queries as pq
 import db.user_queries as uq
 from patients.serializers import PatientProfileSerializer
-from users.AuditLog import AuditLogger, build_changes_dict
 from users.services.base_profile_service import BaseProfileService
 
 
@@ -52,6 +51,6 @@ class ProfileService(BaseProfileService):
         updated = pq.update_patient(patient_id, **profile_fields)
 
         if changes:
-            AuditLogger.patient_profile_updated(updated, changes=changes, request=request)
-
+            pass
+        
         return PatientProfileSerializer(updated).data

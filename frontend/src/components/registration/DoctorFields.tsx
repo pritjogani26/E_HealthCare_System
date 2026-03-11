@@ -113,13 +113,14 @@ export const DoctorFields: React.FC<DoctorFieldsProps> = ({
         <div className="relative">
           <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
+            id="dr-full-name"
             type="text"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             onBlur={blur("full_name")}
             className={`w-full pl-10 pr-4 py-2.5 bg-slate-50 border ${borderCls(
               "full_name",
-            )} rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500`}
+            )} rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all`}
             placeholder="Dr. Full Name"
           />
         </div>
@@ -140,9 +141,9 @@ export const DoctorFields: React.FC<DoctorFieldsProps> = ({
             onBlur={blur("gender_id")}
             className={`w-full py-2.5 bg-slate-50 border ${borderCls(
               "gender_id",
-            )} rounded-lg text-sm pl-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500`}
+            )} rounded-lg text-sm pl-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all`}
           >
-            <option value="">Select gender</option>
+            <option value="">Select Gender</option>
             {genderOptions.map((g) => (
               <option key={g.gender_id} value={g.gender_id}>
                 {g.gender_value}
@@ -165,7 +166,7 @@ export const DoctorFields: React.FC<DoctorFieldsProps> = ({
             onBlur={blur("experience_years")}
             className={`w-full py-2.5 bg-slate-50 border ${borderCls(
               "experience_years",
-            )} rounded-lg text-sm px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500`}
+            )} rounded-lg text-sm px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all`}
           />
           <FieldError
             name="experience_years"
@@ -187,7 +188,7 @@ export const DoctorFields: React.FC<DoctorFieldsProps> = ({
             onBlur={blur("consultation_fee")}
             className={`w-full py-2.5 bg-slate-50 border ${borderCls(
               "consultation_fee",
-            )} rounded-lg text-sm px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500`}
+            )} rounded-lg text-sm px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all`}
             placeholder="e.g. 500"
           />
           <FieldError
@@ -212,7 +213,7 @@ export const DoctorFields: React.FC<DoctorFieldsProps> = ({
             maxLength={10}
             className={`w-full py-2.5 bg-slate-50 border ${borderCls(
               "phone_number",
-            )} rounded-lg text-sm px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500`}
+            )} rounded-lg text-sm px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all`}
             placeholder="10-digit phone number"
           />
           <FieldError
@@ -233,7 +234,7 @@ export const DoctorFields: React.FC<DoctorFieldsProps> = ({
             onBlur={blur("registration_number")}
             className={`w-full py-2.5 bg-slate-50 border ${borderCls(
               "registration_number",
-            )} rounded-lg text-sm px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500`}
+            )} rounded-lg text-sm px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all`}
             placeholder="Medical Council Reg. No."
           />
           <FieldError
@@ -254,7 +255,7 @@ export const DoctorFields: React.FC<DoctorFieldsProps> = ({
             type="date"
             value={new Date().toISOString().split("T")[0]}
             onBlur={blur("joining_date")}
-            className="w-full py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+            className="w-full py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
             readOnly={true}
           />
         </div>
@@ -266,78 +267,87 @@ export const DoctorFields: React.FC<DoctorFieldsProps> = ({
             type="file"
             accept="image/*"
             onChange={handleFileChange}
-            className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
+            className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 transition-all"
           />
         </div>
       </div>
 
-      {/* Clinic Address */}
-      <div className="border border-slate-200 rounded-lg p-4 bg-slate-50/50">
-        <p className="text-sm font-semibold text-slate-700 mb-3">
-          Clinic Address (optional)
-        </p>
-        <div className="space-y-3">
-          <textarea
-            value={addressLine}
-            onChange={(e) => setAddressLine(e.target.value)}
-            className="w-full py-2.5 bg-white border border-slate-200 rounded-lg text-sm px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
-            rows={2}
-            placeholder="Clinic address"
+      {/* Address */}
+      <div>
+        <label className="block text-sm font-semibold text-slate-700 mb-2">
+          Clinic Address
+        </label>
+        <textarea
+          value={addressLine}
+          onChange={(e) => setAddressLine(e.target.value)}
+          onBlur={blur("address_line")}
+          className={`w-full py-2.5 bg-slate-50 border ${borderCls("address_line")} rounded-lg text-sm px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all`}
+          rows={2}
+          placeholder="Enter complete clinic address"
+        />
+        <FieldError name="address_line" errors={fieldErrors} touched={touched} />
+      </div>
+
+      {/* Pincode / City / State */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div>
+          <input
+            value={pincode}
+            maxLength={6}
+            onBlur={blur("pincode")}
+            onChange={async (e) => {
+              const raw = e.target.value.replace(/\D/g, "").slice(0, 6);
+              setPincode(raw);
+              if (raw.length === 6) {
+                try {
+                  const res = await axios.get(
+                    `https://api.postalpincode.in/pincode/${raw}`
+                  );
+                  if (res?.data[0]?.Status === "Success") {
+                    const state = res?.data[0]?.PostOffice[0]?.State;
+                    const district = res?.data[0]?.PostOffice[0]?.District;
+                    if (state) setStateName(state);
+                    if (district) setCity(district);
+                  }
+                } catch {
+                  // silent fail
+                }
+              }
+              if (raw.length === 0) {
+                setStateName("");
+                setCity("");
+              }
+            }}
+            placeholder="Pincode"
+            className={`w-full py-2.5 bg-slate-50 border ${borderCls(
+              "pincode"
+            )} rounded-lg text-sm px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all`}
           />
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <input
-                value={pincode}
-                maxLength={6}
-                onBlur={blur("pincode")}
-                onChange={async (e) => {
-                  const raw = e.target.value.replace(/\D/g, "").slice(0, 6);
-                  setPincode(raw);
-                  if (raw.length === 6) {
-                    try {
-                      const res = await axios.get(
-                        `https://api.postalpincode.in/pincode/${raw}`,
-                      );
-                      if (res?.data?.[0]?.Status === "Success") {
-                        const state = res?.data[0]?.PostOffice?.[0]?.State;
-                        const district =
-                          res?.data[0]?.PostOffice?.[0]?.District;
-                        if (state) setStateName(state);
-                        if (district) setCity(district);
-                      }
-                    } catch {
-                      // silent fail
-                    }
-                  }
-                  if (raw.length === 0) {
-                    setStateName("");
-                    setCity("");
-                  }
-                }}
-                placeholder="Pincode"
-                className={`w-full py-2.5 bg-white border ${borderCls(
-                  "pincode",
-                )} rounded-lg text-sm px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500`}
-              />
-              <FieldError
-                name="pincode"
-                errors={fieldErrors}
-                touched={touched}
-              />
-            </div>
-            <input
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="City"
-              className="py-2.5 bg-white border border-slate-200 rounded-lg text-sm px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
-            />
-            <input
-              value={stateName}
-              onChange={(e) => setStateName(e.target.value)}
-              placeholder="State"
-              className="py-2.5 bg-white border border-slate-200 rounded-lg text-sm px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
-            />
-          </div>
+          <FieldError name="pincode" errors={fieldErrors} touched={touched} />
+        </div>
+        <div>
+          <input
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            onBlur={blur("city")}
+            placeholder="City"
+            className={`w-full py-2.5 bg-slate-50 border ${borderCls(
+              "city"
+            )} rounded-lg text-sm px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all`}
+          />
+          <FieldError name="city" errors={fieldErrors} touched={touched} />
+        </div>
+        <div>
+          <input
+            value={stateName}
+            onChange={(e) => setStateName(e.target.value)}
+            onBlur={blur("state")}
+            placeholder="State"
+            className={`w-full py-2.5 bg-slate-50 border ${borderCls(
+              "state"
+            )} rounded-lg text-sm px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all`}
+          />
+          <FieldError name="state" errors={fieldErrors} touched={touched} />
         </div>
       </div>
 

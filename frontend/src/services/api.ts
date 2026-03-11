@@ -24,6 +24,8 @@ import {
   AppointmentSlot,
   DoctorAppointment,
   BookAppointmentData,
+  PatientList,
+  DoctorList,
 } from "../types";
 
 
@@ -302,14 +304,14 @@ class ApiService {
 
   // ── Admin ─────────────────────────────────────────────────────────────────────
 
-  async getAllPatients(): Promise<PatientProfile[]> {
+  async getAllPatients(): Promise<PatientList[]> {
     const res = await this.api.get("/users/admin/patients/");
     const d = res.data;
     if (Array.isArray(d)) return d;
     return d.data ?? d.results ?? [];
   }
 
-  async getAllDoctors(): Promise<DoctorProfile[]> {
+  async getAllDoctors(): Promise<DoctorList[]> {
     const res = await this.api.get("/users/admin/doctors/");
     const d = res.data;
     if (Array.isArray(d)) return d;
@@ -323,15 +325,15 @@ class ApiService {
     return d.data ?? d.results ?? [];
   }
 
-  async togglePatientStatus(patientId: number): Promise<PatientProfile> {
-    const res = await this.api.patch<ApiResponse<PatientProfile>>(
+  async togglePatientStatus(patientId: string): Promise<PatientList> {
+    const res = await this.api.patch<ApiResponse<PatientList>>(
       `/users/admin/patients/${patientId}/toggle-status/`,
     );
     return this.unwrap(res.data);
   }
 
-  async toggleDoctorStatus(userId: string): Promise<DoctorProfile> {
-    const res = await this.api.patch<ApiResponse<DoctorProfile>>(
+  async toggleDoctorStatus(userId: string): Promise<DoctorList> {
+    const res = await this.api.patch<ApiResponse<DoctorList>>(
       `/users/admin/doctors/${userId}/toggle-status/`,
     );
     return this.unwrap(res.data);
@@ -341,8 +343,8 @@ class ApiService {
     userId: string,
     status: "VERIFIED" | "REJECTED",
     notes?: string,
-  ): Promise<DoctorProfile> {
-    const res = await this.api.patch<ApiResponse<DoctorProfile>>(
+  ): Promise<DoctorList> {
+    const res = await this.api.patch<ApiResponse<DoctorList>>(
       `/users/admin/doctors/${userId}/verify/`,
       { status, notes },
     );
