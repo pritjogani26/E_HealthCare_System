@@ -332,25 +332,28 @@ class AdminLabListView(generics.GenericAPIView):
 
 class AdminTogglePatientStatusView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated, IsAdminOrStaff]
-
+    serializer_class = PatientProfileSerializer
     def patch(self, request, user_id, *args, **kwargs):
-        from patients.serializers import PatientProfileSerializer
 
-        patient = pq.get_patient_by_user_id(str(user_id))
+        patient = pq.get_patient_by_id(str(user_id))
         if not patient:
             return _error("Patient not found.", http_status=status.HTTP_404_NOT_FOUND)
         patient, action = AdminService.toggle_patient_status(
             patient_id=str(user_id), admin_user=request.user, request=request
         )
+        serializer = self.get_serializer(data = patient)
+        serializer.is_valid(raise_exception = True)
+        data = serializer.validated_data
+
         return _ok(
-            PatientProfileSerializer(patient).data,
+            patient,
             message=f"Patient {action} successfully.",
         )
 
 
 class AdminToggleDoctorStatusView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated, IsAdminOrStaff]
-
+    serializer_class = DoctorProfileSerializer
     def patch(self, request, user_id, *args, **kwargs):
         doctor = dq.get_doctor_by_user_id(user_id)
         if not doctor:
@@ -365,10 +368,7 @@ class AdminToggleDoctorStatusView(generics.GenericAPIView):
         if sched:
             sched["working_days"] = dq.get_working_days(sched["schedule_id"])
         doctor["schedule"] = sched
-        return _ok(
-            DoctorProfileSerializer(doctor).data,
-            message=f"Doctor {action} successfully.",
-        )
+        return _ok(doctor,message=f"Doctor {action} successfully.")
 
 
 class AdminVerifyDoctorView(generics.GenericAPIView):

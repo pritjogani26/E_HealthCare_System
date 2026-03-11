@@ -6,7 +6,6 @@ class AdminService:
     @staticmethod
     def toggle_patient_status(patient_id: int, admin_user, request=None):
         patient = pq.toggle_patient_is_active(patient_id)
-        pq.sync_user_active_from_patient(patient_id)
         action = "activated" if patient["is_active"] else "deactivated"
         print(
             "Patient %s %s by %s", patient_id, action, getattr(admin_user, "email", "")
@@ -17,19 +16,12 @@ class AdminService:
     def toggle_doctor_status(doctor_user_id: str, admin_user, request=None):
         doctor = dq.toggle_doctor_is_active(doctor_user_id)
         action = "activated" if doctor["is_active"] else "deactivated"
-        print(
-            "Doctor %s %s by %s",
-            doctor.get("email"),
-            action,
-            getattr(admin_user, "email", ""),
-        )
         return doctor, action
 
     @staticmethod
     def verify_doctor(
         doctor_user_id: str, status: str, notes: str, verified_by, request=None
     ):
-        print(f"\ndb_status : {status}")
         doctor = dq.update_doctor_verification(
             user_id=doctor_user_id,
             status=status,
