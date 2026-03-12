@@ -35,8 +35,8 @@ def create_email_verification_token(user_id: str, expires_hours: int = 24) -> st
             "UPDATE email_verification_table SET is_used=TRUE WHERE user_id=%s AND is_used=FALSE",
             [str(user_id)],
         )
-        print("\n\n")
-        print(user_id, vtype_id, token)
+        # # print("\n\n")
+        # print(user_id, vtype_id, token)
         res = fn_fetchone(
             "auth_create_verification",
             [user_id, vtype_id, token, None, (expires_hours * 60)],

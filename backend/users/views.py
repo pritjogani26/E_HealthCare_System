@@ -12,6 +12,7 @@ from .serializers import (
 )
 from doctors.serializers import DoctorListSerializer, DoctorProfileSerializer
 from patients.serializers import PatientListSerializer, PatientProfileSerializer
+from labs.serializers import LabListSerializer, LabProfileSerializer
 from .models import UserRole, VerificationStatus
 from .services import AuthService, AdminService, EmailService, password_service
 from .helpers import (
@@ -50,62 +51,59 @@ class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
 
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        if not serializer.is_valid():
-            return _error("Invalid input", serializer.errors)
-        email = serializer.validated_data["email"]
-        password = serializer.validated_data["password"]
-        user = uq.get_user_by_email(email)
-        if not user:
-            return _error(
-                "Invalid credentials", http_status=status.HTTP_401_UNAUTHORIZED
+        try:
+            serializer = self.get_serializer(data=request.data)
+            if not serializer.is_valid():
+                return _error("Invalid input", serializer.errors)
+            email = serializer.validated_data["email"]
+            password = serializer.validated_data["password"]
+            print(f"\n\nEmail : {email}, and Password : {password}\n")
+            user = uq.get_user_by_email(email)
+            if not user:
+                return _error(
+                    "Invalid credentials", http_status=status.HTTP_401_UNAUTHORIZED
+                )
+
+            is_locked, lock_msg = AuthService.check_account_lockout(user)
+            if is_locked:
+                return _error(lock_msg, http_status=status.HTTP_403_FORBIDDEN)
+
+            is_active, active_msg = AuthService.check_account_status(user)
+            if not is_active:
+                return _error(active_msg, http_status=status.HTTP_403_FORBIDDEN)
+
+            # is_email_verified, active_msg = AuthService.check_email_verified(user)
+            # if not is_email_verified:
+            #     return _error(active_msg, http_status=status.HTTP_403_FORBIDDEN)
+
+            authenticated = password_service.verify_password(
+                password, user.get("password", "")
             )
 
-        is_locked, lock_msg = AuthService.check_account_lockout(user)
-        if is_locked:
-            return _error(lock_msg, http_status=status.HTTP_403_FORBIDDEN)
+            if not authenticated:
+                should_lock, msg = AuthService.handle_failed_login(user)
+                return _error(
+                    msg,
+                    http_status=(
+                        status.HTTP_403_FORBIDDEN
+                        if should_lock
+                        else status.HTTP_401_UNAUTHORIZED
+                    ),
+                )
+            print("\n\nsuccess..................................................")
+            AuthService.handle_successful_login(user["user_id"])
+            user = uq.get_user_by_id(user["user_id"])
 
-        is_active, active_msg = AuthService.check_account_status(user)
-        if not is_active:
-            return _error(active_msg, http_status=status.HTTP_403_FORBIDDEN)
+            user_dict = user
 
-        # is_email_verified, active_msg = AuthService.check_email_verified(user)
-        # if not is_email_verified:
-        #     return _error(active_msg, http_status=status.HTTP_403_FORBIDDEN)
-
-        authenticated = password_service.verify_password(
-            password, user.get("password", "")
-        )
-
-        if not authenticated:
-            should_lock, msg = AuthService.handle_failed_login(user)
-            return _error(
-                msg,
-                http_status=(
-                    status.HTTP_403_FORBIDDEN
-                    if should_lock
-                    else status.HTTP_401_UNAUTHORIZED
-                ),
+            response_dict, refresh_token = set_auth_response_with_tokens(
+                user_dict, "Login successful"
             )
-
-        AuthService.handle_successful_login(user["email"])
-        user = uq.get_user_by_id(user["user_id"])
-
-        user_dict = user
-        # user_dict = {
-        #     "user_id" : user["user_id"],
-        #     "email" : user["email"],
-        #     "email_verified" : user["email_verified"],
-        #     "is_active" : user["is_active"],
-        #     "role" : user["role"]
-        # }
-        print(f"User : {user_dict}")
-        response_dict, refresh_token = set_auth_response_with_tokens(
-            user_dict, "Login successful"
-        )
-        response = Response(response_dict, status=status.HTTP_200_OK)
-        set_refresh_token_cookie(response, refresh_token)
-        return response
+            response = Response(response_dict, status=status.HTTP_200_OK)
+            set_refresh_token_cookie(response, refresh_token)
+            return response
+        except Exception as e:
+            print(f"Error : {e}")
 
 
 class LogoutView(generics.GenericAPIView):
@@ -122,6 +120,7 @@ class RefreshTokenView(generics.GenericAPIView):
 
     def post(self, request: HttpRequest, *args, **kwargs):
         raw_token = request.COOKIES.get("refresh_token")
+        print(f"\n\nRow Refresh Token  : {raw_token}")
         if not raw_token:
             return _error("Refresh token is required.")
         try:
@@ -149,45 +148,122 @@ class GoogleAuthView(generics.GenericAPIView):
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
+        print("\n========== GOOGLE AUTH FLOW STARTED ==========\n")
+
         from .services.oauth_service import OAuthService
 
+        # Step 1: Receive token from frontend
         token = request.data.get("token")
+        print(f"[STEP 1] Token received from frontend: {token}")
+
+        if not token:
+            print("[ERROR] No token received from request.")
+            return _error("Google token not provided")
+
+        # Step 2: Verify Google token
+        print("[STEP 2] Verifying Google token with OAuthService...")
         idinfo, error = OAuthService.verify_google_token(token)
+
+        print(f"[STEP 2 RESULT] idinfo: {idinfo}")
+        print(f"[STEP 2 RESULT] error: {error}")
+
         if error:
+            print("[ERROR] Google token verification failed.")
             return _error(error)
+
+        # Step 3: Extract email from token
         email = idinfo.get("email")
+        print(f"[STEP 3] Extracted email from Google token: {email}")
+
         if not email:
+            print("[ERROR] Email not found in Google token payload.")
             return _error("Google token missing email claim.")
+
+        # Step 4: Check if user exists in database
+        print(f"[STEP 4] Checking if user exists with email: {email}")
         user = uq.get_user_by_email(email)
+
+        print(f"[STEP 4 RESULT] User fetched from DB: {user}")
+
+        # Step 5: If user not registered
         if not user:
-            return Response(
-                {
-                    "success": True,
-                    "registered": False,
-                    "message": "User not registered. Please complete registration.",
-                    "email": email,
-                    "first_name": idinfo.get("given_name", ""),
-                    "last_name": idinfo.get("family_name", ""),
-                    "picture": idinfo.get("picture", ""),
-                    "oauth_provider": "google",
-                    "oauth_provider_id": idinfo.get("sub"),
-                },
-                status=status.HTTP_200_OK,
-            )
+            print("[STEP 5] User not registered. Returning registration details.")
+
+            response_data = {
+                "success": True,
+                "registered": False,
+                "message": "User not registered. Please complete registration.",
+                "email": email,
+                "first_name": idinfo.get("given_name", ""),
+                "last_name": idinfo.get("family_name", ""),
+                "picture": idinfo.get("picture", ""),
+                "oauth_provider": "google",
+                "oauth_provider_id": idinfo.get("sub"),
+            }
+
+            print(f"[STEP 5 RESPONSE] {response_data}")
+
+            return Response(response_data, status=status.HTTP_200_OK)
+
+        # Step 6: Check account status
+        print("[STEP 6] Checking account status...")
         is_active, msg = AuthService.check_account_status(user)
+
+        print(f"[STEP 6 RESULT] is_active: {is_active}, message: {msg}")
+
         if not is_active:
+            print("[ERROR] User account inactive or blocked.")
             return _error(msg, http_status=status.HTTP_403_FORBIDDEN)
+
+        # Step 7: Check OAuth provider
+        print("[STEP 7] Checking OAuth provider linkage...")
         if not user.get("oauth_provider"):
+            print("[STEP 7] OAuth provider not set. Updating provider to Google.")
+
             uq.update_oauth_provider(user["user_id"], "google", idinfo.get("sub"))
+
+            print("[STEP 7] OAuth provider updated successfully.")
+
             user = uq.get_user_by_id(user["user_id"])
+            print(f"[STEP 7 RESULT] Updated user record: {user}")
+
+        # Step 8: Handle successful login
+        print("[STEP 8] Handling successful login (update last login etc.)")
         AuthService.handle_successful_login(user["user_id"])
-        user_wrap = UserWrapper(user)
-        profile_data = get_profile_data_by_role(user_wrap)
+
+        # Step 9: Wrap user
+        print("[STEP 9] Wrapping user object...")
+
+        print(f"\n\nUser : {user}")
+        # print(f"\n\nuser_wrap : {user_wrap}")
+        # print(user_wrap)
+
+        # Step 10: Fetch profile data
+        print("[STEP 10] Fetching profile data by role...")
+        profile_data = get_profile_data_by_role(user)
+
+        print(f"[STEP 10 RESULT] Profile Data: {profile_data}")
+
+        # Step 11: Generate tokens
+        print("[STEP 11] Generating auth response with tokens...")
         response_dict, rt = set_auth_response_with_tokens(
-            user_wrap, profile_data, "Google login successful"
+            user, "Google login successful"
         )
+
+
+        print(f"[STEP 11 RESULT] Response Dict: {response_dict}")
+        print(f"[STEP 11 RESULT] Refresh Token: {rt}")
+
+        # Step 12: Create response
+        print("[STEP 12] Creating HTTP response...")
         response = Response(response_dict, status=status.HTTP_200_OK)
+
+        # Step 13: Set refresh token cookie
+        print("[STEP 13] Setting refresh token cookie...")
         set_refresh_token_cookie(response, rt)
+
+        print("\n========== GOOGLE AUTH FLOW COMPLETED ==========\n")
+
         return response
 
 
@@ -236,7 +312,13 @@ class AdminStaffProfileView(generics.GenericAPIView):
 class CurrentUserProfileView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request: HttpRequest, *args, **kwargs):
+        user = request.user
+        # print(f"\n\nUser : {getattr(user, "is_authenticated", False)}")
+        # print(f"\n\nUser : {getattr(user, "role", False)}")
+        # print(f"\n\nUser : {getattr(user, "email", False)}")
+        # print(f"\n\nUser : {request.user}")
+
         return _ok(get_profile_data_by_role(request.user))
 
 
@@ -286,7 +368,7 @@ class AdminPatientListView(generics.GenericAPIView):
             serializer = self.get_serializer(data=all_patients, many=True)
             serializer.is_valid(raise_exception=True)
             data = serializer.validated_data
-            print(f"\n\nAll Patients Data : {data}\n\n")
+            # print(f"\n\nAll Patients Data : {data}\n\n")
             return _ok(data)
         except Exception as e:
             print(f"Error : {e}")
@@ -300,7 +382,7 @@ class AdminDoctorListView(generics.GenericAPIView):
     def get(self, request, *args, **kwargs):
         try:
             rows = dq.get_all_doctors()
-            # print(f"\n\nDoctors List : {rows}")
+            print(f"\n\nDoctors List : {rows}")
             serializer = self.get_serializer(data=rows, many=True)
             serializer.is_valid(raise_exception=True)
             data = serializer.validated_data
@@ -316,23 +398,24 @@ class AdminDoctorListView(generics.GenericAPIView):
 
 class AdminLabListView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated, IsAdminOrStaff]
-    pagination_class = None
+    serializer_class = LabListSerializer
 
     def get(self, request, *args, **kwargs):
-        from labs.serializers import LabProfileSerializer
-
-        rows = lq.get_all_labs()
-        for row in rows:
-            # BUG FIX: use "lab_id" (normalized), not "lab_user_id"
-            uid = str(row["lab_id"])
-            row["operating_hours"] = lq.get_lab_operating_hours(uid)
-            row["services"] = lq.get_lab_services(uid)
-        return _ok(LabProfileSerializer(rows, many=True).data)
+        try:
+            rows = lq.get_all_labs()
+            serializer = self.get_serializer(data=rows, many=True)
+            serializer.is_valid(raise_exception=True)
+            data = serializer.validated_data
+            # print(f"Data after serialized : {data}")
+            return _ok(data)
+        except Exception as e:
+            print(e)
 
 
 class AdminTogglePatientStatusView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated, IsAdminOrStaff]
     serializer_class = PatientProfileSerializer
+
     def patch(self, request, user_id, *args, **kwargs):
 
         patient = pq.get_patient_by_id(str(user_id))
@@ -341,8 +424,8 @@ class AdminTogglePatientStatusView(generics.GenericAPIView):
         patient, action = AdminService.toggle_patient_status(
             patient_id=str(user_id), admin_user=request.user, request=request
         )
-        serializer = self.get_serializer(data = patient)
-        serializer.is_valid(raise_exception = True)
+        serializer = self.get_serializer(data=patient)
+        serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
         return _ok(
@@ -354,6 +437,7 @@ class AdminTogglePatientStatusView(generics.GenericAPIView):
 class AdminToggleDoctorStatusView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated, IsAdminOrStaff]
     serializer_class = DoctorProfileSerializer
+
     def patch(self, request, user_id, *args, **kwargs):
         doctor = dq.get_doctor_by_user_id(user_id)
         if not doctor:
@@ -368,7 +452,7 @@ class AdminToggleDoctorStatusView(generics.GenericAPIView):
         if sched:
             sched["working_days"] = dq.get_working_days(sched["schedule_id"])
         doctor["schedule"] = sched
-        return _ok(doctor,message=f"Doctor {action} successfully.")
+        return _ok(doctor, message=f"Doctor {action} successfully.")
 
 
 class AdminVerifyDoctorView(generics.GenericAPIView):
@@ -378,15 +462,20 @@ class AdminVerifyDoctorView(generics.GenericAPIView):
         try:
             doctor = dq.get_doctor_by_user_id(user_id)
             if not doctor:
-                return _error("Doctor not found.", http_status=status.HTTP_404_NOT_FOUND)
+                return _error(
+                    "Doctor not found.", http_status=status.HTTP_404_NOT_FOUND
+                )
             new_status = request.data.get("status")
-            print(new_status)
+            # print(new_status)
             notes = request.data.get("notes", "")
-            if new_status not in [VerificationStatus.VERIFIED, VerificationStatus.REJECTED]:
+            if new_status not in [
+                VerificationStatus.VERIFIED,
+                VerificationStatus.REJECTED,
+            ]:
                 return _error("Invalid status. Must be VERIFIED or REJECTED.")
-            print(new_status)
-            print(notes)
-            print(doctor)
+            # print(new_status)
+            # print(notes)
+            # print(doctor)
             doctor = AdminService.verify_doctor(
                 doctor_user_id=user_id,
                 status=new_status,
@@ -406,8 +495,8 @@ class AdminVerifyDoctorView(generics.GenericAPIView):
                 message=f"Doctor {new_status.lower()} successfully.",
             )
         except Exception as e:
-            print("Errro : ",e)
-            return _error(msg = f"Errro : {e}", http_status=500)
+            print("Errro : ", e)
+            return _error(msg=f"Errro : {e}", http_status=500)
 
 
 class AdminVerifyLabView(generics.GenericAPIView):

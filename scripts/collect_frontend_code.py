@@ -96,7 +96,7 @@ def collect_frontend_code(root_dir: str, output_file: str):
         "AuthContext.tsx",
         "apiService.ts",
         "App.tsx",
-        "index.ts"
+        "index.ts",
     }
 
     with open(output_file, "w", encoding="utf-8") as outfile:

@@ -4,7 +4,6 @@ import { useFormik } from "formik";
 import { Toaster } from "react-hot-toast";
 import { useNavigate, useLocation } from "react-router-dom";
 import Header from "../components/Header";
-import { useAuth } from "../context/AuthContext";
 import {
   apiService,
   handleApiError,
@@ -135,7 +134,7 @@ const RegistrationPage: React.FC = () => {
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [labLogoFile, setLabLogoFile] = useState<File | null>(null);
 
-  const { setAuthUser } = useAuth();
+
   const navigate = useNavigate();
   const location = useLocation();
   const googleData = location.state?.googleData;
@@ -320,25 +319,22 @@ const RegistrationPage: React.FC = () => {
           response = await apiService.registerLab(body as any);
         }
 
-        const { user, access_token } = response;
+        const { user } = response;
         const baseUser = (user as any)?.user ?? user;
 
-        if (baseUser?.email_verified === false) {
+        if (baseUser?.email_verified === false || !baseUser?.email_verified) {
           toast.success("Registration successful! Please verify your email.");
           setTimeout(() => {
-            navigate("/check-email", { state: { email: baseUser.email } });
+            navigate("/check-email", { state: { email: baseUser?.email } });
           }, 1000);
         } else {
-          localStorage.setItem("access_token", access_token);
-          localStorage.setItem("user", JSON.stringify(baseUser));
-          setAuthUser(baseUser, access_token);
-
+          // Edge case: pre-verified account (e.g. some OAuth flows)
           const msg =
             role === "PATIENT"
               ? "Patient registered successfully!"
               : `${role.charAt(0) + role.slice(1).toLowerCase()} registered successfully! Account pending verification.`;
           toast.success(msg);
-          setTimeout(() => navigate("/profile"), 1500);
+          setTimeout(() => navigate("/login"), 1500);
         }
       } catch (err: any) {
         const fieldErrs = getFieldErrors(err);

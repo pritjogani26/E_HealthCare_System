@@ -43,7 +43,12 @@ export const DoctorProfileDetails: React.FC<DoctorProfileDetailsProps> = ({
   const [showEditModal, setShowEditModal] = useState(false);
   const navigate = useNavigate();
   const sch = profile.schedule;
-  const addr = profile.address;
+  const addr = profile.address || ((profile as any).address_line || (profile as any).city || (profile as any).state || (profile as any).pincode ? {
+    address_line: (profile as any).address_line || "",
+    city: (profile as any).city || "",
+    state: (profile as any).state || "",
+    pincode: (profile as any).pincode || "",
+  } : null);
 
   const formatTime = (t?: string | null) => {
     if (!t) return null;
@@ -120,7 +125,7 @@ export const DoctorProfileDetails: React.FC<DoctorProfileDetailsProps> = ({
           <InfoRow
             icon={Shield}
             label="Verification Status"
-            value={profile.verification_status_display}
+            value={profile.verification_status_display || profile.verification_status || "Pending"}
           />
         </div>
 
@@ -146,7 +151,7 @@ export const DoctorProfileDetails: React.FC<DoctorProfileDetailsProps> = ({
             <InfoRow
               icon={Shield}
               label="Verified By"
-              value={profile.verified_by_details?.email ?? "System"}
+              value={profile.verified_by_details?.email ?? (profile as any).verified_by_email ?? "System"}
             />
             <InfoRow
               icon={Calendar}

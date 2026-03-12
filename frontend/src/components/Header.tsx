@@ -36,7 +36,6 @@ const Header: React.FC<HeaderProps> = ({ setIsSidebarOpen, showSidebarToggle = t
       console.error("Logout failed:", error);
       toast.error("Logout failed. Clearing session locally.");
       localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
       localStorage.removeItem("user");
       setTimeout(() => { window.location.href = "/"; }, 800);
     }

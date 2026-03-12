@@ -5,9 +5,22 @@ import db.lab_queries as lq
 
 
 def get_profile_data_by_role(user):
-    role = getattr(user, "role", None)
-    user_id = str(getattr(user, "user_id", ""))
+    print(f"\n\n\n\n\nType : {type(user)}")
 
+    # Normalise: accept a plain dict, a TokenUser object, or a UserWrapper object.
+    # Dict subscript access on an object raises TypeError, so we convert once here.
+    if isinstance(user, dict):
+        user_dict = user
+    else:
+        user_dict = {
+            "user_id": getattr(user, "user_id", None),
+            "role":    getattr(user, "role", None),
+            "email":   getattr(user, "email", ""),
+        }
+
+    role    = user_dict["role"]
+    user_id = user_dict["user_id"]
+    print(f"\n\nUser Id is {user_id} and Role : {role}")
     try:
         if role == UserRole.PATIENT:
             patient = pq.get_patient_by_id(user_id)
@@ -16,6 +29,7 @@ def get_profile_data_by_role(user):
 
         elif role == UserRole.DOCTOR:
             from doctors.serializers import DoctorProfileSerializer
+
             print("\n\nThis is Doctor...............................")
             doctor = dq.get_doctor_by_user_id(user_id)
             print(f"\n\nDoctor : {doctor}")
@@ -32,13 +46,14 @@ def get_profile_data_by_role(user):
                 return doctor
 
         elif role == UserRole.LAB:
-            from labs.serializers import LabProfileSerializer
 
             lab = lq.get_lab_by_user_id(user_id)
+            print(f"\n\nLab Data : {lab}")
             if lab:
                 lab["operating_hours"] = lq.get_lab_operating_hours(user_id)
                 lab["services"] = lq.get_lab_services(user_id)
-                return LabProfileSerializer(lab).data
+                print(f"\n\nLab Data : {lab}")
+                return lab
 
         elif role in (UserRole.ADMIN, UserRole.STAFF):
             # BUG FIX: AdminStaffProfileSerializer doesn't exist — use UserSerializer

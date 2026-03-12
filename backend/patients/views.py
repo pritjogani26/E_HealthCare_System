@@ -4,7 +4,6 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from users.models import UserRole
 from users.services.registration_service import RegistrationService
-from users.helpers import set_auth_response_with_tokens, set_refresh_token_cookie
 from users.services.image_process import get_image_path
 from .serializers import (
     PatientRegistrationSerializer,
@@ -51,9 +50,7 @@ class PatientRegistrationView(generics.GenericAPIView):
             response_dict = {
                 "success": True,
                 "message": msg,
-                "data": {
-                    "user": user
-                },
+                "data": {"user": user},
             }
             response_dict["email_verification_sent"] = email_sent
             response = Response(response_dict, status=status.HTTP_201_CREATED)
@@ -109,6 +106,7 @@ class PatientProfileView(generics.GenericAPIView):
 
     def _update(self, request, partial=False):
         patient, err = self._require_patient(request)
+        print(f"\n\nPatient : {patient}")
         if err:
             return err
         serializer = PatientProfileUpdateSerializer(
@@ -118,7 +116,9 @@ class PatientProfileView(generics.GenericAPIView):
         )
         if not serializer.is_valid():
             return _error("Profile update failed", serializer.errors)
+        print(f"Serializer : {serializer.validated_data}")
         try:
+            print("\n..............................................Image Path")
             image_path = get_image_path(request.data, request, name="patients")
             if image_path:
                 serializer.validated_data["profile_image"] = image_path

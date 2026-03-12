@@ -126,7 +126,10 @@ def rotate_refresh_token(old_refresh_token: str) -> tuple[dict, str, str]:
         raise ValueError("Invalid refresh token.")
 
     user_id = payload.get("user_id")
+    print(f"\n\nUser ID from Refresh Token : {user_id}")
     user = user_queries.get_user_by_id(user_id)
+    print(f"\n\nUser from Refresh Token : {user}")
+    
     if not user:
         raise ValueError("User not found.")
     if not user.get("is_active"):

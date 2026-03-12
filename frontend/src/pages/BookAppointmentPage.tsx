@@ -97,7 +97,7 @@ const BookAppointmentPage: React.FC = () => {
         setSlotsLoading(true);
         try {
             const data = await apiService.getDoctorSlots(
-                selectedDoctor.user_id,
+                selectedDoctor.doctor_id,
                 toISODate(selectedDate)
             );
             setSlots(data);
@@ -216,7 +216,7 @@ const BookAppointmentPage: React.FC = () => {
                             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "20px" }}>
                                 {filteredDoctors.map((doc) => (
                                     <div
-                                        key={doc.user_id}
+                                        key={doc.doctor_id}
                                         style={cardStyle}
                                         onClick={() => {
                                             setSelectedDoctor(doc);

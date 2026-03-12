@@ -26,6 +26,7 @@ import {
   BookAppointmentData,
   PatientList,
   DoctorList,
+  LabList,
 } from "../types";
 
 
@@ -45,22 +46,6 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
-// ── FormData builder ──────────────────────────────────────────────────────────
-/**
- * Converts a plain payload object + an optional File into a FormData instance.
- *
- * Rules:
- *  - `null` and `undefined` values are skipped (field not sent at all).
- *  - Numbers and booleans are coerced to strings (FormData requirement).
- *  - Arrays and plain objects are JSON-stringified so the Django DRF backend
- *    can recover them via `json.loads(request.data[key])` in
- *    `to_internal_value` (see DoctorRegistrationSerializer).
- *  - File instances are appended as-is.
- *
- * FIX: The previous implementation skipped falsy values (`!value`) which
- * silently dropped legitimate fields like `experience_years: 0` and empty
- * strings.  We now only skip `null` / `undefined`.
- */
 export function buildFormData(
   payload: Record<string, any>,
   file?: File | null,
@@ -199,6 +184,16 @@ class ApiService {
     localStorage.removeItem("user");
   }
 
+  async refreshToken(): Promise<{ access_token: string; user: any }> {
+    const res = await axios.post(
+      `${API_BASE_URL}/users/auth/refresh/`,
+      {},
+      { withCredentials: true },
+    );
+    const { access_token, user } = res.data.data;
+    return { access_token, user };
+  }
+
   async googleLogin(token: string): Promise<any> {
     const res = await this.api.post("/users/auth/google/", { token });
     return res.data;
@@ -318,7 +313,7 @@ class ApiService {
     return d.data ?? d.results ?? [];
   }
 
-  async getAllLabs(): Promise<LabProfile[]> {
+  async getAllLabs(): Promise<LabList[]> {
     const res = await this.api.get("/users/admin/labs/");
     const d = res.data;
     if (Array.isArray(d)) return d;
@@ -440,7 +435,7 @@ class ApiService {
 
   async getDoctorAppointments(): Promise<DoctorAppointment[]> {
     const res = await this.api.get<ApiResponse<DoctorAppointment[]>>(
-      "/doctors/appointments/doctor/",
+      "/doctors/appointments/my/",
     );
     return this.unwrap(res.data) ?? [];
   }
@@ -460,7 +455,7 @@ class ApiService {
 export const apiService = new ApiService();
 
 // ── Error Parser ───────────────────────────────────────────────────────────────
-
+ 
 /**
  * Converts backend ApiError shape into a human-readable string.
  * Backend format: { success: false, message: "...", errors: { field: ["msg"] } }

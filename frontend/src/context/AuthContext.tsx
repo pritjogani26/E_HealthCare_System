@@ -77,13 +77,7 @@ function decodeJwt(token: string): JwtPayload | null {
   }
 }
 
-/**
- * Returns true only if `token` is a non-empty string whose decoded payload
- * contains a future `exp` timestamp.
- *
- * FIX: Previously only `!!token` was checked, meaning expired / garbage tokens
- *      were treated as valid and sent to the API, causing 401 errors.
- */
+
 function isTokenValid(token: string | null | undefined): boolean {
   if (!token) return false;
   const payload = decodeJwt(token);
@@ -106,19 +100,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // FIX: Extracted to useCallback so refreshUser can reuse without duplication.
   const initAuth = useCallback(async () => {
     const token = localStorage.getItem("access_token");
+
     if (!isTokenValid(token)) {
-      // Clear any stale tokens that failed validation
-      localStorage.removeItem("access_token");
-      setUser(null);
-      setIsLoading(false);
+      // Token is missing or expired — attempt a silent refresh via the
+      // httpOnly refresh-token cookie before giving up.
+      try {
+        const refreshed = await apiService.refreshToken();
+        localStorage.setItem("access_token", refreshed.access_token);
+        if (refreshed.user) {
+          localStorage.setItem("user", JSON.stringify(refreshed.user));
+          setUser(extractBaseUser(refreshed.user));
+        }
+      } catch {
+        // Refresh also failed — user must log in again.
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("user");
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
       return;
     }
+
     try {
       const profile = await apiService.getCurrentUserProfile();
       setUser(extractBaseUser(profile));
     } catch {
       // Token was syntactically valid but rejected server-side (revoked, etc.)
       localStorage.removeItem("access_token");
+      localStorage.removeItem("user");
       setUser(null);
     } finally {
       setIsLoading(false);

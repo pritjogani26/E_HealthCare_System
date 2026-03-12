@@ -38,7 +38,7 @@ def get_lab_by_user_id(user_id: str) -> dict | None:
 
 def get_all_labs() -> list:
     rows = fn_fetchall("l_list_labs", [])
-    return [_normalize_lab(r) for r in rows]
+    return rows
 
 
 def license_exists(license_number: str, exclude_lab_id: str = None) -> bool:

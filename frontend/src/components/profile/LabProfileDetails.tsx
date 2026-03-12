@@ -35,7 +35,12 @@ export const LabProfileDetails: React.FC<LabProfileDetailsProps> = ({
   onUpdate,
 }) => {
   const [showEditModal, setShowEditModal] = useState(false);
-  const addr = profile.address;
+  const addr = profile.address || (profile.address_line || profile.city || profile.state || profile.pincode ? {
+    address_line: profile.address_line || "",
+    city: profile.city || "",
+    state: profile.state || "",
+    pincode: profile.pincode || "",
+  } : null);
 
   return (
     <>
@@ -69,7 +74,7 @@ export const LabProfileDetails: React.FC<LabProfileDetailsProps> = ({
           <InfoRow
             icon={Shield}
             label="Verification Status"
-            value={profile.verification_status_display}
+            value={profile.verification_status_display || profile.verification_status || "Pending"}
           />
         </div>
 
@@ -95,7 +100,7 @@ export const LabProfileDetails: React.FC<LabProfileDetailsProps> = ({
             <InfoRow
               icon={Shield}
               label="Verified By"
-              value={profile.verified_by_details?.email ?? "System"}
+              value={profile.verified_by_details?.email ?? profile.verified_by_email ?? "System"}
             />
             <InfoRow
               icon={Calendar}

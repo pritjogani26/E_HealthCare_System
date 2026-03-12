@@ -100,7 +100,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     {
       icon: FlaskConical,
       label: "Laboratory",
-      route: "/admin/laboratory",
+      route: "/admin/labs",
     },
     { icon: Settings, label: "Settings", route: "/settings" },
   ];

@@ -1,4 +1,4 @@
-from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth.hashers import make_password
 from django.utils import timezone
 import uuid
 from db.connection import fn_fetchone, fn_fetchall, fn_scalar, fetchone, fetchscalar
@@ -46,13 +46,6 @@ def create_user(
     return get_user_by_id(user_id)
 
 
-def authenticate_user(email: str, password: str) -> dict | None:
-    user = get_user_by_email(email)
-    if user and check_password(password, user["password"]):
-        return user
-    return None
-
-
 def handle_failed_login(user: dict, max_attempts: int = 5, lockout_minutes: int = 30):
     attempts = (user.get("failed_login_attempts") or 0) + 1
     if attempts >= max_attempts:
@@ -75,22 +68,6 @@ def handle_failed_login(user: dict, max_attempts: int = 5, lockout_minutes: int 
     )
 
 
-def handle_successful_login(user_id: str):
-    from db.connection import execute
-
-    execute(
-        """
-        UPDATE users
-        SET failed_login_attempts = 0,
-            lockout_until         = NULL,
-            last_login_at         = NOW(),
-            updated_at            = NOW()
-        WHERE user_id = %s
-        """,
-        [str(user_id)],
-    )
-
-
 def update_oauth_provider(user_id: str, provider: str, provider_id: str):
     from db.connection import execute
 
@@ -106,10 +83,6 @@ def toggle_user_status(admin_id: str, target_id: str, is_active: bool) -> bool:
         "u_toggle_user_status",
         [str(admin_id), str(target_id), is_active],
     )
-
-
-def soft_deactivate_user(user_id: str) -> bool:
-    return fn_scalar("u_soft_deactivate_user", [str(user_id)])
 
 
 def get_all_genders() -> list:
@@ -135,16 +108,6 @@ def blood_group_exists(blood_group_id: int) -> bool:
         fetchscalar(
             "SELECT COUNT(*) FROM blood_groups WHERE blood_group_id=%s",
             [blood_group_id],
-        )
-        > 0
-    )
-
-
-def qualification_exists(qualification_id: int) -> bool:
-    return (
-        fetchscalar(
-            "SELECT COUNT(*) FROM qualifications WHERE qualification_id=%s",
-            [qualification_id],
         )
         > 0
     )
@@ -181,3 +144,4 @@ def update_address(address_id: int, **fields):
 
 def get_address(address_id: int) -> dict | None:
     return fetchone("SELECT * FROM addresses WHERE address_id=%s", [address_id])
+

@@ -115,7 +115,6 @@ class PatientProfileSerializer(serializers.Serializer):
         ).data
 
 
-
 class PatientListSerializer(serializers.Serializer):
     patient_id = serializers.UUIDField()
     full_name = serializers.CharField()
@@ -125,7 +124,6 @@ class PatientListSerializer(serializers.Serializer):
     gender = serializers.CharField()
     is_active = serializers.BooleanField()
     created_at = serializers.DateTimeField()
-
 
 
 # ------------------------------------------------------------
@@ -209,11 +207,12 @@ class PatientRegistrationSerializer(serializers.Serializer):
 
 
 class PatientProfileUpdateSerializer(serializers.Serializer):
+    patient_id = serializers.UUIDField()
     full_name = serializers.CharField(required=False, max_length=255)
     date_of_birth = serializers.DateField(required=False, allow_null=True)
-    gender_id = serializers.IntegerField(required=False, allow_null=True)
-    blood_group_id = serializers.IntegerField(required=False, allow_null=True)
     mobile = serializers.CharField(required=False, max_length=15)
+    gender_id = serializers.IntegerField(required=False, allow_null=True)
+    blood_group = serializers.CharField(required=False, allow_null=True)
     emergency_contact_name = serializers.CharField(
         required=False,
         allow_blank=True,
@@ -237,32 +236,3 @@ class PatientProfileUpdateSerializer(serializers.Serializer):
     pincode = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, max_length=10
     )
-    profile_image = serializers.CharField(
-        required=False
-    )  # removed allow_blank — DB col is NOT NULL
-
-    def validate_mobile(self, value):
-        patient_id = self.context.get("patient_id")
-        if pq.mobile_exists(value, exclude_patient_id=patient_id):
-            raise serializers.ValidationError(
-                "A patient with this mobile number already exists."
-            )
-        return value
-
-    def validate_gender_id(self, value):
-        # added — was missing in update, present in registration
-        if value and not uq.gender_exists(value):
-            raise serializers.ValidationError("Invalid gender ID.")
-        return value
-
-    def validate_blood_group_id(self, value):
-        # added — was missing in update, present in registration
-        if value and not uq.blood_group_exists(value):
-            raise serializers.ValidationError("Invalid blood group ID.")
-        return value
-
-    def validate_date_of_birth(self, value):
-        # added — future date of birth is not valid
-        if value and value > date.today():
-            raise serializers.ValidationError("Date of birth cannot be in the future.")
-        return value

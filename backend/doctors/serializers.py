@@ -143,6 +143,8 @@ class _SpecWriteSerializer(serializers.Serializer):
 
 
 class DoctorProfileSerializer(serializers.Serializer):
+    """Reads normalized flat DB dict and shapes it into a nested response."""
+
     doctor_id = serializers.UUIDField()
     user = serializers.SerializerMethodField()
     full_name = serializers.CharField()
@@ -155,7 +157,7 @@ class DoctorProfileSerializer(serializers.Serializer):
     profile_image = serializers.CharField()
     is_active = serializers.BooleanField()
     verification_status = serializers.CharField()
-    verified_at = serializers.DateTimeField()
+    verified_at = serializers.DateTimeField(allow_null=True)
     verification_notes = serializers.CharField(allow_null=True)
     created_at = serializers.DateTimeField(source="doctor_created_at")
     updated_at = serializers.DateTimeField(source="doctor_updated_at", allow_null=True)
@@ -171,7 +173,7 @@ class DoctorProfileSerializer(serializers.Serializer):
         return obj if isinstance(obj, dict) else {}
 
     def get_user(self, obj):
-        return self._d(obj)
+        return _UserOut(self._d(obj)).data
 
     def get_gender(self, obj):
         d = self._d(obj)
@@ -246,6 +248,7 @@ class DoctorRegistrationSerializer(serializers.Serializer):
     consultation_fee = serializers.DecimalField(
         max_digits=10, decimal_places=2, required=False, allow_null=True, min_value=0
     )
+    profile_image = serializers.FileField(required=False, allow_null=True)
     address_line = serializers.CharField(
         required=False, allow_blank=True, allow_null=True
     )
@@ -431,15 +434,17 @@ class DoctorListSerializer(serializers.Serializer):
     full_name = serializers.CharField()
     email = serializers.EmailField()
     phone_number = serializers.CharField()
-    consultation_fee = serializers.DecimalField(max_digits=6, decimal_places=2)
+    consultation_fee = serializers.DecimalField(
+        max_digits=10, decimal_places=2, allow_null=True
+    )
     experience_years = serializers.DecimalField(max_digits=6, decimal_places=2)
     registration_number = serializers.CharField()
     is_active = serializers.BooleanField()
-    verification_status = serializers.CharField(allow_blank=True)
-    verified_at = serializers.DateTimeField(allow_null=True)
+    verification_status = serializers.CharField()
     verification_notes = serializers.CharField(allow_blank=True, allow_null=True)
+    verified_at = serializers.DateTimeField()
     created_at = serializers.DateTimeField()
-    updated_at = serializers.DateTimeField(allow_null=True)
-    gender = serializers.CharField(allow_null=True)
-    verified_by_id = serializers.UUIDField(allow_null=True)
-    verified_by_email = serializers.EmailField(allow_null=True)
+    updated_at = serializers.DateTimeField()
+    gender = serializers.CharField()
+    verified_by_id = serializers.UUIDField()
+    verified_by_email = serializers.EmailField()

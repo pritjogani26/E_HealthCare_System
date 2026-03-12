@@ -21,12 +21,6 @@ class AuthService:
             return False, "Your account is inactive. Please contact support."
         return True, None
 
-    @staticmethod
-    def check_email_verified(user: dict):
-        if not user.get("email_verified", False):
-            return False, "Your email is not verified. Please verify email first."
-        return True, None
-
 
 
     @staticmethod
@@ -34,15 +28,10 @@ class AuthService:
         return uq.handle_failed_login(user, MAX_FAILED_ATTEMPTS, LOCKOUT_MINUTES)
 
     @staticmethod
-    def handle_successful_login(email: str):
+    def handle_successful_login(user_id: str):
         execute(
             """
-            UPDATE users
-            SET failed_login_attempts = 0,
-                lockout_until         = NULL,
-                last_login_at         = NOW(),
-                updated_at            = NOW()
-            WHERE email = %s
+            select auth_login_success(%s)
             """,
-            [email],
+            [user_id],
         )

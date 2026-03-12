@@ -177,7 +177,9 @@ const DoctorAppointmentsPage: React.FC = () => {
                                                                 <div style={{ fontSize: "13px", color: "#9ca3af", marginTop: "2px" }}>
                                                                     <Clock size={13} style={{ marginRight: "4px", verticalAlign: "middle" }} />
                                                                     {formatTime(apt.start_time)} – {formatTime(apt.end_time)}
-                                                                    <span style={{ marginLeft: "12px" }}>{apt.appointment_type_display}</span>
+                                                                    <span style={{ marginLeft: "12px" }}>
+                                                                        {apt.appointment_type === "in_person" ? "In-Person" : "Online"}
+                                                                    </span>
                                                                 </div>
                                                                 {apt.reason && (
                                                                     <div style={{ fontSize: "12px", color: "#6b7280", marginTop: "4px" }}>
@@ -192,7 +194,7 @@ const DoctorAppointmentsPage: React.FC = () => {
                                                                 fontSize: "12px", fontWeight: 600,
                                                                 background: sc.bg, color: sc.text, border: `1px solid ${sc.border}`,
                                                             }}>
-                                                                {apt.status_display}
+                                                                {apt.status.charAt(0).toUpperCase() + apt.status.slice(1).replace("_", " ")}
                                                             </span>
                                                             {(apt.status === "confirmed" || apt.status === "pending") && (
                                                                 <button

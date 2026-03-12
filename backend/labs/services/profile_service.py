@@ -24,7 +24,6 @@ class ProfileService(BaseProfileService):
         """
         user_id = str(lab_dict.get("lab_id") or lab_dict.get("lab_user_id"))
         data = serializer.validated_data
-        changes = build_changes_dict(lab_dict, data)
 
         # ---- Address -------------------------------------------------------
         address_id = lab_dict.get("address_id")
@@ -85,8 +84,5 @@ class ProfileService(BaseProfileService):
         updated = lq.get_lab_by_user_id(user_id)
         updated["operating_hours"] = lq.get_lab_operating_hours(user_id)
         updated["services"] = lq.get_lab_services(user_id)
-
-        if changes:
-            pass
         
         return LabProfileSerializer(updated).data

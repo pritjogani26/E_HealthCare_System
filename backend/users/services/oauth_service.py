@@ -42,6 +42,7 @@ class OAuthService:
             except Exception as e:
                 print(f"TokenInfo Verify Failed: {e}")
                 return None, f"Token verification failed: {str(e)}"
+        print(f"\n\nID Info : {idinfo}")
         if not idinfo:
             return None, "Invalid Google token"
         return idinfo, None

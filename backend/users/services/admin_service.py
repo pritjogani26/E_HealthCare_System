@@ -2,6 +2,7 @@ import db.patient_queries as pq
 import db.doctor_queries as dq
 import db.lab_queries as lq
 
+
 class AdminService:
     @staticmethod
     def toggle_patient_status(patient_id: int, admin_user, request=None):

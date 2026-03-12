@@ -5,7 +5,6 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from users.models import UserRole
 from users.services.registration_service import RegistrationService
-from users.helpers import set_auth_response_with_tokens, set_refresh_token_cookie
 from users.services.image_process import get_image_path
 from .serializers import (
     DoctorRegistrationSerializer,
@@ -64,15 +63,13 @@ class DoctorRegistrationView(generics.GenericAPIView):
             response_dict = {
                 "success": True,
                 "message": msg,
-                "data": {
-                    "user": user
-                },
+                "data": {"user": user},
             }
 
             response_dict["email_verification_sent"] = email_sent
             response = Response(response_dict, status=status.HTTP_201_CREATED)
             return response
-        except Exception:
+        except Exception as e:
             print("EXCEPTION:", traceback.format_exc())
             error_msg = str(e).split("\n")[0] or "a server error"
             return _error(

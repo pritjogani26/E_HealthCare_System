@@ -32,6 +32,7 @@ RETURNS TABLE(
     verification_notes  text,
     verified_at         timestamptz,
     verified_by_id      uuid,
+    verified_by_email   varchar,
 
     created_at         timestamptz,
     updated_at         timestamptz
@@ -64,12 +65,14 @@ BEGIN
         l.verified_at,
         l.verified_by_id,
 
+        v.email,
         l.created_at,
         l.updated_at
     FROM labs l
     JOIN users u ON u.user_id = l.lab_id
     JOIN user_roles r ON r.role_id = u.role_id
     LEFT JOIN addresses a ON a.address_id = l.address_id
+    LEFT JOIN users v ON v.user_id = l.verified_by_id
     WHERE l.lab_id = p_lab_id;
 END;
 $$;
@@ -81,29 +84,68 @@ $$;
 
 CREATE OR REPLACE FUNCTION l_list_labs()
 RETURNS TABLE(
-    lab_id              uuid,
-    lab_name            varchar,
-    email               varchar,
-    phone_number        varchar,
-    license_number      varchar,
+    lab_id             uuid,
+    email              varchar,
+    email_verified     boolean,
+    is_active          boolean,
+    last_login_at      timestamptz,
+    role               varchar,
+
+    lab_name           varchar,
+    license_number     varchar,
+    phone_number       varchar,
+    lab_logo           varchar,
+
+    address_id         int,
+    address_line       text,
+    city               varchar,
+    state              varchar,
+    pincode            varchar,
+
     verification_status varchar,
-    is_active           boolean,
-    created_at          timestamptz
+    verification_notes  text,
+    verified_at         timestamptz,
+    verified_by_id      uuid,
+    verified_by_email   varchar,
+
+    created_at         timestamptz,
+    updated_at         timestamptz
 )
 LANGUAGE plpgsql AS $$
 BEGIN
     RETURN QUERY
     SELECT
         l.lab_id,
-        l.lab_name,
         u.email,
-        l.phone_number,
+        u.email_verified,
+        u.is_active,
+        u.last_login_at,
+        r.role,
+
+        l.lab_name,
         l.license_number,
+        l.phone_number,
+        l.lab_logo,
+
+        l.address_id,
+        a.address_line,
+        a.city,
+        a.state,
+        a.pincode,
+
         l.verification_status,
-        l.is_active,
-        l.created_at
+        l.verification_notes,
+        l.verified_at,
+        l.verified_by_id,
+
+        v.email,
+        l.created_at,
+        l.updated_at
     FROM labs l
     JOIN users u ON u.user_id = l.lab_id
+    JOIN user_roles r ON r.role_id = u.role_id
+    LEFT JOIN addresses a ON a.address_id = l.address_id
+    LEFT JOIN users v ON v.user_id = l.verified_by_id
     ORDER BY l.created_at DESC;
 END;
 $$;
@@ -183,6 +225,7 @@ $$;
 -- ============================================================
 -- 5. OPERATING HOURS
 -- ============================================================
+
 
 CREATE OR REPLACE FUNCTION l_upsert_operating_hours(
     p_lab_id      uuid,

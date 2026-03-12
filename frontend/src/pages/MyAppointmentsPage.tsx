@@ -162,7 +162,7 @@ const MyAppointmentsPage: React.FC = () => {
                                                         {formatTime(apt.start_time)} – {formatTime(apt.end_time)}
                                                     </div>
                                                     <div style={{ fontSize: "12px", color: "#6b7280", marginTop: "4px" }}>
-                                                        {apt.appointment_type_display}
+                                                        {apt.appointment_type === "in_person" ? "In-Person" : "Online"}
                                                         {apt.reason && ` • ${apt.reason}`}
                                                     </div>
                                                 </div>
@@ -173,7 +173,7 @@ const MyAppointmentsPage: React.FC = () => {
                                                     fontSize: "12px", fontWeight: 600,
                                                     background: sc.bg, color: sc.text, border: `1px solid ${sc.border}`,
                                                 }}>
-                                                    {apt.status_display}
+                                                    {apt.status.charAt(0).toUpperCase() + apt.status.slice(1).replace("_", " ")}
                                                 </span>
                                                 {(apt.status === "confirmed" || apt.status === "pending") && (
                                                     <button

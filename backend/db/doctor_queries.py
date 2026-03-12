@@ -24,7 +24,7 @@ def get_verified_active_doctors() -> list:
     return [
         dict(r)
         for r in rows
-        if r.get("is_active") and r.get("verification_status") == "approved"
+        if r.get("is_active") and r.get("verification_status") == "VERIFIED"
     ]
 
 
@@ -131,7 +131,7 @@ def toggle_doctor_is_active(user_id: str) -> dict:
 def update_doctor_verification(
     user_id: str, status: str, notes: str, verified_by_id: str
 ) -> dict:
-    print(f"status in Final : {status}")
+    # # # # printnt(f"status in Final : {status}")
     fn_scalar(
         "a_verify_doctor",
         [str(verified_by_id), str(user_id), status, notes],

@@ -105,71 +105,57 @@ class RegistrationService:
 
     @staticmethod
     def register_lab(data: dict, request=None, image_path: str = None):
-        """
-        BUG FIX: old code called serializer.save() which doesn't exist on plain
-        DRF Serializer. Rewritten to mirror register_patient/register_doctor pattern.
-        """
-        try:
-            from users.services.password_service import hash_password
+        from users.services.password_service import hash_password
 
-            hashed_password = hash_password(data["password"])
-            lab_logo = image_path or data.get("lab_logo") or "/media/defaults/lab.png"
-            address_line = data.get("address_line") or ""
-            city = data.get("city") or ""
-            state = data.get("state") or ""
-            pincode = data.get("pincode") or ""
+        hashed_password = hash_password(data["password"])
+        lab_logo = image_path or data.get("lab_logo") or "/media/defaults/lab.png"
+        address_line = data.get("address_line") or ""
+        city = data.get("city") or ""
+        state = data.get("state") or ""
+        pincode = data.get("pincode") or ""
 
-            res = fn_fetchone("o_insert_address", [address_line, city, state, pincode])
-            address_id = list(res.values())[0]
+        res = fn_fetchone("o_insert_address", [address_line, city, state, pincode])
+        address_id = list(res.values())[0]
+        print(f"\nAddress Added Successfully ID : {address_id}")
 
+        res = fn_fetchone(
+            "register_lab_user",
+            [
+                data["email"],
+                data["lab_name"],
+                data.get("license_number"),
+                data.get("phone_number"),
+                lab_logo,
+                address_id,
+                hashed_password,
+            ],
+        )
+        lab_id = list(res.values())[0]
+        print(f"Lab Added Successfully, ID : {lab_id}")
+
+        # for service in data.get("services") or []:
+        #     fn_fetchone("l_add_service", [
+        #     lab_id,
+        #     service["service_name"],
+        #     service.get("description"),
+        #     service.get("price"),
+        #     service.get("turnaround_hours"),
+        # ])
+        for op in data.get("operating_hours"):
             res = fn_fetchone(
-                "register_lab_user",
+                "l_upsert_operating_hours",
                 [
-                    data["email"],
-                    data["lab_name"],
-                    data.get("license_number"),
-                    data.get("phone_number"),
-                    lab_logo,
-                    address_id,
-                    hashed_password,
+                    lab_id,
+                    op.get("day_of_week"),
+                    op.get("open_time"),
+                    op.get("close_time"),
+                    op.get("is_closed"),
                 ],
             )
-            user_id = list(res.values())[0]
+            print(res)
 
-            user_dict = {"user_id": user_id, "email": data["email"]}
+        user_dict = {"user_id": lab_id, "email": data["email"]}
 
-            # Fetch full lab profile and attach operating hours / services
-            lab_dict = lq.get_lab_by_user_id(user_id) or {}
-            lab_dict["operating_hours"] = []
-            lab_dict["services"] = []
+        # Persist optional services
 
-            # Persist optional operating hours
-            for oh in data.get("operating_hours", []):
-                lq.insert_lab_operating_hour(
-                    user_id,
-                    oh["day_of_week"],
-                    oh.get("open_time"),
-                    oh.get("close_time"),
-                    oh.get("is_closed", False),
-                )
-            if data.get("operating_hours"):
-                lab_dict["operating_hours"] = lq.get_lab_operating_hours(user_id)
-
-            # Persist optional services
-            for svc in data.get("services", []):
-                lq.insert_lab_service(
-                    user_id,
-                    svc["service_name"],
-                    svc.get("description"),
-                    svc.get("price"),
-                    svc.get("turnaround_hours"),
-                )
-            if data.get("services"):
-                lab_dict["services"] = lq.get_lab_services(user_id)
-
-            return RegistrationService._post_register(
-                user_dict, lab_dict, "lab", request=request
-            )
-        except Exception as e:
-            print(e)
-            raise
+        return RegistrationService._post_register(user_dict, "lab", request=request)

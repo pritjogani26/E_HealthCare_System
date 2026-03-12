@@ -22,7 +22,7 @@ import { StatusBadge } from "../components/common/StatusBadge";
 import { Modal } from "../components/common/Modal";
 import { InfoRow } from "../components/common/InfoRow";
 import { apiService, handleApiError } from "../services/api";
-import { LabProfile } from "../types";
+import { LabProfile, LabList } from "../types";
 
 const DAY_NAMES = [
   "Monday",
@@ -35,14 +35,14 @@ const DAY_NAMES = [
 ];
 
 const AdminLabsPage: React.FC = () => {
-  const [labs, setLabs] = useState<LabProfile[]>([]);
+  const [labs, setLabs] = useState<LabList[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [filterStatus, setFilterStatus] = useState<
     "ALL" | "PENDING" | "VERIFIED" | "REJECTED"
   >("ALL");
-  const [selectedLab, setSelectedLab] = useState<LabProfile | null>(null);
+  const [selectedLab, setSelectedLab] = useState<LabList | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const toast = useToast();
 
@@ -69,7 +69,7 @@ const AdminLabsPage: React.FC = () => {
   };
 
   const handleVerifyLab = async (
-    lab: LabProfile,
+    lab: LabList,
     status: "VERIFIED" | "REJECTED",
   ) => {
     if (
@@ -78,14 +78,17 @@ const AdminLabsPage: React.FC = () => {
       )
     )
       return;
+    const labId = lab.lab_id || (lab as any).user?.user_id;
     try {
       setActionLoading(true);
-      const updated = await apiService.verifyLab(lab.user.user_id, status);
+      const updated = await apiService.verifyLab(labId, status);
+      // Backend returns LabProfile for verifyLab, but we will merge it into LabList
+      const flatUpdated = { ...lab, ...updated, verification_status: status };
       setLabs((prev) =>
-        prev.map((l) => (l.user.user_id === lab.user.user_id ? updated : l)),
+        prev.map((l) => (l.lab_id === labId || (l as any).user?.user_id === labId ? (flatUpdated as any) : l)),
       );
-      if (selectedLab?.user.user_id === lab.user.user_id)
-        setSelectedLab(updated);
+      if (selectedLab?.lab_id === labId || (selectedLab as any)?.user?.user_id === labId)
+        setSelectedLab(flatUpdated as any);
       toast.success(`Lab ${status.toLowerCase()} successfully`);
     } catch (e) {
       toast.error(handleApiError(e));
@@ -146,25 +149,25 @@ const AdminLabsPage: React.FC = () => {
               <tbody>
                 {filtered.map((lab) => (
                   <tr
-                    key={lab.user.user_id}
+                    key={lab.lab_id || (lab as any).user?.user_id}
                     className="border-b border-slate-100 hover:bg-slate-50"
                   >
                     <td className="py-3 px-4 font-medium text-slate-900">
                       {lab.lab_name}
                     </td>
                     <td className="py-3 px-4 text-slate-600">
-                      {lab.user.email}
+                      {lab.email || (lab as any).user?.email}
                     </td>
                     <td className="py-3 px-4 text-slate-600">
-                      {lab.address?.city ?? "—"}
+                      {lab.city || (lab as any).address?.city || "—"}
                     </td>
                     <td className="py-3 px-4 text-slate-600">
-                      {lab.phone_number ?? "—"}
+                      {lab.phone_number || "—"}
                     </td>
                     <td className="py-3 px-4">
                       <StatusBadge
                         status={lab.verification_status}
-                        label={lab.verification_status_display}
+                        label={lab.verification_status_display || lab.verification_status}
                       />
                     </td>
                     <td className="py-3 px-4">
@@ -266,7 +269,7 @@ const AdminLabsPage: React.FC = () => {
               <InfoRow
                 icon={Shield}
                 label="Verification"
-                value={selectedLab.verification_status_display}
+                value={selectedLab.verification_status_display || selectedLab.verification_status}
               />
               {selectedLab.verified_at && (
                 <InfoRow
@@ -283,17 +286,17 @@ const AdminLabsPage: React.FC = () => {
                 <MapPin className="w-4 h-4 text-emerald-600" /> Address
               </h5>
               <div className="bg-slate-50 rounded-lg p-3 text-sm text-slate-700">
-                {selectedLab.address ? (
+                {(selectedLab as any).address || selectedLab.address_line || selectedLab.city ? (
                   <>
-                    {selectedLab.address.address_line && (
-                      <p>{selectedLab.address.address_line}</p>
+                    {(selectedLab.address_line || (selectedLab as any).address?.address_line) && (
+                      <p>{selectedLab.address_line || (selectedLab as any).address?.address_line}</p>
                     )}
                     <p>
-                      {[selectedLab.address.city, selectedLab.address.state]
+                      {[selectedLab.city || (selectedLab as any).address?.city, selectedLab.state || (selectedLab as any).address?.state]
                         .filter(Boolean)
                         .join(", ")}
-                      {selectedLab.address.pincode
-                        ? ` – ${selectedLab.address.pincode}`
+                      {selectedLab.pincode || (selectedLab as any).address?.pincode
+                        ? ` – ${selectedLab.pincode || (selectedLab as any).address?.pincode}`
                         : ""}
                     </p>
                   </>
@@ -304,13 +307,13 @@ const AdminLabsPage: React.FC = () => {
             </div>
 
             {/* Operating Hours */}
-            {selectedLab.operating_hours?.length > 0 && (
+            {(selectedLab.operating_hours?.length ?? 0) > 0 && (
               <div>
                 <h5 className="text-sm font-semibold text-slate-700 mb-2">
                   Operating Hours
                 </h5>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {selectedLab.operating_hours.map((oh, i) => (
+                  {selectedLab.operating_hours?.map((oh, i) => (
                     <div
                       key={i}
                       className={`p-2 rounded-lg text-xs flex justify-between border ${oh.is_closed ? "bg-red-50 border-red-200 text-red-700" : "bg-emerald-50 border-emerald-200 text-emerald-800"}`}

@@ -125,7 +125,7 @@ const ProfilePage: React.FC = () => {
               />
             )}
 
-            {role === "LAB" && (
+            {(role === "LAB" || role === "LAB_TECHNICIAN") && (
               <LabProfileDetails
                 profile={profile as LabProfile}
                 onUpdate={handleProfileUpdate}

@@ -29,7 +29,6 @@ class ProfileService(BaseProfileService):
         """
         user_id = str(doctor_dict.get("doctor_id") or doctor_dict.get("doctor_user_id"))
         data = serializer.validated_data
-        changes = build_changes_dict(doctor_dict, data)
 
         # ---- Address -------------------------------------------------------
         address_id = doctor_dict.get("address_id")
@@ -113,7 +112,4 @@ class ProfileService(BaseProfileService):
             schedule["working_days"] = dq.get_working_days(schedule["schedule_id"])
         updated["schedule"] = schedule
 
-        if changes:
-            pass
-        
         return updated

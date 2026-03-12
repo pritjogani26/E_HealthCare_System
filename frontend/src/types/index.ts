@@ -5,12 +5,9 @@ export interface User {
   email: string;
   email_verified: boolean;
   role: "PATIENT" | "DOCTOR" | "LAB" | "ADMIN" | "STAFF";
-  role_display?: string;
-  account_status: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "DELETED";
-  account_status_display?: string;
   is_active: boolean;
-  is_staff: boolean;
-  is_superuser?: boolean;
+  is_staff?: boolean;
+  account_status?: string;
   two_factor_enabled: boolean;
   created_at: string;
   updated_at: string;
@@ -206,6 +203,35 @@ export interface DoctorList {
 
 // ── Lab ──────────────────────────────────────────────────────────────────────
 
+export interface LabList {
+  lab_id: string;
+  email: string;
+  email_verified: boolean;
+  address_id?: number | null;
+  address_line?: string | null;
+  city?: string | null;
+  state?: string | null;
+  pincode?: string | null;
+  created_at: string;
+  is_active: boolean;
+  lab_logo?: string | null;
+  lab_name: string;
+  last_login_at?: string | null;
+  license_number?: string | null;
+  phone_number?: string | null;
+  role: string;
+  updated_at: string;
+  verification_notes?: string | null;
+  verification_status: "PENDING" | "VERIFIED" | "REJECTED" | "pending" | "verified" | "rejected";
+  verification_status_display?: string;
+  verified_at?: string | null;
+  verified_by_email?: string | null;
+  verified_by_id?: string | null;
+  // added to ease operating_hours compatibility
+  operating_hours?: LabOperatingHour[];
+}
+
+
 export interface LabService {
   service_id?: number;
   service_name: string;
@@ -216,16 +242,26 @@ export interface LabService {
 }
 
 export interface LabProfile {
-  user: User;
+  user?: User;
+  lab_id?: string;
+  lab_user_id?: string;
+  role?: string;
+  email?: string;
   lab_name: string;
   license_number: string | null;
   address?: Address | null;
+  address_line?: string | null;
+  city?: string | null;
+  state?: string | null;
+  pincode?: string | null;
   phone_number: string | null;
   lab_logo: string;
-  verification_status: "PENDING" | "VERIFIED" | "REJECTED";
-  verification_status_display: string;
-  verified_by: string | null;
+  verification_status: "PENDING" | "VERIFIED" | "REJECTED" | string;
+  verification_status_display?: string;
+  verified_by?: string | null;
   verified_by_details?: User | null;
+  verified_by_email?: string | null;
+  verified_by_id?: string | null;
   verified_at: string | null;
   verification_notes: string | null;
   operating_hours: LabOperatingHour[];
@@ -267,7 +303,6 @@ export interface LoginResponse {
 }
 
 export interface RegisterResponse {
-  access_token: string;
   user: PatientProfile | DoctorProfile | LabProfile;
   email_verification_sent?: boolean;
 }
@@ -363,8 +398,11 @@ export interface PatientProfileUpdateData {
   blood_group_id?: number;
   emergency_contact_name?: string;
   emergency_contact_phone?: string;
-  /** nested address for profile update */
-  address?: Partial<Address>;
+  /** flat address fields matching PatientProfileUpdateSerializer */
+  address_line?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
 }
 
 /** Payload sent to PATCH /doctors/profile/ */
@@ -374,7 +412,11 @@ export interface DoctorProfileUpdateData {
   gender_id?: number;
   experience_years?: number | string;
   consultation_fee?: number | string;
-  address?: Partial<Address>;
+  /** flat address fields matching DoctorProfileUpdateSerializer */
+  address_line?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
   schedule?: Partial<DoctorSchedule>;
   qualifications?: DoctorQualificationPayload[];
   specializations?: DoctorSpecializationPayload[];
@@ -384,7 +426,14 @@ export interface DoctorProfileUpdateData {
 export interface LabProfileUpdateData {
   lab_name?: string;
   phone_number?: string;
-  address?: Partial<Address>;
+  license_number?: string;
+  /** flat address fields matching LabProfileUpdateSerializer */
+  address_line?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+  operating_hours?: LabOperatingHour[];
+  services?: LabService[];
 }
 
 // ── Audit Log ─────────────────────────────────────────────────────────────────
@@ -444,23 +493,21 @@ export interface AppointmentSlot {
   is_booked: boolean;
   is_blocked: boolean;
   is_available: boolean;
-  doctor_name: string;
 }
+
 
 export interface DoctorAppointment {
   appointment_id: number;
-  doctor: string;
+  doctor_id: string;
   doctor_name: string;
-  patient: string;
+  patient_id: string;
   patient_email: string;
-  slot: number | null;
+  slot_id: number | null;
   slot_date: string | null;
   start_time: string | null;
   end_time: string | null;
   appointment_type: "in_person" | "online";
-  appointment_type_display: string;
   status: "pending" | "confirmed" | "cancelled" | "completed" | "no_show";
-  status_display: string;
   reason: string | null;
   cancellation_reason: string | null;
   created_at: string;
@@ -468,7 +515,7 @@ export interface DoctorAppointment {
 }
 
 export interface DoctorListItem {
-  user_id: string;
+  doctor_id: string;
   full_name: string;
   phone_number: string;
   consultation_fee: string | null;
