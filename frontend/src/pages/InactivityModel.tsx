@@ -156,7 +156,7 @@ export const InactivityModal: React.FC<InactivityModalProps> = ({
         <div style={styles.header}>
           {/* <span style={styles.icon} aria-hidden="true">⏱</span> */}
           <h2 id="inactivity-modal-title" style={styles.title}>
-            Session Timeout Warning
+            Session Expried
           </h2>
         </div>
 

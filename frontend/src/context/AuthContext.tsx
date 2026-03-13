@@ -534,7 +534,6 @@
 // //   return ctx;
 // // }
 
-
 // // frontend/src/context/AuthContext.tsx
 
 // import React, {
@@ -759,7 +758,8 @@
 //   return ctx;
 // }
 
-
+// frontend/src/context/AuthContext.tsx
+// frontend/src/context/AuthContext.tsx
 // frontend/src/context/AuthContext.tsx
 
 import React, {
@@ -811,6 +811,33 @@ interface AuthContextValue {
   handleInactivityContinue: () => void;
 }
 
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+/**
+ * sessionStorage key that survives a page refresh but is automatically
+ * cleared when the tab is closed.
+ *
+ * WHY sessionStorage and NOT localStorage?
+ *   - localStorage persists across tabs AND after the browser is closed.
+ *     If the flag were left in localStorage (e.g. after a crash), every
+ *     future login on that device would immediately show the modal.
+ *   - sessionStorage is scoped to a single browser tab and is wiped when
+ *     the tab closes, making it appropriate for transient security state.
+ */
+const INACTIVITY_FLAG_KEY = "inactivity_timeout_pending";
+
+function setInactivityFlag() {
+  sessionStorage.setItem(INACTIVITY_FLAG_KEY, "1");
+}
+
+function clearInactivityFlag() {
+  sessionStorage.removeItem(INACTIVITY_FLAG_KEY);
+}
+
+function hasInactivityFlag(): boolean {
+  return sessionStorage.getItem(INACTIVITY_FLAG_KEY) === "1";
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function extractBaseUser(profile: any): AuthUser {
@@ -859,9 +886,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isInactivityModalVisible, setIsInactivityModalVisible] = useState(false);
+
+  // Initialise from sessionStorage so a page refresh restores the modal.
+  // If the flag is set but the user is not authenticated (token expired),
+  // initAuth will clear it during the auth check below.
+  const [isInactivityModalVisible, setIsInactivityModalVisible] = useState<boolean>(
+    () => hasInactivityFlag()
+  );
 
   const restorableFormsRef = useRef<Map<string, RestorableFormEntry>>(new Map());
+
+  // ── Helpers for toggling modal + keeping flag in sync ───────────────────────
+
+  const showModal = useCallback(() => {
+    setInactivityFlag();          // persist across refresh
+    setIsInactivityModalVisible(true);
+  }, []);
+
+  const hideModal = useCallback(() => {
+    clearInactivityFlag();        // remove persistence
+    setIsInactivityModalVisible(false);
+  }, []);
 
   // ── Session init ────────────────────────────────────────────────────────────
 
@@ -872,8 +917,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const refreshed = await apiService.refreshToken();
         localStorage.setItem("access_token", refreshed.access_token);
         if (refreshed.user) setUser(extractBaseUser(refreshed.user));
+        // Token refreshed successfully — if the inactivity flag was set,
+        // the modal should still be shown (user refreshed mid-timeout).
+        // Leave isInactivityModalVisible as-is (already set from flag).
       } catch {
+        // Refresh failed — session is truly dead, clear everything
         localStorage.removeItem("access_token");
+        clearInactivityFlag();
+        setIsInactivityModalVisible(false);
         setUser(null);
       } finally {
         setIsLoading(false);
@@ -883,8 +934,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const profile = await apiService.getCurrentUserProfile();
       setUser(extractBaseUser(profile));
+      // Profile loaded successfully — if the flag is set the modal remains
+      // visible (state was already initialised from the flag above).
     } catch {
+      // Token rejected server-side — clear everything
       localStorage.removeItem("access_token");
+      clearInactivityFlag();
+      setIsInactivityModalVisible(false);
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -903,7 +959,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const logout = useCallback(async () => {
-    setIsInactivityModalVisible(false);
+    hideModal();
     restorableFormsRef.current.clear();
     try {
       await apiService.logout();
@@ -913,7 +969,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       localStorage.removeItem("access_token");
       setUser(null);
     }
-  }, []);
+  }, [hideModal]);
 
   const refreshUser = useCallback(async () => { await initAuth(); }, [initAuth]);
 
@@ -924,52 +980,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // ── Back-button lock ────────────────────────────────────────────────────────
   //
-  // Problem: when the inactivity modal is visible, pressing the browser back
-  // button navigates the history stack, unmounting the modal without any
-  // re-authentication — a security bypass.
-  //
-  // Fix:
-  //   1. When the modal opens, push a dummy history entry. Now the back button
-  //      hits THIS entry instead of the real previous page.
-  //   2. Listen for `popstate` (fired when back/forward is pressed). When it
-  //      fires while the modal is open, immediately push ANOTHER dummy entry.
-  //      This keeps the user trapped on the current URL until they complete
-  //      re-auth or click Logout.
-  //   3. When the modal closes (success or logout), remove the listener.
-  //      On success we also call history.back() once to consume the dummy
-  //      entry so the browser history is clean.
+  // When the modal opens, push a dummy history entry so the back button
+  // hits that instead of navigating away. The popstate handler immediately
+  // pushes another guard entry, keeping the user on the current page until
+  // they re-auth or click Logout.
 
   useEffect(() => {
     if (!isInactivityModalVisible) return;
 
-    // Push a dummy entry so the very first back-press hits this and not
-    // the real previous page.
     window.history.pushState({ inactivityBlock: true }, "");
 
-    const handlePopState = (e: PopStateEvent) => {
-      // The user tried to navigate away — push another guard entry to
-      // keep them on the current page.
+    const handlePopState = () => {
       window.history.pushState({ inactivityBlock: true }, "");
     };
 
     window.addEventListener("popstate", handlePopState);
-
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
+    return () => window.removeEventListener("popstate", handlePopState);
   }, [isInactivityModalVisible]);
 
-  // ── Inactivity ──────────────────────────────────────────────────────────────
+  // ── Inactivity timer ────────────────────────────────────────────────────────
 
   const handleInactivityTimeout = useCallback(() => {
     if (!user) return;
-    // Snapshot all registered forms before the modal appears (Scenario B)
+    // Snapshot all registered forms before showing the modal (Scenario B)
     restorableFormsRef.current.forEach((entry) => entry.onBeforeTimeout?.());
-    setIsInactivityModalVisible(true);
-  }, [user]);
+    showModal();
+  }, [user, showModal]);
 
-  // Timer is paused while the modal is open so typing the password doesn't
-  // race against the idle counter.
   useInactivityTimer({
     onTimeout: handleInactivityTimeout,
     enabled: !!user && !isInactivityModalVisible,
@@ -987,15 +1024,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     restorableFormsRef.current.delete(formId);
   }, []);
 
-  // ── Modal handlers ──────────────────────────────────────────────────────────
+  // ── Modal: continue (re-auth success) ──────────────────────────────────────
 
   const handleInactivityContinue = useCallback(() => {
-    // Remove the dummy history entry we pushed when the modal opened,
-    // so the browser history is clean after a successful re-auth.
     window.history.back();
-    setIsInactivityModalVisible(false);
+    hideModal();
     restorableFormsRef.current.forEach((entry) => entry.onRestore());
-  }, []);
+  }, [hideModal]);
 
   // ── Value ───────────────────────────────────────────────────────────────────
 
@@ -1021,6 +1056,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
+// ── Hook ──────────────────────────────────────────────────────────────────────
 
 export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext);
