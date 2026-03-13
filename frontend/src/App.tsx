@@ -1,15 +1,24 @@
+// frontend/src/App.tsx
+
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useNavigate,
+} from "react-router-dom";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
+
+// Pages
 import HomePage from "./pages/HomePage";
-import Dashboard from "./components/Dashboard";
 import LoginPage from "./pages/LoginPage";
 import RegistrationPage from "./pages/RegistrationPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import CheckEmailPage from "./pages/CheckEmailPage";
 import RoleSelectionPage from "./pages/RoleSelectionPage";
-import { AuthProvider } from "./context/AuthContext";
-import { ThemeProvider } from "./context/ThemeContext";
-import ProtectedRoute from "./components/ProtectedRoute";
 import ProfilePage from "./pages/ProfilePage";
 import AdminPatientsPage from "./pages/AdminPatientsPage";
 import AdminDoctorsPage from "./pages/AdminDoctorsPage";
@@ -18,20 +27,60 @@ import DoctorSchedulePage from "./pages/DoctorSchedulePage";
 import BookAppointmentPage from "./pages/BookAppointmentPage";
 import MyAppointmentsPage from "./pages/MyAppointmentsPage";
 import DoctorAppointmentsPage from "./pages/DoctorAppointmentsPage";
-import { GoogleOAuthProvider } from "@react-oauth/google";
+
+// Components
+import Dashboard from "./components/Dashboard";
+import ProtectedRoute from "./components/ProtectedRoute";
+
+// Inactivity modal — imported here, NOT inside AuthContext, to avoid the
+// circular import chain (AuthContext → InactivityModal → api.ts) that
+// caused AuthProvider to resolve as `undefined` at runtime.
+import { InactivityModal } from "./pages/InactivityModel";
+
+
+const InactivityModalPortal: React.FC = () => {
+  const { isInactivityModalVisible, handleInactivityContinue, logout } =
+    useAuth();
+
+  if (!isInactivityModalVisible) return null;
+
+  return (
+    <InactivityModal onContinue={handleInactivityContinue} onLogout={logout} />
+  );
+};
+
+// ── App ───────────────────────────────────────────────────────────────────────
+
+const googleClientId =
+  "91502161974-u4ogi88ovn0bgq7i53ee9aq7tg8lsaen.apps.googleusercontent.com";
+
+// ADD THIS right before "function App() {"
+console.log("COMPONENT CHECK:", {
+  HomePage, Dashboard, LoginPage, RegistrationPage,
+  VerifyEmailPage, CheckEmailPage, RoleSelectionPage,
+  ProfilePage, AdminPatientsPage, AdminDoctorsPage,
+  AdminLabsPage, DoctorSchedulePage, BookAppointmentPage,
+  MyAppointmentsPage, DoctorAppointmentsPage,
+  AuthProvider, ThemeProvider, ProtectedRoute,
+  InactivityModal, GoogleOAuthProvider,
+});
 
 function App() {
-  const googleClientId =
-    "91502161974-u4ogi88ovn0bgq7i53ee9aq7tg8lsaen.apps.googleusercontent.com";
-
   return (
     <GoogleOAuthProvider clientId={googleClientId}>
       <ThemeProvider>
         <AuthProvider>
           <Router>
+            <InactivityModalPortal />
+
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/registration" element={<RegistrationPage />} />
+              <Route path="/verify-email" element={<VerifyEmailPage />} />
+              <Route path="/check-email" element={<CheckEmailPage />} />
+              <Route path="/role-selection" element={<RoleSelectionPage />} />
+
               <Route
                 path="/dashboard"
                 element={
@@ -40,10 +89,6 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              <Route path="/registration" element={<RegistrationPage />} />
-              <Route path="/verify-email" element={<VerifyEmailPage />} />
-              <Route path="/check-email" element={<CheckEmailPage />} />
-              <Route path="/role-selection" element={<RoleSelectionPage />} />
               <Route
                 path="/profile"
                 element={
@@ -63,7 +108,9 @@ function App() {
               <Route
                 path="/admin/doctors"
                 element={
-                  <ProtectedRoute allowedRoles={["ADMIN", "STAFF", "PATIENT", "DOCTOR"]}>
+                  <ProtectedRoute
+                    allowedRoles={["ADMIN", "STAFF", "PATIENT", "DOCTOR"]}
+                  >
                     <AdminDoctorsPage />
                   </ProtectedRoute>
                 }

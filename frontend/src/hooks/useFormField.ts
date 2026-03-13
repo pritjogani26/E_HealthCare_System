@@ -1,16 +1,6 @@
 // src/hooks/useFormField.ts
-// Shared hook that replaces the duplicated getError / inputCls / FieldError
-// pattern copy-pasted verbatim across EditDoctorProfile, EditLabProfile, EditPatientProfile.
-
 import { FormikErrors, FormikTouched } from "formik";
 
-/**
- * Returns helpers for Formik-powered forms that support dot-path field names
- * (e.g. "address.city") and consistent Tailwind input styling.
- *
- * Usage:
- *   const { getError, inputCls } = useFormField(formik.errors, formik.touched);
- */
 export function useFormField<T>(
   errors: FormikErrors<T>,
   touched: FormikTouched<T>

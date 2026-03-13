@@ -51,6 +51,7 @@ def handle_failed_login(user: dict, max_attempts: int = 5, lockout_minutes: int 
     if attempts >= max_attempts:
         lockout_until = timezone.now() + timezone.timedelta(minutes=lockout_minutes)
         fn_scalar("u_lock_user", [str(user["user_id"]), lockout_until])
+        print(f"Too many failed login attempts. Account locked for {lockout_minutes} minutes.")
         return (
             True,
             f"Too many failed login attempts. Account locked for {lockout_minutes} minutes.",
@@ -62,6 +63,8 @@ def handle_failed_login(user: dict, max_attempts: int = 5, lockout_minutes: int 
         [attempts, str(user["user_id"])],
     )
     remaining = max_attempts - attempts
+    print(f"Invalid credentials. {remaining} attempt(s) remaining before lockout.")
+    
     return (
         False,
         f"Invalid credentials. {remaining} attempt(s) remaining before lockout.",

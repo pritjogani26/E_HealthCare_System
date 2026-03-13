@@ -1,4 +1,4 @@
-// src/types/index.ts
+// frontend/src/types/index.ts
 
 export interface User {
   user_id: string;
@@ -43,7 +43,6 @@ export interface Qualification {
 
 export interface DoctorQualification {
   doctor_qualification_id?: number;
-  /** ID reference returned by the backend read serializer */
   qualification: number;
   qualification_details?: Qualification;
   institution: string;
@@ -51,36 +50,22 @@ export interface DoctorQualification {
   created_at?: string;
 }
 
-/**
- * Write shape sent to the backend for doctor qualification create/update.
- * Uses `qualification` (not `qualification_id`) to match
- * `_QualWriteSerializer` on the backend.
- */
 export interface DoctorQualificationPayload {
-  qualification_id: number; // qualification_id FK
+  qualification_id: number;
   institution?: string;
   year_of_completion?: number;
 }
 
-/**
- * Matches backend WorkingDaySerializer:
- * fields = ["id", "day_of_week", "day_of_week_display", "arrival", "leaving", "lunch_start", "lunch_end"]
- * 0=Mon … 6=Sun (WeekDay choices)
- */
 export interface WorkingDay {
   id?: number;
   day_of_week: number;
   day_of_week_display?: string;
-  arrival?: string | null; // "HH:MM:SS"
-  leaving?: string | null; // "HH:MM:SS"
-  lunch_start?: string | null; // "HH:MM:SS"
-  lunch_end?: string | null; // "HH:MM:SS"
+  arrival?: string | null;
+  leaving?: string | null;
+  lunch_start?: string | null;
+  lunch_end?: string | null;
 }
 
-/**
- * Matches backend DoctorScheduleSerializer / DoctorScheduleWriteSerializer.
- * NOTE: arrival/leaving/lunch times live on each WorkingDay, NOT on DoctorSchedule.
- */
 export interface DoctorSchedule {
   schedule_id?: number;
   consultation_duration_min?: number;
@@ -89,7 +74,7 @@ export interface DoctorSchedule {
 }
 
 export interface LabOperatingHour {
-  day_of_week: number; // 0=Mon … 6=Sun
+  day_of_week: number;
   open_time: string;
   close_time: string;
   is_closed: boolean;
@@ -109,10 +94,7 @@ export interface PatientProfile {
   mobile: string;
   emergency_contact_name: string | null;
   emergency_contact_phone: string | null;
-
-  // Nested address (backend read / update)
   address?: Address | null;
-
   profile_image: string;
   is_active: boolean;
   created_at: string;
@@ -146,12 +128,8 @@ export interface DoctorSpecialization {
   years_in_specialty?: number;
 }
 
-/**
- * Write shape sent to the backend for doctor specialization create/update.
- * Matches `_SpecWriteSerializer` on the backend.
- */
 export interface DoctorSpecializationPayload {
-  specialization_id: number; // specialization_id FK
+  specialization_id: number;
   is_primary?: boolean;
   years_in_specialty?: number;
 }
@@ -222,15 +200,19 @@ export interface LabList {
   role: string;
   updated_at: string;
   verification_notes?: string | null;
-  verification_status: "PENDING" | "VERIFIED" | "REJECTED" | "pending" | "verified" | "rejected";
+  verification_status:
+    | "PENDING"
+    | "VERIFIED"
+    | "REJECTED"
+    | "pending"
+    | "verified"
+    | "rejected";
   verification_status_display?: string;
   verified_at?: string | null;
   verified_by_email?: string | null;
   verified_by_id?: string | null;
-  // added to ease operating_hours compatibility
   operating_hours?: LabOperatingHour[];
 }
-
 
 export interface LabService {
   service_id?: number;
@@ -321,7 +303,6 @@ export interface ApiError {
 
 // ── Registration Payloads ─────────────────────────────────────────────────────
 
-/** Patient registration uses FLAT address fields */
 export interface PatientRegistrationData {
   email: string;
   password: string;
@@ -331,7 +312,6 @@ export interface PatientRegistrationData {
   date_of_birth?: string;
   gender_id: number;
   blood_group_id?: number;
-  /** flat field names expected by backend PatientRegistrationSerializer */
   address_line?: string;
   city?: string;
   state?: string;
@@ -352,21 +332,11 @@ export interface DoctorRegistrationData {
   gender_id: number;
   experience_years: number;
   consultation_fee?: number;
-  /** flat address fields for registration */
   address_line?: string;
   city?: string;
   state?: string;
   pincode?: string;
-  /**
-   * Uses DoctorQualificationPayload (field: `qualification`, not `qualification_id`)
-   * to match `_QualWriteSerializer` on the backend.
-   * Sent as a JSON string inside multipart/form-data.
-   */
   qualifications?: DoctorQualificationPayload[];
-  /**
-   * Uses DoctorSpecializationPayload to match `_SpecWriteSerializer` on the backend.
-   * Sent as a JSON string inside multipart/form-data.
-   */
   specializations?: DoctorSpecializationPayload[];
   oauth_provider?: string;
   oauth_provider_id?: string;
@@ -378,7 +348,6 @@ export interface LabRegistrationData {
   password_confirm: string;
   lab_name: string;
   license_number?: string;
-  /** flat address fields for registration */
   address_line?: string;
   city?: string;
   state?: string;
@@ -389,7 +358,6 @@ export interface LabRegistrationData {
   oauth_provider_id?: string;
 }
 
-/** Payload sent to PATCH /patients/profile/ */
 export interface PatientProfileUpdateData {
   full_name?: string;
   mobile?: string;
@@ -398,21 +366,18 @@ export interface PatientProfileUpdateData {
   blood_group_id?: number;
   emergency_contact_name?: string;
   emergency_contact_phone?: string;
-  /** flat address fields matching PatientProfileUpdateSerializer */
   address_line?: string;
   city?: string;
   state?: string;
   pincode?: string;
 }
 
-/** Payload sent to PATCH /doctors/profile/ */
 export interface DoctorProfileUpdateData {
   full_name?: string;
   phone_number?: string;
   gender_id?: number;
   experience_years?: number | string;
   consultation_fee?: number | string;
-  /** flat address fields matching DoctorProfileUpdateSerializer */
   address_line?: string;
   city?: string;
   state?: string;
@@ -422,12 +387,10 @@ export interface DoctorProfileUpdateData {
   specializations?: DoctorSpecializationPayload[];
 }
 
-/** Payload sent to PATCH /labs/profile/ */
 export interface LabProfileUpdateData {
   lab_name?: string;
   phone_number?: string;
   license_number?: string;
-  /** flat address fields matching LabProfileUpdateSerializer */
   address_line?: string;
   city?: string;
   state?: string;
@@ -474,27 +437,26 @@ export interface AuditLog {
   entity_name: string | null;
   details: string;
   status: AuditStatus;
-  performed_by: string | null; // email
-  target_user: string | null; // email
+  performed_by: string | null;
+  target_user: string | null;
   ip_address: string | null;
   user_agent: string | null;
   duration_ms: number | null;
   request_path: string | null;
-  timestamp: string; // ISO 8601
+  timestamp: string;
 }
 
 // ── Appointments ──────────────────────────────────────────────────────────────
 
 export interface AppointmentSlot {
   slot_id: number;
-  slot_date: string; // "YYYY-MM-DD"
-  start_time: string; // "HH:MM:SS"
-  end_time: string; // "HH:MM:SS"
+  slot_date: string;
+  start_time: string;
+  end_time: string;
   is_booked: boolean;
   is_blocked: boolean;
   is_available: boolean;
 }
-
 
 export interface DoctorAppointment {
   appointment_id: number;
@@ -528,4 +490,84 @@ export interface BookAppointmentData {
   slot_id: number;
   reason?: string;
   appointment_type?: "in_person" | "online";
+}
+
+// ── Inactivity / Re-auth ──────────────────────────────────────────────────────
+// These types are consumed by:
+//   - services/api.ts  (verifyPasswordForReauth method)
+//   - pages/InactivityModel.tsx (ModalStep)
+//   - context/AuthContext.tsx  (RestorableFormEntry registry)
+
+export interface ReAuthVerifyPayload {
+  password: string;
+}
+
+/**
+ * Fix: backend _ok() returns { success, message, data }.
+ * The re-auth verify view returns _ok(message="Re-authentication successful.")
+ * so the response shape is { success: true, message: string }.
+ */
+export interface ReAuthVerifyResponse {
+  success: boolean;
+  message: string;
+}
+
+/**
+ * Fix: backend _error() returns { success, message } — field is "message"
+ * not "details". Updated to match actual backend response shape.
+ */
+export interface ReAuthErrorResponse {
+  success: false;
+  message: string;
+  /** Optional machine-readable code set by ReAuthVerifyView */
+  code?: "invalid_password" | "account_locked" | "token_expired";
+}
+
+export type ModalStep = "prompt" | "password" | "loading" | "error" | "locked";
+
+export interface InactivityState {
+  isModalVisible: boolean;
+}
+
+/**
+ * Registry entry for a form that participates in Scenario B.
+ *
+ * onBeforeTimeout — called by AuthContext right BEFORE the modal appears,
+ *   so the form can take an in-memory snapshot of its current values.
+ *   Wire this to useFormStatePersistence's takeSnapshot().
+ *
+ * onRestore — called by AuthContext right AFTER successful re-auth,
+ *   so the form can restore from the snapshot.
+ *   Wire this to read restoreSnapshot() and call setFormValues(snapshot).
+ */
+export interface RestorableFormEntry {
+  formId: string;
+  onRestore: () => void;
+  /** Optional — only needed if the form has state worth preserving. */
+  onBeforeTimeout?: () => void;
+}
+
+// ── ReAuthError class ─────────────────────────────────────────────────────────
+// Defined here (not in api.ts) so InactivityModel.tsx can import it from
+// ../types without depending on ../services/api — breaking the import chain
+// that caused AuthProvider to resolve as undefined at runtime.
+//
+// Import pattern:
+//   InactivityModel.tsx  → import { ReAuthError } from "../types"
+//   services/api.ts      → import { ReAuthError } from "../types"
+
+export class ReAuthError extends Error {
+  public statusCode: number;
+  public code?: ReAuthErrorResponse["code"];
+
+  constructor(
+    message: string,
+    statusCode: number,
+    code?: ReAuthErrorResponse["code"]
+  ) {
+    super(message);
+    this.name = "ReAuthError";
+    this.statusCode = statusCode;
+    this.code = code;
+  }
 }

@@ -1,3 +1,4 @@
+# backend\users\serializers.py
 from rest_framework import serializers
 
 
@@ -52,4 +53,18 @@ class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
     password = serializers.CharField(
         required=True, write_only=True, style={"input_type": "password"}
+    )
+
+
+ 
+class ReAuthVerifySerializer(serializers.Serializer): 
+    password = serializers.CharField(
+        max_length=256,
+        min_length=1,
+        write_only=True,
+        trim_whitespace=False,
+        error_messages={
+            "blank": "Password may not be blank.",
+            "max_length": "Password is too long.",
+        },
     )

@@ -1,4 +1,4 @@
-// src/services/api.ts
+// frontend/src/services/api.ts
 
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
 import {
@@ -27,10 +27,18 @@ import {
   PatientList,
   DoctorList,
   LabList,
+  // ── Fix: import reauth types from ../types (they are defined in types/index.ts)
+  ReAuthVerifyPayload,
+  ReAuthVerifyResponse,
+  ReAuthErrorResponse,
+  ReAuthError,
 } from "../types";
 
-
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+
+// ── Token-refresh queue ───────────────────────────────────────────────────────
+// When multiple requests arrive while a token refresh is in flight, they are
+// queued here and resolved/rejected once the refresh completes.
 
 let isRefreshing = false;
 let failedQueue: Array<{
@@ -46,34 +54,41 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
+// ── Utility ───────────────────────────────────────────────────────────────────
+
 export function buildFormData(
   payload: Record<string, any>,
   file?: File | null,
-  fileKey = "profile_image",
+  fileKey = "profile_image"
 ): FormData {
   const fd = new FormData();
 
   Object.entries(payload).forEach(([key, value]) => {
-    // Only skip truly absent values — preserve 0, false, ""
     if (value === undefined || value === null) return;
 
     if (value instanceof File) {
       fd.append(key, value);
-    } else if (Array.isArray(value) || (typeof value === "object")) {
+    } else if (Array.isArray(value) || typeof value === "object") {
       // Arrays and nested objects → JSON string.
-      // Backend must call json.loads() to deserialise (handled in
-      // DoctorRegistrationSerializer.to_internal_value).
+      // Backend must call json.loads() to deserialise.
       fd.append(key, JSON.stringify(value));
     } else {
-      // Primitive: number, boolean, string
       fd.append(key, String(value));
     }
   });
 
   if (file) fd.append(fileKey, file);
-
   return fd;
 }
+
+// ── ReAuthError ───────────────────────────────────────────────────────────────
+// Re-exported from ../types so InactivityModel.tsx can import it from there
+// instead of from here — preventing the circular import that caused
+// AuthProvider to resolve as undefined.
+// Both api.ts and InactivityModel.tsx import ReAuthError from "../types".
+export { ReAuthError } from "../types";
+
+// ── ApiService ────────────────────────────────────────────────────────────────
 
 class ApiService {
   private api: AxiosInstance;
@@ -90,16 +105,14 @@ class ApiService {
       (config: any) => {
         const token = localStorage.getItem("access_token");
         if (token) config.headers.Authorization = `Bearer ${token}`;
-        // When the body is FormData, let the browser set Content-Type so the
-        // multipart boundary is generated correctly.  Axios normally handles
-        // this automatically when data is a FormData instance, but the global
-        // default of 'application/json' can interfere in some configurations.
+        // Let the browser set Content-Type for FormData so the multipart
+        // boundary is generated correctly.
         if (config.data instanceof FormData) {
           delete config.headers["Content-Type"];
         }
         return config;
       },
-      (error: any) => Promise.reject(error),
+      (error: any) => Promise.reject(error)
     );
 
     // ── Response: silent 401 → refresh ───────────────────────────────────────
@@ -110,10 +123,22 @@ class ApiService {
           _retry?: boolean;
         };
 
-        if (original?.url?.includes("/users/auth/refresh/")) {
-          localStorage.removeItem("access_token");
-          localStorage.removeItem("user");
-          window.location.href = "/";
+        // ── Fix: skip auto-refresh for these endpoints ────────────────────────
+        // /auth/refresh/      — refresh itself failing means full logout
+        // /auth/reauth-verify/ — 401 here means wrong password, NOT expired token.
+        //                        If we refreshed and retried, the reauth would
+        //                        silently succeed with the new token but still
+        //                        fail on the wrong password — confusing behaviour.
+        const skipRefreshPaths = [
+          "/users/auth/refresh/",
+          "/users/auth/reauth-verify/",
+        ];
+        const requestUrl = (original as any)?.url ?? "";
+        if (skipRefreshPaths.some((p) => requestUrl.includes(p))) {
+          if (requestUrl.includes("/users/auth/refresh/")) {
+            localStorage.removeItem("access_token");
+            window.location.href = "/";
+          }
           return Promise.reject(error);
         }
 
@@ -136,7 +161,7 @@ class ApiService {
             const res = await axios.post(
               `${API_BASE_URL}/users/auth/refresh/`,
               {},
-              { withCredentials: true },
+              { withCredentials: true }
             );
             const { access_token, user } = res.data.data;
             localStorage.setItem("access_token", access_token);
@@ -150,14 +175,13 @@ class ApiService {
             processQueue(refreshError, null);
             isRefreshing = false;
             localStorage.removeItem("access_token");
-            localStorage.removeItem("user");
             window.location.href = "/";
             return Promise.reject(refreshError);
           }
         }
 
         return Promise.reject(error);
-      },
+      }
     );
   }
 
@@ -173,7 +197,7 @@ class ApiService {
   async login(data: LoginData): Promise<LoginResponse> {
     const res = await this.api.post<ApiResponse<LoginResponse>>(
       "/users/auth/login/",
-      data,
+      data
     );
     return this.unwrap(res.data);
   }
@@ -188,7 +212,7 @@ class ApiService {
     const res = await axios.post(
       `${API_BASE_URL}/users/auth/refresh/`,
       {},
-      { withCredentials: true },
+      { withCredentials: true }
     );
     const { access_token, user } = res.data.data;
     return { access_token, user };
@@ -197,6 +221,76 @@ class ApiService {
   async googleLogin(token: string): Promise<any> {
     const res = await this.api.post("/users/auth/google/", { token });
     return res.data;
+  }
+
+  // ── Re-authentication (Scenario B — inactivity timeout) ──────────────────────
+  //
+  // Verifies the currently-authenticated user's password WITHOUT issuing
+  // any new tokens. The existing access + refresh tokens remain in use.
+  //
+  // Throws ReAuthError on wrong password, rate-limit, locked account, or
+  // missing access token. The axios interceptor is bypassed for this
+  // endpoint (see skipRefreshPaths above) so a 401 here always means
+  // wrong password, never a token expiry that can be silently fixed.
+
+  async verifyPasswordForReauth(password: string): Promise<void> {
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      // Session already dead on the client side — no point calling the API.
+      throw new ReAuthError("No active session.", 401, "token_expired");
+    }
+
+    try {
+      // POST /users/auth/reauth-verify/
+      // Backend: ReAuthVerifyView — only verifies password, returns 200 or 4xx.
+      await this.api.post(
+        "/users/auth/reauth-verify/",
+        { password },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      // HTTP 200 — re-auth successful. No return value needed.
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const httpStatus = error.response?.status ?? 500;
+        const body = error.response?.data as
+          | { success: boolean; message?: string; code?: string }
+          | undefined;
+
+        const message = body?.message ?? "Re-authentication failed.";
+        const code = body?.code as ReAuthErrorResponse["code"] | undefined;
+
+        switch (httpStatus) {
+          case 401:
+            throw new ReAuthError(
+              message || "Incorrect password.",
+              401,
+              code ?? "invalid_password"
+            );
+          case 403:
+            throw new ReAuthError(
+              message || "Account is locked.",
+              403,
+              "account_locked"
+            );
+          case 429:
+            throw new ReAuthError(
+              "Too many attempts. Please wait a moment.",
+              429
+            );
+          default:
+            throw new ReAuthError(
+              message || "Server error during re-authentication.",
+              httpStatus
+            );
+        }
+      }
+
+      // Non-Axios error (network failure etc.)
+      throw new ReAuthError("An unexpected error occurred.", 500);
+    }
   }
 
   // ── Email Verification ───────────────────────────────────────────────────────
@@ -216,31 +310,31 @@ class ApiService {
   // ── Registration ─────────────────────────────────────────────────────────────
 
   async registerPatient(
-    data: PatientRegistrationData | FormData,
+    data: PatientRegistrationData | FormData
   ): Promise<RegisterResponse> {
     const res = await this.api.post<ApiResponse<RegisterResponse>>(
       "/patients/register/",
-      data,
+      data
     );
     return this.unwrap(res.data);
   }
 
   async registerDoctor(
-    data: DoctorRegistrationData | FormData,
+    data: DoctorRegistrationData | FormData
   ): Promise<RegisterResponse> {
     const res = await this.api.post<ApiResponse<RegisterResponse>>(
       "/doctors/register/",
-      data,
+      data
     );
     return this.unwrap(res.data);
   }
 
   async registerLab(
-    data: LabRegistrationData | FormData,
+    data: LabRegistrationData | FormData
   ): Promise<RegisterResponse> {
     const res = await this.api.post<ApiResponse<RegisterResponse>>(
       "/labs/register/",
-      data,
+      data
     );
     return this.unwrap(res.data);
   }
@@ -259,11 +353,11 @@ class ApiService {
   }
 
   async updatePatientProfile(
-    data: PatientProfileUpdateData,
+    data: PatientProfileUpdateData
   ): Promise<PatientProfile> {
     const res = await this.api.patch<ApiResponse<PatientProfile>>(
       "/patients/profile/",
-      data,
+      data
     );
     return this.unwrap(res.data);
   }
@@ -275,11 +369,11 @@ class ApiService {
   }
 
   async updateDoctorProfile(
-    data: DoctorProfileUpdateData | Record<string, any>,
+    data: DoctorProfileUpdateData | Record<string, any>
   ): Promise<DoctorProfile> {
     const res = await this.api.patch<ApiResponse<DoctorProfile>>(
       "/doctors/profile/",
-      data,
+      data
     );
     return this.unwrap(res.data);
   }
@@ -292,7 +386,7 @@ class ApiService {
   async updateLabProfile(data: LabProfileUpdateData): Promise<LabProfile> {
     const res = await this.api.patch<ApiResponse<LabProfile>>(
       "/labs/profile/",
-      data,
+      data
     );
     return this.unwrap(res.data);
   }
@@ -322,14 +416,14 @@ class ApiService {
 
   async togglePatientStatus(patientId: string): Promise<PatientList> {
     const res = await this.api.patch<ApiResponse<PatientList>>(
-      `/users/admin/patients/${patientId}/toggle-status/`,
+      `/users/admin/patients/${patientId}/toggle-status/`
     );
     return this.unwrap(res.data);
   }
 
   async toggleDoctorStatus(userId: string): Promise<DoctorList> {
     const res = await this.api.patch<ApiResponse<DoctorList>>(
-      `/users/admin/doctors/${userId}/toggle-status/`,
+      `/users/admin/doctors/${userId}/toggle-status/`
     );
     return this.unwrap(res.data);
   }
@@ -337,11 +431,11 @@ class ApiService {
   async verifyDoctor(
     userId: string,
     status: "VERIFIED" | "REJECTED",
-    notes?: string,
+    notes?: string
   ): Promise<DoctorList> {
     const res = await this.api.patch<ApiResponse<DoctorList>>(
       `/users/admin/doctors/${userId}/verify/`,
-      { status, notes },
+      { status, notes }
     );
     return this.unwrap(res.data);
   }
@@ -349,11 +443,11 @@ class ApiService {
   async verifyLab(
     userId: string,
     status: "VERIFIED" | "REJECTED",
-    notes?: string,
+    notes?: string
   ): Promise<LabProfile> {
     const res = await this.api.patch<ApiResponse<LabProfile>>(
       `/users/admin/labs/${userId}/verify/`,
-      { status, notes },
+      { status, notes }
     );
     return this.unwrap(res.data);
   }
@@ -394,7 +488,7 @@ class ApiService {
 
   async getRecentActivity(): Promise<AuditLog[]> {
     const res = await this.api.get<ApiResponse<AuditLog[]>>(
-      "/users/admin/recent-activity/",
+      "/users/admin/recent-activity/"
     );
     return this.unwrap(res.data) ?? [];
   }
@@ -409,7 +503,7 @@ class ApiService {
 
   async getDoctorSlots(
     userId: string,
-    date?: string,
+    date?: string
   ): Promise<AppointmentSlot[]> {
     const url = date
       ? `/doctors/${userId}/slots/?date=${date}`
@@ -421,32 +515,32 @@ class ApiService {
   async bookAppointment(data: BookAppointmentData): Promise<DoctorAppointment> {
     const res = await this.api.post<ApiResponse<DoctorAppointment>>(
       "/doctors/appointments/book/",
-      data,
+      data
     );
     return this.unwrap(res.data);
   }
 
   async getMyAppointments(): Promise<DoctorAppointment[]> {
     const res = await this.api.get<ApiResponse<DoctorAppointment[]>>(
-      "/doctors/appointments/my/",
+      "/doctors/appointments/my/"
     );
     return this.unwrap(res.data) ?? [];
   }
 
   async getDoctorAppointments(): Promise<DoctorAppointment[]> {
     const res = await this.api.get<ApiResponse<DoctorAppointment[]>>(
-      "/doctors/appointments/my/",
+      "/doctors/appointments/my/"
     );
     return this.unwrap(res.data) ?? [];
   }
 
   async cancelAppointment(
     appointmentId: number,
-    reason?: string,
+    reason?: string
   ): Promise<DoctorAppointment> {
     const res = await this.api.patch<ApiResponse<DoctorAppointment>>(
       `/doctors/appointments/${appointmentId}/cancel/`,
-      { reason: reason || "" },
+      { reason: reason || "" }
     );
     return this.unwrap(res.data);
   }
@@ -455,32 +549,29 @@ class ApiService {
 export const apiService = new ApiService();
 
 // ── Error Parser ───────────────────────────────────────────────────────────────
- 
+
 /**
- * Converts backend ApiError shape into a human-readable string.
+ * Converts a backend ApiError into a human-readable string.
  * Backend format: { success: false, message: "...", errors: { field: ["msg"] } }
  */
 export const handleApiError = (error: unknown): string => {
   if (axios.isAxiosError(error)) {
     const body = error.response?.data as ApiError | undefined;
 
-    // Collect field-level errors first (most specific)
     if (body?.errors && typeof body.errors === "object") {
       const messages: string[] = [];
       for (const [field, value] of Object.entries(body.errors)) {
         const msg = Array.isArray(value) ? value[0] : String(value);
         if (msg)
           messages.push(
-            field === "non_field_errors" ? msg : `${field}: ${msg}`,
+            field === "non_field_errors" ? msg : `${field}: ${msg}`
           );
       }
       if (messages.length > 0) return messages[0];
     }
 
-    // Generic backend message
     if (body?.message) return body.message;
 
-    // HTTP status fallbacks
     switch (error.response?.status) {
       case 400:
         return "Invalid request. Please check your input.";

@@ -1,5 +1,6 @@
 // frontend\src\components\types.ts
-import { LucideIcon } from 'lucide-react';
+import exp from "constants";
+import { LucideIcon } from "lucide-react";
 
 export interface MenuItem {
   icon: LucideIcon;
@@ -29,7 +30,7 @@ export interface StatCardProps {
   title: string;
   value: string;
   change?: string;
-  trend?: 'up' | 'down';
+  trend?: "up" | "down";
   color: string;
 }
 
@@ -38,7 +39,7 @@ export interface Activity {
   user: string;
   action: string;
   time: string;
-  type: 'create' | 'update' | 'delete' | 'report';
+  type: "create" | "update" | "delete" | "report";
 }
 
 export interface Product {
@@ -46,7 +47,7 @@ export interface Product {
   name: string;
   sales: number;
   revenue: string;
-  trend: 'up' | 'down';
+  trend: "up" | "down";
 }
 
 export interface ExpandedSections {

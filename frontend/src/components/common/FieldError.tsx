@@ -1,6 +1,4 @@
 // src/components/common/FieldError.tsx
-// Single source-of-truth for the inline validation message shown below form inputs.
-// Previously defined as a local component inside each of the three Edit*Profile modals.
 
 import React from "react";
 import { AlertCircle } from "lucide-react";

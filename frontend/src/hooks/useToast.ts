@@ -1,15 +1,5 @@
 // frontend/src/hooks/useToast.ts
-/**
- * Custom hook that wraps react-hot-toast with consistently styled
- * success / error / loading / info / warning toasts.
- *
- * Usage:
- *   const { success, error, loading, info, warning, dismiss } = useToast();
- *   success("Profile saved!");
- *   error("Something went wrong.");
- *   const id = loading("Saving...");
- *   dismiss(id);
- */
+
 import React from "react";
 import toast, { ToastOptions } from "react-hot-toast";
 
