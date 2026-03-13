@@ -166,7 +166,7 @@ export const InactivityModal: React.FC<InactivityModalProps> = ({
           {step === "prompt" && (
             <>
               <p id="inactivity-modal-desc" style={styles.description}>
-                Your session has been inactive for <strong>5 minutes</strong>.
+                Your session has been inactive for <strong>15 minutes</strong>.
                 Please confirm you are still here or log out.
               </p>
               <div style={styles.buttonRow}>

@@ -759,8 +759,6 @@
 // }
 
 // frontend/src/context/AuthContext.tsx
-// frontend/src/context/AuthContext.tsx
-// frontend/src/context/AuthContext.tsx
 
 import React, {
   createContext,
@@ -803,27 +801,15 @@ interface AuthContextValue {
   registerRestorableForm: (
     formId: string,
     onRestore: () => void,
-    onBeforeTimeout?: () => void
+    onBeforeTimeout?: () => void,
   ) => void;
   unregisterRestorableForm: (formId: string) => void;
-  // Consumed by InactivityModalPortal in App.tsx
   isInactivityModalVisible: boolean;
   handleInactivityContinue: () => void;
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-/**
- * sessionStorage key that survives a page refresh but is automatically
- * cleared when the tab is closed.
- *
- * WHY sessionStorage and NOT localStorage?
- *   - localStorage persists across tabs AND after the browser is closed.
- *     If the flag were left in localStorage (e.g. after a crash), every
- *     future login on that device would immediately show the modal.
- *   - sessionStorage is scoped to a single browser tab and is wiped when
- *     the tab closes, making it appropriate for transient security state.
- */
 const INACTIVITY_FLAG_KEY = "inactivity_timeout_pending";
 
 function setInactivityFlag() {
@@ -887,24 +873,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Initialise from sessionStorage so a page refresh restores the modal.
-  // If the flag is set but the user is not authenticated (token expired),
-  // initAuth will clear it during the auth check below.
-  const [isInactivityModalVisible, setIsInactivityModalVisible] = useState<boolean>(
-    () => hasInactivityFlag()
-  );
+  const [isInactivityModalVisible, setIsInactivityModalVisible] =
+    useState<boolean>(() => hasInactivityFlag());
 
-  const restorableFormsRef = useRef<Map<string, RestorableFormEntry>>(new Map());
+  const restorableFormsRef = useRef<Map<string, RestorableFormEntry>>(
+    new Map(),
+  );
 
   // ── Helpers for toggling modal + keeping flag in sync ───────────────────────
 
   const showModal = useCallback(() => {
-    setInactivityFlag();          // persist across refresh
+    setInactivityFlag(); 
     setIsInactivityModalVisible(true);
   }, []);
 
   const hideModal = useCallback(() => {
-    clearInactivityFlag();        // remove persistence
+    clearInactivityFlag();
     setIsInactivityModalVisible(false);
   }, []);
 
@@ -917,11 +901,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const refreshed = await apiService.refreshToken();
         localStorage.setItem("access_token", refreshed.access_token);
         if (refreshed.user) setUser(extractBaseUser(refreshed.user));
-        // Token refreshed successfully — if the inactivity flag was set,
-        // the modal should still be shown (user refreshed mid-timeout).
-        // Leave isInactivityModalVisible as-is (already set from flag).
       } catch {
-        // Refresh failed — session is truly dead, clear everything
         localStorage.removeItem("access_token");
         clearInactivityFlag();
         setIsInactivityModalVisible(false);
@@ -934,10 +914,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const profile = await apiService.getCurrentUserProfile();
       setUser(extractBaseUser(profile));
-      // Profile loaded successfully — if the flag is set the modal remains
-      // visible (state was already initialised from the flag above).
     } catch {
-      // Token rejected server-side — clear everything
       localStorage.removeItem("access_token");
       clearInactivityFlag();
       setIsInactivityModalVisible(false);
@@ -947,13 +924,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, []);
 
-  useEffect(() => { initAuth(); }, [initAuth]);
+  useEffect(() => {
+    initAuth();
+  }, [initAuth]);
 
   // ── Auth Actions ────────────────────────────────────────────────────────────
 
   const login = useCallback(async (email: string, password: string) => {
-    const { access_token, user: userData } = await apiService.login({ email, password });
-    if (!isTokenValid(access_token)) throw new Error("Server returned an invalid access token.");
+    const { access_token, user: userData } = await apiService.login({
+      email,
+      password,
+    });
+    if (!isTokenValid(access_token))
+      throw new Error("Server returned an invalid access token.");
     localStorage.setItem("access_token", access_token);
     setUser(extractBaseUser(userData));
   }, []);
@@ -971,7 +954,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [hideModal]);
 
-  const refreshUser = useCallback(async () => { await initAuth(); }, [initAuth]);
+  const refreshUser = useCallback(async () => {
+    await initAuth();
+  }, [initAuth]);
 
   const setAuthUser = useCallback((authUser: AuthUser, token: string) => {
     localStorage.setItem("access_token", token);
@@ -979,11 +964,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   // ── Back-button lock ────────────────────────────────────────────────────────
-  //
-  // When the modal opens, push a dummy history entry so the back button
-  // hits that instead of navigating away. The popstate handler immediately
-  // pushes another guard entry, keeping the user on the current page until
-  // they re-auth or click Logout.
 
   useEffect(() => {
     if (!isInactivityModalVisible) return;
@@ -1002,7 +982,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const handleInactivityTimeout = useCallback(() => {
     if (!user) return;
-    // Snapshot all registered forms before showing the modal (Scenario B)
     restorableFormsRef.current.forEach((entry) => entry.onBeforeTimeout?.());
     showModal();
   }, [user, showModal]);
@@ -1016,8 +995,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const registerRestorableForm = useCallback(
     (formId: string, onRestore: () => void, onBeforeTimeout?: () => void) => {
-      restorableFormsRef.current.set(formId, { formId, onRestore, onBeforeTimeout });
-    }, []
+      restorableFormsRef.current.set(formId, {
+        formId,
+        onRestore,
+        onBeforeTimeout,
+      });
+    },
+    [],
   );
 
   const unregisterRestorableForm = useCallback((formId: string) => {
@@ -1048,9 +1032,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       isInactivityModalVisible,
       handleInactivityContinue,
     }),
-    [user, isLoading, login, logout, refreshUser, setAuthUser,
-     registerRestorableForm, unregisterRestorableForm,
-     isInactivityModalVisible, handleInactivityContinue]
+    [
+      user,
+      isLoading,
+      login,
+      logout,
+      refreshUser,
+      setAuthUser,
+      registerRestorableForm,
+      unregisterRestorableForm,
+      isInactivityModalVisible,
+      handleInactivityContinue,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

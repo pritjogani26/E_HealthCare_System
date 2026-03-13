@@ -39,43 +39,38 @@ class DoctorRegistrationView(generics.GenericAPIView):
     serializer_class = DoctorRegistrationSerializer
 
     def post(self, request, *args, **kwargs):
-        print("\n\nDone....")
         serializer = self.get_serializer(data=request.data)
         print("Data.....")
         if not serializer.is_valid():
             return _error("Registration failed", serializer.errors)
-        print("Done Valid....\n\n")
+
         data = serializer.validated_data
-        try:
-            image_path = get_image_path(
-                data, request, name="doctors", image_key="profile_image"
-            )
-            print("\n\nDone Image path.....")
-            user, email_sent = RegistrationService.register_doctor(
-                data, request=request, image_path=image_path
-            )
-            msg = (
-                "Doctor registered successfully. Account pending verification. Please check your email."
-                if email_sent
-                else "Doctor registered successfully. Account pending verification. Verification email could not be sent."
-            )
 
-            response_dict = {
-                "success": True,
-                "message": msg,
-                "data": {"user": user},
-            }
+        image_path = get_image_path(
+            data, request, name="doctors", image_key="profile_image"
+        )
+        
+        print("\n\nDone Image path.....")
+        
+        user, email_sent = RegistrationService.register_doctor(
+            data, request=request, image_path=image_path
+        )
+        
+        msg = (
+            "Doctor registered successfully. Account pending verification. Please check your email."
+            if email_sent
+            else "Doctor registered successfully. Account pending verification. Verification email could not be sent."
+        )
 
-            response_dict["email_verification_sent"] = email_sent
-            response = Response(response_dict, status=status.HTTP_201_CREATED)
-            return response
-        except Exception as e:
-            print("EXCEPTION:", traceback.format_exc())
-            error_msg = str(e).split("\n")[0] or "a server error"
-            return _error(
-                f"Registration failed due to {error_msg}.",
-                http_status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+        response_dict = {
+            "success": True,
+            "message": msg,
+            "data": {"user": user},
+        }
+
+        response_dict["email_verification_sent"] = email_sent
+        response = Response(response_dict, status=status.HTTP_201_CREATED)
+        return response
 
 
 class DoctorProfileView(generics.GenericAPIView):
