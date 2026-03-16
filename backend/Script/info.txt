@@ -1,0 +1,9 @@
+ValidationException          400   input fails business logic
+AuthenticationException      401   not logged in
+TokenExpiredException        401   token expired
+PermissionException          403   wrong role / not owner
+NotFoundException            404   record doesn't exist
+ConflictException            409   duplicate data
+UnprocessableEntityException 422   valid format, bad semantics
+RateLimitException           429   too many requests
+ServiceUnavailableException  503   third-party service down

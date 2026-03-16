@@ -13,7 +13,6 @@ class RegistrationService:
 
         return user_dict, email_sent
 
-    # -------------------------------------------------------------------------
 
     @staticmethod
     def register_patient(data: dict, request=None, image_path: str = None):
@@ -46,12 +45,8 @@ class RegistrationService:
             ],
         )
         print(f"Response After Register Patient : {user_dict}")
-        # Response After Register Patient : {'user_id': UUID('90ef8108-1770-48f1-b887-b4ef74df5394'),
-        # 'email': 'yiyih70694@7novels.com', 'is_active': True, 'email_verified': False}
-
         return RegistrationService._post_register(user_dict, "patient", request=request)
 
-    # -------------------------------------------------------------------------
 
     @staticmethod
     def register_doctor(data: dict, request=None, image_path: str = None):
@@ -101,7 +96,6 @@ class RegistrationService:
 
         return RegistrationService._post_register(user_dict, "doctor", request=request)
 
-    # -------------------------------------------------------------------------
 
     @staticmethod
     def register_lab(data: dict, request=None, image_path: str = None):
@@ -133,14 +127,6 @@ class RegistrationService:
         lab_id = list(res.values())[0]
         print(f"Lab Added Successfully, ID : {lab_id}")
 
-        # for service in data.get("services") or []:
-        #     fn_fetchone("l_add_service", [
-        #     lab_id,
-        #     service["service_name"],
-        #     service.get("description"),
-        #     service.get("price"),
-        #     service.get("turnaround_hours"),
-        # ])
         for op in data.get("operating_hours"):
             res = fn_fetchone(
                 "l_upsert_operating_hours",
@@ -156,6 +142,5 @@ class RegistrationService:
 
         user_dict = {"user_id": lab_id, "email": data["email"]}
 
-        # Persist optional services
 
         return RegistrationService._post_register(user_dict, "lab", request=request)

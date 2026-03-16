@@ -23,14 +23,9 @@ class ProfileService(BaseProfileService):
 
     @staticmethod
     def update_doctor_profile(doctor_dict: dict, serializer, request=None) -> dict:
-        """
-        Apply validated_data to the doctor profile using DB query functions directly.
-        DRF plain Serializer has no .update() — we handle it here.
-        """
         user_id = str(doctor_dict.get("doctor_id") or doctor_dict.get("doctor_user_id"))
         data = serializer.validated_data
 
-        # ---- Address -------------------------------------------------------
         address_id = doctor_dict.get("address_id")
         address_fields = {k: data.get(k) for k in ("address_line", "city", "state", "pincode")}
         if any(v is not None for v in address_fields.values()):
@@ -44,7 +39,6 @@ class ProfileService(BaseProfileService):
                     pincode=address_fields.get("pincode", ""),
                 )
 
-        # ---- Core profile --------------------------------------------------
         profile_fields = {
             k: data[k]
             for k in (
@@ -60,7 +54,6 @@ class ProfileService(BaseProfileService):
         if profile_fields:
             dq.update_doctor(user_id, **profile_fields)
 
-        # ---- Qualifications (full replace) ---------------------------------
         if "qualifications" in data:
             dq.delete_doctor_qualifications(user_id)
             for q in data["qualifications"]:
@@ -71,7 +64,6 @@ class ProfileService(BaseProfileService):
                     q.get("year_of_completion"),
                 )
 
-        # ---- Specializations (full replace) --------------------------------
         if "specializations" in data:
             dq.delete_doctor_specializations(user_id)
             for s in data["specializations"]:
@@ -82,7 +74,6 @@ class ProfileService(BaseProfileService):
                     s.get("years_in_specialty"),
                 )
 
-        # ---- Schedule ------------------------------------------------------
         if "schedule" in data:
             sched_data = data["schedule"]
             dq.upsert_schedule(
@@ -103,7 +94,6 @@ class ProfileService(BaseProfileService):
                         wd.get("lunch_end"),
                     )
 
-        # ---- Fetch updated profile -----------------------------------------
         updated = dq.get_doctor_by_user_id(user_id)
         updated["qualifications"] = dq.get_doctor_qualifications(user_id)
         updated["specializations"] = dq.get_doctor_specializations(user_id)

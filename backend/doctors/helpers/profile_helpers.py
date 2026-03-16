@@ -1,15 +1,20 @@
 # backend/doctors/helpers/profile_helpers.py
+
+import logging
+
 from db.doctor_queries import get_doctor_by_user_id
-from ..serializers import DoctorProfileSerializer
 from users.models import UserRole
 from users.serializers import UserSerializer
+from ..serializers import DoctorProfileSerializer
+
+logger = logging.getLogger(__name__)
 
 
 def get_profile_data_by_role(user):
     if user.role == UserRole.DOCTOR:
-        try:
-            doctor = get_doctor_by_user_id(user_id=user["user_id"])
+        doctor = get_doctor_by_user_id(user_id=str(user.user_id))
+        if doctor:
             return DoctorProfileSerializer(doctor).data
-        except Exception as e:
-            return UserSerializer(user).data
+        logger.warning("Doctor profile not found for user_id=%s", user.user_id)
+
     return UserSerializer(user).data

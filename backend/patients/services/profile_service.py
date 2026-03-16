@@ -17,7 +17,6 @@ class ProfileService(BaseProfileService):
         patient_id = str(patient_dict.get("patient_id") or patient_dict.get("user_id"))
         data = serializer.validated_data
 
-        # ---- Address -------------------------------------------------------
         address_id = patient_dict.get("address_id")
         address_fields = {
             k: data.get(k) for k in ("address_line", "city", "state", "pincode")
@@ -36,7 +35,6 @@ class ProfileService(BaseProfileService):
                     pincode=address_fields.get("pincode", ""),
                 )
 
-        # ---- Core profile --------------------------------------------------
         profile_fields = {
             k: data[k]
             for k in (

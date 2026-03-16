@@ -1,16 +1,7 @@
-"""
-All lab DB access via stored PostgreSQL functions.
-"""
-
 from db.connection import fn_fetchone, fn_fetchall, fn_scalar, fetchscalar, execute
 
 
-# ---------------------------------------------------------------------------
-# Internal helpers
-# ---------------------------------------------------------------------------
-
 def _normalize_lab(row: dict) -> dict:
-    """Add key aliases for consistent access throughout the codebase."""
     if not row:
         return row
     d = dict(row)
@@ -26,10 +17,6 @@ def _normalize_lab(row: dict) -> dict:
     d.setdefault("last_login_at", None)
     return d
 
-
-# ---------------------------------------------------------------------------
-# Profile queries
-# ---------------------------------------------------------------------------
 
 def get_lab_by_user_id(user_id: str) -> dict | None:
     row = fn_fetchone("l_get_full_lab_profile", [str(user_id)])
@@ -53,7 +40,10 @@ def license_exists(license_number: str, exclude_lab_id: str = None) -> bool:
             > 0
         )
     return (
-        fetchscalar("SELECT COUNT(*) FROM labs WHERE license_number=%s", [license_number]) > 0
+        fetchscalar(
+            "SELECT COUNT(*) FROM labs WHERE license_number=%s", [license_number]
+        )
+        > 0
     )
 
 
@@ -109,7 +99,9 @@ def toggle_lab_is_active(user_id: str) -> dict:
     return get_lab_by_user_id(user_id)
 
 
-def update_lab_verification(user_id: str, status: str, notes: str, verified_by_id: str) -> dict:
+def update_lab_verification(
+    user_id: str, status: str, notes: str, verified_by_id: str
+) -> dict:
     """
     Calls a_verify_lab(p_admin_id, p_lab_id, p_status, p_notes).
     NOTE: admin_id must be the FIRST argument.
@@ -127,10 +119,6 @@ def get_pending_labs_count() -> int:
         or 0
     )
 
-
-# ---------------------------------------------------------------------------
-# Operating hours
-# ---------------------------------------------------------------------------
 
 def get_lab_operating_hours(lab_user_id: str) -> list:
     return fn_fetchall("l_get_operating_hours", [str(lab_user_id)])
@@ -152,10 +140,6 @@ def insert_lab_operating_hour(
         [str(lab_user_id), day_of_week, open_time, close_time, is_closed],
     )
 
-
-# ---------------------------------------------------------------------------
-# Services
-# ---------------------------------------------------------------------------
 
 def get_lab_services(lab_user_id: str) -> list:
     return fn_fetchall("l_get_services", [str(lab_user_id)])

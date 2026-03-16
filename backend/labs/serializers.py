@@ -4,11 +4,6 @@ import db.user_queries as uq
 import db.lab_queries as lq
 
 
-# ---------------------------------------------------------------------------
-# Output sub-serializers
-# ---------------------------------------------------------------------------
-
-
 class _UserOut(serializers.Serializer):
     user_id = serializers.UUIDField(source="lab_id")
     email = serializers.EmailField()
@@ -84,11 +79,6 @@ class LabServiceSerializer(serializers.Serializer):
     created_at = serializers.DateTimeField(read_only=True)
 
 
-# ---------------------------------------------------------------------------
-# Lab profile response serializer
-# ---------------------------------------------------------------------------
-
-
 class LabProfileSerializer(serializers.Serializer):
     lab_id = serializers.UUIDField()
     lab_name = serializers.CharField()
@@ -130,12 +120,6 @@ class LabListSerializer(serializers.Serializer):
     created_at = serializers.DateTimeField()
     updated_at = serializers.DateTimeField(allow_null=True)
 
-
-# ---------------------------------------------------------------------------
-# Lab registration serializer
-# ---------------------------------------------------------------------------
-
-
 class LabRegistrationSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
     password = serializers.CharField(
@@ -155,7 +139,6 @@ class LabRegistrationSerializer(serializers.Serializer):
     phone_number = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, max_length=15
     )
-    # lab_logo          = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     address_line = serializers.CharField(required=True)
     city = serializers.CharField(required=True, max_length=100)
     state = serializers.CharField(required=True, max_length=100)
@@ -172,11 +155,6 @@ class LabRegistrationSerializer(serializers.Serializer):
         return attrs
 
 
-# ---------------------------------------------------------------------------
-# Lab profile update serializer
-# ---------------------------------------------------------------------------
-
-
 class LabProfileUpdateSerializer(serializers.Serializer):
     lab_name = serializers.CharField(required=False, max_length=255)
     license_number = serializers.CharField(
@@ -185,7 +163,6 @@ class LabProfileUpdateSerializer(serializers.Serializer):
     phone_number = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, max_length=15
     )
-    # lab_logo         = serializers.CharField(required=False)
     address_line = serializers.CharField(
         required=False, allow_blank=True, allow_null=True
     )

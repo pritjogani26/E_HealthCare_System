@@ -131,7 +131,6 @@ def toggle_doctor_is_active(user_id: str) -> dict:
 def update_doctor_verification(
     user_id: str, status: str, notes: str, verified_by_id: str
 ) -> dict:
-    # # # # printnt(f"status in Final : {status}")
     fn_scalar(
         "a_verify_doctor",
         [str(verified_by_id), str(user_id), status, notes],
@@ -146,11 +145,6 @@ def get_pending_doctors_count() -> int:
         )
         or 0
     )
-
-
-# ---------------------------------------------------------------------------
-# Qualifications
-# ---------------------------------------------------------------------------
 
 
 def get_doctor_qualifications(doctor_id: str) -> list:
@@ -173,11 +167,6 @@ def insert_doctor_qualification(
     )
 
 
-# ---------------------------------------------------------------------------
-# Specializations
-# ---------------------------------------------------------------------------
-
-
 def get_doctor_specializations(doctor_id: str) -> list:
     return fn_fetchall("d_get_specializations", [str(doctor_id)])
 
@@ -196,11 +185,6 @@ def insert_doctor_specialization(
         "d_add_specialization",
         [str(doctor_id), specialization_id, is_primary, years_in_specialty],
     )
-
-
-# ---------------------------------------------------------------------------
-# Schedule & working days
-# ---------------------------------------------------------------------------
 
 
 def get_schedule_by_doctor(doctor_id: str) -> dict | None:
@@ -245,11 +229,6 @@ def insert_working_day(
         "d_upsert_working_day",
         [schedule_id, day_of_week, arrival, leaving, lunch_start, lunch_end],
     )
-
-
-# ---------------------------------------------------------------------------
-# Appointment slots
-# ---------------------------------------------------------------------------
 
 
 def get_or_create_slot(schedule_id: int, slot_date, start_time, end_time) -> tuple:
@@ -333,11 +312,6 @@ def slot_exists(slot_id: int) -> bool:
         )
         > 0
     )
-
-
-# ---------------------------------------------------------------------------
-# Appointments
-# ---------------------------------------------------------------------------
 
 
 def create_appointment(

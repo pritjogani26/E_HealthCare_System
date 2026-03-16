@@ -37,7 +37,6 @@ def fetchall(sql: str, params=None):
 
 
 def fetchscalar(sql: str, params=None):
-    """Execute SELECT and return a single scalar value."""
     with connection.cursor() as cursor:
         cursor.execute(sql, params or [])
         row = cursor.fetchone()

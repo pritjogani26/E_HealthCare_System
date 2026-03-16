@@ -25,7 +25,6 @@ class ProfileService(BaseProfileService):
         user_id = str(lab_dict.get("lab_id") or lab_dict.get("lab_user_id"))
         data = serializer.validated_data
 
-        # ---- Address -------------------------------------------------------
         address_id = lab_dict.get("address_id")
         address_fields = {
             k: data.get(k) for k in ("address_line", "city", "state", "pincode")
@@ -44,7 +43,6 @@ class ProfileService(BaseProfileService):
                     pincode=address_fields.get("pincode", ""),
                 )
 
-        # ---- Core profile --------------------------------------------------
         profile_fields = {
             k: data[k]
             for k in ("lab_name", "license_number", "phone_number", "lab_logo")
@@ -56,7 +54,6 @@ class ProfileService(BaseProfileService):
         if profile_fields:
             lq.update_lab(user_id, **profile_fields)
 
-        # ---- Operating hours (full replace) --------------------------------
         if "operating_hours" in data:
             lq.delete_lab_operating_hours(user_id)
             for oh in data["operating_hours"]:
@@ -68,7 +65,6 @@ class ProfileService(BaseProfileService):
                     oh.get("is_closed", False),
                 )
 
-        # ---- Services (full replace) ---------------------------------------
         if "services" in data:
             lq.delete_lab_services(user_id)
             for svc in data["services"]:
@@ -80,7 +76,6 @@ class ProfileService(BaseProfileService):
                     svc.get("turnaround_hours"),
                 )
 
-        # ---- Fetch updated profile -----------------------------------------
         updated = lq.get_lab_by_user_id(user_id)
         updated["operating_hours"] = lq.get_lab_operating_hours(user_id)
         updated["services"] = lq.get_lab_services(user_id)

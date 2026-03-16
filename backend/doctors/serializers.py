@@ -10,11 +10,6 @@ import db.doctor_queries as dq
 from users.models import AppointmentType
 
 
-# ---------------------------------------------------------------------------
-# Output sub-serializers
-# ---------------------------------------------------------------------------
-
-
 class _UserOut(serializers.Serializer):
     user_id = serializers.UUIDField(source="doctor_id")
     email = serializers.EmailField()
@@ -33,11 +28,6 @@ class _AddressOut(serializers.Serializer):
     city = serializers.CharField()
     state = serializers.CharField()
     pincode = serializers.CharField()
-
-
-# ---------------------------------------------------------------------------
-# Working days & schedule serializers
-# ---------------------------------------------------------------------------
 
 
 class WorkingDaySerializer(serializers.Serializer):
@@ -75,11 +65,6 @@ class DoctorScheduleWriteSerializer(serializers.Serializer):
     working_days = WorkingDaySerializer(many=True, required=False)
 
 
-# ---------------------------------------------------------------------------
-# Qualification & specialization read serializers
-# ---------------------------------------------------------------------------
-
-
 class QualReadSerializer(serializers.Serializer):
     doctor_qualification_id = serializers.IntegerField(read_only=True)
     institution = serializers.CharField(allow_null=True)
@@ -114,11 +99,6 @@ class SpecReadSerializer(serializers.Serializer):
         }
 
 
-# ---------------------------------------------------------------------------
-# Qualification & specialization write serializers
-# ---------------------------------------------------------------------------
-
-
 class _QualWriteSerializer(serializers.Serializer):
     qualification_id = serializers.IntegerField()
     institution = serializers.CharField(
@@ -137,14 +117,7 @@ class _SpecWriteSerializer(serializers.Serializer):
     )
 
 
-# ---------------------------------------------------------------------------
-# Doctor profile response serializer
-# ---------------------------------------------------------------------------
-
-
 class DoctorProfileSerializer(serializers.Serializer):
-    """Reads normalized flat DB dict and shapes it into a nested response."""
-
     doctor_id = serializers.UUIDField()
     user = serializers.SerializerMethodField()
     full_name = serializers.CharField()
@@ -221,11 +194,6 @@ class DoctorProfileSerializer(serializers.Serializer):
         ).data
 
 
-# ---------------------------------------------------------------------------
-# Doctor registration serializer
-# ---------------------------------------------------------------------------
-
-
 class DoctorRegistrationSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
     password = serializers.CharField(
@@ -280,21 +248,6 @@ class DoctorRegistrationSerializer(serializers.Serializer):
                     )
         return super().to_internal_value(data)
 
-    # def validate_email(self, value):
-    #     if uq.email_exists(value):
-    #         raise serializers.ValidationError("A user with this email already exists.")
-    #     return value
-
-    # def validate_phone_number(self, value):
-    #     if dq.phone_exists(value):
-    #         raise serializers.ValidationError("A doctor with this phone number already exists.")
-    #     return value
-
-    # def validate_registration_number(self, value):
-    #     if dq.registration_number_exists(value):
-    #         raise serializers.ValidationError("A doctor with this registration number already exists.")
-    #     return value
-
     def validate_full_name(self, value):
         value = value.strip()
         if not value:
@@ -316,11 +269,6 @@ class DoctorRegistrationSerializer(serializers.Serializer):
                 {"password_confirm": "Passwords do not match."}
             )
         return attrs
-
-
-# ---------------------------------------------------------------------------
-# Doctor profile update serializer
-# ---------------------------------------------------------------------------
 
 
 class DoctorProfileUpdateSerializer(serializers.Serializer):
@@ -350,7 +298,6 @@ class DoctorProfileUpdateSerializer(serializers.Serializer):
     schedule = DoctorScheduleWriteSerializer(required=False)
 
     def validate_phone_number(self, value):
-        # BUG FIX: use "doctor_id" context key (consistent with view), pass to phone_exists
         doctor_id = self.context.get("doctor_id")
         if dq.phone_exists(value, exclude_doctor_id=doctor_id):
             raise serializers.ValidationError(
@@ -362,11 +309,6 @@ class DoctorProfileUpdateSerializer(serializers.Serializer):
         if value and not uq.gender_exists(value):
             raise serializers.ValidationError("Invalid gender ID.")
         return value
-
-
-# ---------------------------------------------------------------------------
-# Appointment slot serializer
-# ---------------------------------------------------------------------------
 
 
 class AppointmentSlotSerializer(serializers.Serializer):
@@ -400,12 +342,6 @@ class BookAppointmentSerializer(serializers.Serializer):
             raise serializers.ValidationError("Slot not found.")
         return value
 
-
-# ---------------------------------------------------------------------------
-# Doctor appointment response serializer
-# ---------------------------------------------------------------------------
-
-
 class DoctorAppointmentSerializer(serializers.Serializer):
     appointment_id = serializers.IntegerField()
     doctor_id = serializers.UUIDField()
@@ -422,11 +358,6 @@ class DoctorAppointmentSerializer(serializers.Serializer):
     cancellation_reason = serializers.CharField(allow_null=True)
     created_at = serializers.DateTimeField()
     updated_at = serializers.DateTimeField()
-
-
-# ---------------------------------------------------------------------------
-# Doctor list serializer
-# ---------------------------------------------------------------------------
 
 
 class DoctorListSerializer(serializers.Serializer):

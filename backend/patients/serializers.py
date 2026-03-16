@@ -11,11 +11,6 @@ import db.user_queries as uq
 import db.patient_queries as pq
 
 
-# ------------------------------------------------------------
-# Output sub-serializers (response shaping)
-# ------------------------------------------------------------
-
-
 class _UserOut(serializers.Serializer):
     user_id = serializers.UUIDField()
     email = serializers.EmailField()
@@ -46,11 +41,6 @@ class _AddressOut(serializers.Serializer):
     pincode = serializers.CharField()
 
 
-# ------------------------------------------------------------
-# Patient profile response serializer
-# ------------------------------------------------------------
-
-
 class PatientProfileSerializer(serializers.Serializer):
     patient_id = serializers.UUIDField()
     user = serializers.SerializerMethodField()
@@ -64,7 +54,6 @@ class PatientProfileSerializer(serializers.Serializer):
     created_at = serializers.DateTimeField()
     updated_at = serializers.DateTimeField()
 
-    # removed raw gender/blood_group integer fields — redundant alongside detail fields
     gender = serializers.SerializerMethodField()
     blood_group = serializers.SerializerMethodField()
     address = serializers.SerializerMethodField()
@@ -79,7 +68,6 @@ class PatientProfileSerializer(serializers.Serializer):
         d = self._src(obj)
         if not d.get("gender_id"):
             return None
-        # using _GenderOut instead of inline dict
         return _GenderOut(
             {
                 "gender_id": d["gender_id"],
@@ -91,7 +79,6 @@ class PatientProfileSerializer(serializers.Serializer):
         d = self._src(obj)
         if not d.get("blood_group_id"):
             return None
-        # using _BloodGroupOut instead of inline dict
         return _BloodGroupOut(
             {
                 "blood_group_id": d["blood_group_id"],
@@ -103,7 +90,6 @@ class PatientProfileSerializer(serializers.Serializer):
         d = self._src(obj)
         if not d.get("address_id"):
             return None
-        # removed latitude/longitude — not in DB schema
         return _AddressOut(
             {
                 "address_id": d["address_id"],
@@ -124,11 +110,6 @@ class PatientListSerializer(serializers.Serializer):
     gender = serializers.CharField()
     is_active = serializers.BooleanField()
     created_at = serializers.DateTimeField()
-
-
-# ------------------------------------------------------------
-# Patient registration serializer (validation only)
-# ------------------------------------------------------------
 
 
 class PatientRegistrationSerializer(serializers.Serializer):
@@ -164,46 +145,24 @@ class PatientRegistrationSerializer(serializers.Serializer):
         required=False,
         allow_blank=True,
         allow_null=True,
-        max_length=255,  # fixed: was 100, DB is VARCHAR(255)
+        max_length=255,
     )
     emergency_contact_phone = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, max_length=15
     )
 
-    # def validate_email(self, value):
-    #     if uq.email_exists(value):
-    #         raise serializers.ValidationError("A user with this email already exists.")
-    #     return value
-
-    # def validate_gender_id(self, value):
-    #     if not uq.gender_exists(value):
-    #         raise serializers.ValidationError("Invalid gender ID.")
-    #     return value
-
-    # def validate_blood_group_id(self, value):
-    #     if value and not uq.blood_group_exists(value):
-    #         raise serializers.ValidationError("Invalid blood group ID.")
-    #     return value
-
     def validate_date_of_birth(self, value):
-        # future date of birth is not valid
         if value and value > date.today():
             raise serializers.ValidationError("Date of birth cannot be in the future.")
         return value
 
     def validate(self, attrs):
-        # password_confirm popped here so it never reaches the view
         password_confirm = attrs.pop("password_confirm", None)
         if attrs["password"] != password_confirm:
             raise serializers.ValidationError(
                 {"password_confirm": "Passwords do not match."}
             )
         return attrs
-
-
-# ------------------------------------------------------------
-# Patient profile update serializer (validation only)
-# ------------------------------------------------------------
 
 
 class PatientProfileUpdateSerializer(serializers.Serializer):
@@ -217,7 +176,7 @@ class PatientProfileUpdateSerializer(serializers.Serializer):
         required=False,
         allow_blank=True,
         allow_null=True,
-        max_length=255,  # fixed: DB is VARCHAR(255)
+        max_length=255,
     )
     emergency_contact_phone = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, max_length=15
@@ -225,7 +184,7 @@ class PatientProfileUpdateSerializer(serializers.Serializer):
     address_line = serializers.CharField(
         required=False,
         allow_blank=True,
-        allow_null=True,  # flattened — removed _AddressWriteSerializer
+        allow_null=True,
     )
     city = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, max_length=100

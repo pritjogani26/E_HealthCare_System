@@ -14,7 +14,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write("Populating database...")
 
-        # ---- Roles ---------------------------------------------------------
         roles = [
             ("admin",          "System administrator"),
             ("staff",          "Staff member"),
@@ -26,7 +25,6 @@ class Command(BaseCommand):
             fn_scalar("o_insert_user_role", [role, desc])
             self.stdout.write(f"  Role: {role}")
 
-        # ---- Verification types --------------------------------------------
         vtypes = [
             ("email_verification", "Token used to verify user email address"),
             ("password_reset",     "Token used to reset user password"),
@@ -35,17 +33,14 @@ class Command(BaseCommand):
             fn_scalar("o_insert_verification_type", [name, desc])
             self.stdout.write(f"  Verification type: {name}")
 
-        # ---- Genders -------------------------------------------------------
         for g in ["Male", "Female", "Other"]:
             fn_scalar("o_insert_gender", [g])
             self.stdout.write(f"  Gender: {g}")
 
-        # ---- Blood groups --------------------------------------------------
         for bg in ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]:
             fn_scalar("o_insert_blood_group", [bg])
             self.stdout.write(f"  Blood group: {bg}")
 
-        # ---- Qualifications ------------------------------------------------
         qualifications = [
             ("MBBS", "Bachelor of Medicine, Bachelor of Surgery"),
             ("MD",   "Doctor of Medicine"),
