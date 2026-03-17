@@ -18,6 +18,7 @@ from .views import (
     AdminLabListView,
     AdminTogglePatientStatusView,
     AdminToggleDoctorStatusView,
+    AdminToggleLabStatusView,
     AdminVerifyDoctorView,
     AdminVerifyLabView,
     PendingApprovalsCountView,
@@ -67,6 +68,11 @@ urlpatterns = [
         "admin/doctors/<str:user_id>/toggle-status/",
         AdminToggleDoctorStatusView.as_view(),
         name="admin-toggle-doctor-status",
+    ),
+    path(
+        "admin/labs/<str:user_id>/toggle-status/",
+        AdminToggleLabStatusView.as_view(),
+        name="admin-toggle-lab-status",
     ),
     path(
         "admin/doctors/<str:user_id>/verify/",

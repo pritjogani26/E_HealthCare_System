@@ -8,7 +8,8 @@ import {
 } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { apiService, handleApiError } from "../services/api";
+import { handleApiError } from "../services/api";
+import { cancelAppointment, getMyAppointments } from "../services/doctor_api";
 import { DoctorAppointment } from "../types";
 import toast from "react-hot-toast";
 
@@ -37,7 +38,7 @@ const MyAppointmentsPage: React.FC = () => {
     const load = async () => {
         setLoading(true);
         try {
-            setAppointments(await apiService.getMyAppointments());
+            setAppointments(await getMyAppointments());
         } catch (e) {
             toast.error(handleApiError(e));
         } finally {
@@ -51,7 +52,7 @@ const MyAppointmentsPage: React.FC = () => {
         if (!window.confirm("Cancel this appointment?")) return;
         setCancellingId(id);
         try {
-            await apiService.cancelAppointment(id);
+            await cancelAppointment(id);
             toast.success("Appointment cancelled.");
             load();
         } catch (e) {

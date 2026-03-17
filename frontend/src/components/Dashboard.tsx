@@ -26,7 +26,7 @@ import Footer from "./Footer";
 import StatCard from "./StatCard";
 import { StatCardProps, Product } from "./types";
 import { AuditLog, AuditAction } from "../types";
-import { apiService } from "../services/api";
+import { getAllDoctors, getAllLabs, getAllPatients, getPendingApprovalsCount, getRecentActivity } from "../services/admin_api";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/useToast";
 import { getUserRole } from "../utils/roles";
@@ -142,7 +142,7 @@ const Dashboard: React.FC = () => {
   const fetchPendingCounts = useCallback(async () => {
     if (!isAdminOrStaff) return;
     try {
-      const counts = await apiService.getPendingApprovalsCount();
+      const counts = await getPendingApprovalsCount();
       setPendingCounts(counts);
     } catch {
       // non-critical – silently ignore
@@ -184,9 +184,9 @@ const Dashboard: React.FC = () => {
   const loadCounts = useCallback(async () => {
     try {
       const [patients, doctors, labs] = await Promise.all([
-        apiService.getAllPatients(),
-        apiService.getAllDoctors(),
-        apiService.getAllLabs(),
+        getAllPatients(),
+        getAllDoctors(),
+        getAllLabs(),
       ]);
 
       setStats((prev) => {
@@ -219,7 +219,7 @@ const Dashboard: React.FC = () => {
     setActivityLoading(true);
     setActivityError(null);
     try {
-      const logs = await apiService.getRecentActivity();
+      const logs = await getRecentActivity();
       setRecentActivity(logs);
       setLastRefreshed(new Date());
     } catch (err: any) {

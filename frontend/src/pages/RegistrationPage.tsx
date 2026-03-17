@@ -4,12 +4,10 @@ import { useFormik } from "formik";
 import { Toaster } from "react-hot-toast";
 import { useNavigate, useLocation } from "react-router-dom";
 import Header from "../components/Header";
-import {
-  apiService,
-  handleApiError,
-  getFieldErrors,
-  buildFormData,
-} from "../services/api";
+import { buildFormData, getBloodGroups, getFieldErrors, getGenders, getQualifications, handleApiError } from "../services/api";
+import { registerDoctor } from "../services/doctor_api";
+import { registerPatient } from "../services/patient_api";
+import { registerLab } from "../services/lab_api";
 import { useToast } from "../hooks/useToast";
 import {
   BloodGroup,
@@ -144,9 +142,9 @@ const RegistrationPage: React.FC = () => {
     const load = async () => {
       try {
         const [bgs, gs, quals] = await Promise.all([
-          apiService.getBloodGroups(),
-          apiService.getGenders(),
-          apiService.getQualifications(),
+          getBloodGroups(),
+          getGenders(),
+          getQualifications(),
         ]);
         setBloodGroupOptions(bgs);
         setGenderOptions(gs);
@@ -205,7 +203,7 @@ const RegistrationPage: React.FC = () => {
             "profile_image",
           );
 
-          response = await apiService.registerPatient(body as any);
+          response = await registerPatient(body as any);
         } else if (role === "DOCTOR") {
           const v = values as typeof doctorInitial;
           if (!v.gender_id) {
@@ -259,7 +257,7 @@ const RegistrationPage: React.FC = () => {
             "profile_image",
           );
 
-          response = await apiService.registerDoctor(body as any);
+          response = await registerDoctor(body as any);
         } else {
           // LAB
           const v = values as typeof labInitial;
@@ -316,7 +314,7 @@ const RegistrationPage: React.FC = () => {
             "lab_logo",
           );
 
-          response = await apiService.registerLab(body as any);
+          response = await registerLab(body as any);
         }
 
         const { user } = response;

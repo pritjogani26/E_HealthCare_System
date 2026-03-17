@@ -13,7 +13,7 @@ import { DoctorProfileDetails } from "../components/profile/DoctorProfileDetails
 import { LabProfileDetails } from "../components/profile/LabProfileDetails";
 import { AdminProfileDetails } from "../components/profile/AdminProfileDetails";
 import { useAuth } from "../context/AuthContext";
-import { apiService } from "../services/api";
+import { getCurrentUserProfile } from "../services/api";
 import {
   PatientProfile,
   DoctorProfile,
@@ -60,7 +60,7 @@ const ProfilePage: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await apiService.getCurrentUserProfile();
+        const data = await getCurrentUserProfile();
         if (!cancelled) {
           setProfile(data);
           refreshUser();

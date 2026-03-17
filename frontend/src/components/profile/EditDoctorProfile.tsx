@@ -3,7 +3,8 @@ import { useFormik } from "formik";
 import { X, Save, User, Stethoscope, MapPin } from "lucide-react";
 import { useToast } from "../../hooks/useToast";
 import { DoctorProfile, Gender } from "../../types";
-import { apiService, handleApiError, getFieldErrors } from "../../services/api";
+import { getFieldErrors, getGenders, handleApiError } from "../../services/api";
+import { updateDoctorProfile } from "../../services/doctor_api";
 import { editDoctorProfileSchema } from "../../validation/schemas";
 import { useFormField } from "../../hooks/useFormField";
 import { FieldError } from "../common/FieldError";
@@ -37,7 +38,7 @@ const EditDoctorProfile: React.FC<EditDoctorProfileProps> = React.memo(({
   const toast = useToast();
 
   useEffect(() => {
-    apiService.getGenders().then(setGenders).catch(console.error);
+    getGenders().then(setGenders).catch(console.error);
   }, []);
 
   const handleSubmit = useCallback(async (values: EditDoctorFormValues, { setSubmitting, setErrors }: any) => {
@@ -56,7 +57,7 @@ const EditDoctorProfile: React.FC<EditDoctorProfileProps> = React.memo(({
         },
       };
 
-      const updated = await apiService.updateDoctorProfile(payload);
+      const updated = await updateDoctorProfile(payload);
       toast.success("Profile updated successfully!");
       onUpdate(updated);
       onClose();

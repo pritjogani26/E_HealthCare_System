@@ -12,7 +12,7 @@ import db.patient_queries as pq
 
 
 class _UserOut(serializers.Serializer):
-    user_id = serializers.UUIDField()
+    patient_id = serializers.UUIDField()
     email = serializers.EmailField()
     email_verified = serializers.BooleanField()
     role = serializers.CharField()
@@ -62,7 +62,9 @@ class PatientProfileSerializer(serializers.Serializer):
         return obj if isinstance(obj, dict) else vars(obj)
 
     def get_user(self, obj):
-        return _UserOut(self._src(obj)).data
+        print(f"\n\nUser : {obj}")
+        # return _UserOut(self._src(obj)).data
+        return obj
 
     def get_gender(self, obj):
         d = self._src(obj)

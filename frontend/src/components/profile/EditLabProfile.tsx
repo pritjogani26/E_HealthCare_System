@@ -3,7 +3,8 @@ import { useFormik } from "formik";
 import { X, Save, Building2, Phone, MapPin } from "lucide-react";
 import { useToast } from "../../hooks/useToast";
 import { LabProfile } from "../../types";
-import { apiService, handleApiError, getFieldErrors } from "../../services/api";
+import { getFieldErrors, handleApiError } from "../../services/api";
+import { updateLabProfile } from "../../services/lab_api";
 import { editLabProfileSchema } from "../../validation/schemas";
 import { useFormField } from "../../hooks/useFormField";
 import { FieldError } from "../common/FieldError";
@@ -45,7 +46,7 @@ const EditLabProfile: React.FC<EditLabProfileProps> = React.memo(({
         },
       };
 
-      const updated = await apiService.updateLabProfile(payload);
+      const updated = await updateLabProfile(payload);
       toast.success("Lab profile updated successfully!");
       onUpdate(updated);
       onClose();

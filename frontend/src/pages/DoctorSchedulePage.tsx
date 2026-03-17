@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { apiService } from "../services/api";
+import { getDoctorProfile, updateDoctorProfile } from "../services/doctor_api";
 import { WorkingDay } from "../types";
 import { Clock, Phone, Calendar, Save } from "lucide-react";
 import Header from "../components/Header";
@@ -55,7 +55,7 @@ const DoctorSchedulePage: React.FC = () => {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      const profile = await apiService.getDoctorProfile();
+      const profile = await getDoctorProfile();
       const sch = profile.schedule || {};
 
       setConsultationDuration(sch.consultation_duration_min || 30);
@@ -143,7 +143,7 @@ const DoctorSchedulePage: React.FC = () => {
           lunch_end: wd.lunch_end || null,
         }));
 
-      await apiService.updateDoctorProfile({
+      await updateDoctorProfile({
         schedule: {
           consultation_duration_min: consultationDuration,
           appointment_contact: appointmentContact || undefined,

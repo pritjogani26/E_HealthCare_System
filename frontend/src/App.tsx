@@ -36,7 +36,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 // circular import chain (AuthContext → InactivityModal → api.ts) that
 // caused AuthProvider to resolve as `undefined` at runtime.
 import { InactivityModal } from "./pages/InactivityModel";
-
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const InactivityModalPortal: React.FC = () => {
   const { isInactivityModalVisible, handleInactivityContinue, logout } =
@@ -56,110 +56,127 @@ const googleClientId =
 
 // ADD THIS right before "function App() {"
 console.log("COMPONENT CHECK:", {
-  HomePage, Dashboard, LoginPage, RegistrationPage,
-  VerifyEmailPage, CheckEmailPage, RoleSelectionPage,
-  ProfilePage, AdminPatientsPage, AdminDoctorsPage,
-  AdminLabsPage, DoctorSchedulePage, BookAppointmentPage,
-  MyAppointmentsPage, DoctorAppointmentsPage,
-  AuthProvider, ThemeProvider, ProtectedRoute,
-  InactivityModal, GoogleOAuthProvider,
+  HomePage,
+  Dashboard,
+  LoginPage,
+  RegistrationPage,
+  VerifyEmailPage,
+  CheckEmailPage,
+  RoleSelectionPage,
+  ProfilePage,
+  AdminPatientsPage,
+  AdminDoctorsPage,
+  AdminLabsPage,
+  DoctorSchedulePage,
+  BookAppointmentPage,
+  MyAppointmentsPage,
+  DoctorAppointmentsPage,
+  AuthProvider,
+  ThemeProvider,
+  ProtectedRoute,
+  InactivityModal,
+  GoogleOAuthProvider,
 });
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <GoogleOAuthProvider clientId={googleClientId}>
-      <ThemeProvider>
-        <AuthProvider>
-          <Router>
-            <InactivityModalPortal />
+    <QueryClientProvider client={queryClient}>
+      <GoogleOAuthProvider clientId={googleClientId}>
+        <ThemeProvider>
+          <AuthProvider>
+            <Router>
+              <InactivityModalPortal />
 
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/registration" element={<RegistrationPage />} />
-              <Route path="/verify-email" element={<VerifyEmailPage />} />
-              <Route path="/check-email" element={<CheckEmailPage />} />
-              <Route path="/role-selection" element={<RoleSelectionPage />} />
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/registration" element={<RegistrationPage />} />
+                <Route path="/verify-email" element={<VerifyEmailPage />} />
+                <Route path="/check-email" element={<CheckEmailPage />} />
+                <Route path="/role-selection" element={<RoleSelectionPage />} />
 
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <ProfilePage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/patients"
-                element={
-                  <ProtectedRoute allowedRoles={["ADMIN", "STAFF"]}>
-                    <AdminPatientsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/doctors"
-                element={
-                  <ProtectedRoute
-                    allowedRoles={["ADMIN", "STAFF", "PATIENT", "DOCTOR"]}
-                  >
-                    <AdminDoctorsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/labs"
-                element={
-                  <ProtectedRoute allowedRoles={["ADMIN", "STAFF"]}>
-                    <AdminLabsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/doctor/schedule"
-                element={
-                  <ProtectedRoute allowedRoles={["DOCTOR"]}>
-                    <DoctorSchedulePage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/book-appointment"
-                element={
-                  <ProtectedRoute allowedRoles={["PATIENT"]}>
-                    <BookAppointmentPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/my-appointments"
-                element={
-                  <ProtectedRoute allowedRoles={["PATIENT"]}>
-                    <MyAppointmentsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/doctor/appointments"
-                element={
-                  <ProtectedRoute allowedRoles={["DOCTOR"]}>
-                    <DoctorAppointmentsPage />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
-          </Router>
-        </AuthProvider>
-      </ThemeProvider>
-    </GoogleOAuthProvider>
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <ProfilePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/patients"
+                  element={
+                    <ProtectedRoute allowedRoles={["ADMIN", "STAFF"]}>
+                      <AdminPatientsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/doctors"
+                  element={
+                    <ProtectedRoute
+                      allowedRoles={["ADMIN", "STAFF", "PATIENT", "DOCTOR"]}
+                    >
+                      <AdminDoctorsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/labs"
+                  element={
+                    <ProtectedRoute allowedRoles={["ADMIN", "STAFF"]}>
+                      <AdminLabsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/doctor/schedule"
+                  element={
+                    <ProtectedRoute allowedRoles={["DOCTOR"]}>
+                      <DoctorSchedulePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/book-appointment"
+                  element={
+                    <ProtectedRoute allowedRoles={["PATIENT"]}>
+                      <BookAppointmentPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/my-appointments"
+                  element={
+                    <ProtectedRoute allowedRoles={["PATIENT"]}>
+                      <MyAppointmentsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/doctor/appointments"
+                  element={
+                    <ProtectedRoute allowedRoles={["DOCTOR"]}>
+                      <DoctorAppointmentsPage />
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </Router>
+          </AuthProvider>
+        </ThemeProvider>
+      </GoogleOAuthProvider>
+    </QueryClientProvider>
   );
 }
 

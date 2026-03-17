@@ -11,6 +11,8 @@ import {
   FileText,
   Shield,
   Calendar,
+  UserCheck,
+  UserX,
 } from "lucide-react";
 import { useToast } from "../hooks/useToast";
 import { Layout } from "../components/common/Layout";
@@ -20,8 +22,11 @@ import { LoadingState } from "../components/common/LoadingState";
 import { ErrorState } from "../components/common/ErrorState";
 import { StatusBadge } from "../components/common/StatusBadge";
 import { Modal } from "../components/common/Modal";
+import { ActionConfirmationModal } from "../components/common/ActionConfirmationModal";
+
 import { InfoRow } from "../components/common/InfoRow";
-import { apiService, handleApiError } from "../services/api";
+import { handleApiError } from "../services/api";
+import { getAllLabs, toggleLabStatus, verifyLab } from "../services/admin_api";
 import { LabProfile, LabList } from "../types";
 
 const DAY_NAMES = [
@@ -46,6 +51,12 @@ const AdminLabsPage: React.FC = () => {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const toast = useToast();
 
+  const [actionModalOpen, setActionModalOpen] = useState(false);
+  const [actionData, setActionData] = useState<{
+    type: "TOGGLE" | "VERIFIED" | "REJECTED";
+    target: LabList | null;
+  }>({ type: "TOGGLE", target: null });
+
   const location = useLocation();
 
   useEffect(() => {
@@ -59,7 +70,7 @@ const AdminLabsPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      setLabs(await apiService.getAllLabs());
+      setLabs(await getAllLabs());
     } catch (e) {
       setError("Unable to load labs list.");
       toast.error("Failed to load labs");
@@ -68,39 +79,97 @@ const AdminLabsPage: React.FC = () => {
     }
   };
 
-  const handleVerifyLab = async (
+  const handleVerifyRequest = (
     lab: LabList,
     status: "VERIFIED" | "REJECTED",
   ) => {
-    if (
-      !window.confirm(
-        `Are you sure you want to ${status.toLowerCase()} this lab?`,
-      )
-    )
-      return;
-    const labId = lab.lab_id || (lab as any).user?.user_id;
+    setActionData({ type: status, target: lab });
+    setActionModalOpen(true);
+  };
+
+  const handleVerifyConfirm = async (reason: string) => {
+    const lab = actionData.target;
+    if (!lab) return;
+    const status = actionData.type as "VERIFIED" | "REJECTED";
+    const entityId = lab.lab_id || (lab as any).user?.user_id;
     try {
       setActionLoading(true);
-      const updated = await apiService.verifyLab(labId, status);
-      // Backend returns LabProfile for verifyLab, but we will merge it into LabList
+      const updated = await verifyLab(entityId, status, reason);
       const flatUpdated = { ...lab, ...updated, verification_status: status };
       setLabs((prev) =>
-        prev.map((l) => (l.lab_id === labId || (l as any).user?.user_id === labId ? (flatUpdated as any) : l)),
+        prev.map((l) =>
+          l.lab_id === entityId || (l as any).user?.user_id === entityId
+            ? (flatUpdated as any)
+            : l,
+        ),
       );
-      if (selectedLab?.lab_id === labId || (selectedLab as any)?.user?.user_id === labId)
+      if (
+        selectedLab?.lab_id === entityId ||
+        (selectedLab as any)?.user?.user_id === entityId
+      )
         setSelectedLab(flatUpdated as any);
       toast.success(`Lab ${status.toLowerCase()} successfully`);
     } catch (e) {
       toast.error(handleApiError(e));
     } finally {
       setActionLoading(false);
+      setActionModalOpen(false);
+    }
+  };
+
+  const handleToggleRequest = (lab: LabList) => {
+    setActionData({ type: "TOGGLE", target: lab });
+    setActionModalOpen(true);
+  };
+
+  const handleToggleConfirm = async (reason: string) => {
+    const lab = actionData.target;
+    if (!lab) return;
+    try {
+      setActionLoading(true);
+      const entityId = lab.lab_id || (lab as any).user?.user_id;
+      const updated = await toggleLabStatus(entityId, reason);
+
+      setLabs((prev) =>
+        prev.map((l) => {
+          const lId = l.lab_id || (l as any).user?.user_id;
+          if (lId === entityId) {
+            return { ...l, is_active: updated.is_active } as any;
+          }
+          return l;
+        }),
+      );
+
+      if (
+        selectedLab &&
+        (selectedLab.lab_id === entityId ||
+          (selectedLab as any).user?.user_id === entityId)
+      ) {
+        setSelectedLab({ ...selectedLab, is_active: updated.is_active } as any);
+      }
+
+      toast.success(updated.is_active ? "Lab activated" : "Lab deactivated");
+    } catch (e) {
+      toast.error(handleApiError(e));
+    } finally {
+      setActionLoading(false);
+      setActionModalOpen(false);
+    }
+  };
+
+  const handleModalConfirm = (reason: string) => {
+    if (actionData.type === "TOGGLE") {
+      handleToggleConfirm(reason);
+    } else {
+      handleVerifyConfirm(reason);
     }
   };
 
   const filtered = labs.filter(
-    (l) => filterStatus === "ALL" || l.verification_status?.toUpperCase() === filterStatus,
+    (l) =>
+      filterStatus === "ALL" ||
+      l.verification_status?.toUpperCase() === filterStatus,
   );
-
 
   return (
     <Layout>
@@ -135,6 +204,7 @@ const AdminLabsPage: React.FC = () => {
                     "City",
                     "Phone",
                     "Verification",
+                    "Status",
                     "Actions",
                   ].map((h) => (
                     <th
@@ -167,8 +237,14 @@ const AdminLabsPage: React.FC = () => {
                     <td className="py-3 px-4">
                       <StatusBadge
                         status={lab.verification_status}
-                        label={lab.verification_status_display || lab.verification_status}
+                        label={
+                          lab.verification_status_display ||
+                          lab.verification_status
+                        }
                       />
+                    </td>
+                    <td className="py-3 px-4">
+                      <StatusBadge type="active" status={lab.is_active} />
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-1.5">
@@ -182,10 +258,25 @@ const AdminLabsPage: React.FC = () => {
                         >
                           <Eye className="w-4 h-4" />
                         </button>
-                        {lab.verification_status?.toUpperCase() === "PENDING" && (
+                        <button
+                          onClick={() => handleToggleRequest(lab)}
+                          disabled={actionLoading}
+                          className={`p-1.5 rounded-lg transition-colors ${lab.is_active ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"}`}
+                          title={lab.is_active ? "Deactivate" : "Activate"}
+                        >
+                          {lab.is_active ? (
+                            <UserX className="w-4 h-4" />
+                          ) : (
+                            <UserCheck className="w-4 h-4" />
+                          )}
+                        </button>
+                        {lab.verification_status?.toUpperCase() ===
+                          "PENDING" && (
                           <>
                             <button
-                              onClick={() => handleVerifyLab(lab, "VERIFIED")}
+                              onClick={() =>
+                                handleVerifyRequest(lab, "VERIFIED")
+                              }
                               disabled={actionLoading}
                               className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
                               title="Approve"
@@ -193,7 +284,9 @@ const AdminLabsPage: React.FC = () => {
                               <Check className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => handleVerifyLab(lab, "REJECTED")}
+                              onClick={() =>
+                                handleVerifyRequest(lab, "REJECTED")
+                              }
                               disabled={actionLoading}
                               className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100"
                               title="Reject"
@@ -209,7 +302,7 @@ const AdminLabsPage: React.FC = () => {
                 {filtered.length === 0 && (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={7}
                       className="py-10 text-center text-slate-400"
                     >
                       No labs found.
@@ -239,7 +332,7 @@ const AdminLabsPage: React.FC = () => {
               <div className="w-14 h-14 rounded-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white text-xl font-bold">
                 {selectedLab.lab_name[0]}
               </div>
-              <div>
+              <div className="flex-1">
                 <h4 className="text-lg font-bold text-slate-900">
                   {selectedLab.lab_name}
                 </h4>
@@ -247,6 +340,13 @@ const AdminLabsPage: React.FC = () => {
                   {selectedLab.license_number ?? "No license on file"}
                 </p>
               </div>
+              <button
+                onClick={() => handleToggleRequest(selectedLab)}
+                disabled={actionLoading}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium ${selectedLab.is_active ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"}`}
+              >
+                {selectedLab.is_active ? "Deactivate" : "Activate"}
+              </button>
             </div>
 
             {/* Info */}
@@ -269,7 +369,10 @@ const AdminLabsPage: React.FC = () => {
               <InfoRow
                 icon={Shield}
                 label="Verification"
-                value={selectedLab.verification_status_display || selectedLab.verification_status}
+                value={
+                  selectedLab.verification_status_display ||
+                  selectedLab.verification_status
+                }
               />
               {selectedLab.verified_at && (
                 <InfoRow
@@ -286,16 +389,27 @@ const AdminLabsPage: React.FC = () => {
                 <MapPin className="w-4 h-4 text-emerald-600" /> Address
               </h5>
               <div className="bg-slate-50 rounded-lg p-3 text-sm text-slate-700">
-                {(selectedLab as any).address || selectedLab.address_line || selectedLab.city ? (
+                {(selectedLab as any).address ||
+                selectedLab.address_line ||
+                selectedLab.city ? (
                   <>
-                    {(selectedLab.address_line || (selectedLab as any).address?.address_line) && (
-                      <p>{selectedLab.address_line || (selectedLab as any).address?.address_line}</p>
+                    {(selectedLab.address_line ||
+                      (selectedLab as any).address?.address_line) && (
+                      <p>
+                        {selectedLab.address_line ||
+                          (selectedLab as any).address?.address_line}
+                      </p>
                     )}
                     <p>
-                      {[selectedLab.city || (selectedLab as any).address?.city, selectedLab.state || (selectedLab as any).address?.state]
+                      {[
+                        selectedLab.city || (selectedLab as any).address?.city,
+                        selectedLab.state ||
+                          (selectedLab as any).address?.state,
+                      ]
                         .filter(Boolean)
                         .join(", ")}
-                      {selectedLab.pincode || (selectedLab as any).address?.pincode
+                      {selectedLab.pincode ||
+                      (selectedLab as any).address?.pincode
                         ? ` – ${selectedLab.pincode || (selectedLab as any).address?.pincode}`
                         : ""}
                     </p>
@@ -342,6 +456,46 @@ const AdminLabsPage: React.FC = () => {
           </div>
         )}
       </Modal>
+
+      <ActionConfirmationModal
+        isOpen={actionModalOpen}
+        onClose={() => setActionModalOpen(false)}
+        onConfirm={handleModalConfirm}
+        title={
+          actionData.type === "TOGGLE"
+            ? actionData.target?.is_active
+              ? "Deactivate Lab"
+              : "Activate Lab"
+            : actionData.type === "VERIFIED"
+              ? "Verify Lab"
+              : "Reject Lab"
+        }
+        message={
+          actionData.type === "TOGGLE"
+            ? actionData.target?.is_active
+              ? `Are you sure you want to deactivate lab ${actionData.target.lab_name} ?`
+              : `Are you sure you want to activate lab ${actionData.target?.lab_name} ?`
+            : actionData.type === "VERIFIED"
+              ? `Are you sure you want to verify lab ${actionData.target?.lab_name} ?`
+              : `Are you sure you want to reject lab ${actionData.target?.lab_name} ?`
+        }
+        requireReason={true}
+        reasonLabel={
+          actionData.type === "TOGGLE"
+            ? "Reason for status change"
+            : "Verification Notes"
+        }
+        confirmLabel={
+          actionData.type === "TOGGLE"
+            ? actionData.target?.is_active
+              ? "Deactivate"
+              : "Activate"
+            : actionData.type === "VERIFIED"
+              ? "Verify"
+              : "Reject"
+        }
+        loading={actionLoading}
+      />
     </Layout>
   );
 };

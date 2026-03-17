@@ -21,8 +21,11 @@ import { ErrorState } from "../components/common/ErrorState";
 import { StatusBadge } from "../components/common/StatusBadge";
 import { Pagination } from "../components/common/Pagination";
 import { Modal } from "../components/common/Modal";
+import { ActionConfirmationModal } from "../components/common/ActionConfirmationModal";
+
 import { InfoRow } from "../components/common/InfoRow";
-import { apiService, handleApiError } from "../services/api";
+import { handleApiError } from "../services/api";
+import { getAllPatients, togglePatientStatus } from "../services/admin_api";
 import { PatientList, PatientProfile } from "../types";
 
 const AdminPatientsPage: React.FC = () => {
@@ -38,6 +41,12 @@ const AdminPatientsPage: React.FC = () => {
   const itemsPerPage = 10;
   const toast = useToast();
 
+  const [actionModalOpen, setActionModalOpen] = useState(false);
+  const [actionData, setActionData] = useState<{
+    type: "TOGGLE";
+    target: PatientList | null;
+  }>({ type: "TOGGLE", target: null });
+
   useEffect(() => {
     loadPatients();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -47,7 +56,7 @@ const AdminPatientsPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await apiService.getAllPatients();
+      const data = await getAllPatients();
       setPatients(data);
       console.log(data);
     } catch (e) {
@@ -58,10 +67,17 @@ const AdminPatientsPage: React.FC = () => {
     }
   };
 
-  const handleToggleStatus = async (patient: PatientList) => {
+  const handleToggleRequest = (patient: PatientList) => {
+    setActionData({ type: "TOGGLE", target: patient });
+    setActionModalOpen(true);
+  };
+
+  const handleToggleConfirm = async (reason: string) => {
+    const patient = actionData.target;
+    if (!patient) return;
     try {
       setActionLoading(true);
-      const updated = await apiService.togglePatientStatus(patient.patient_id);
+      const updated = await togglePatientStatus(patient.patient_id, reason);
       setPatients((prev) =>
         prev.map((p) => (p.patient_id === patient.patient_id ? updated : p)),
       );
@@ -74,15 +90,18 @@ const AdminPatientsPage: React.FC = () => {
       toast.error(handleApiError(e));
     } finally {
       setActionLoading(false);
+      setActionModalOpen(false);
     }
+  };
+
+  const handleModalConfirm = (reason: string) => {
+    handleToggleConfirm(reason);
   };
 
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
   const currentPatients = patients.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(patients.length / itemsPerPage);
-
-
 
   return (
     <Layout>
@@ -154,7 +173,7 @@ const AdminPatientsPage: React.FC = () => {
                           <Eye className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => handleToggleStatus(patient)}
+                          onClick={() => handleToggleRequest(patient)}
                           disabled={actionLoading}
                           className={`p-1.5 rounded-lg transition-colors ${patient.is_active ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"}`}
                           title={patient.is_active ? "Deactivate" : "Activate"}
@@ -219,7 +238,7 @@ const AdminPatientsPage: React.FC = () => {
                 </p>
               </div>
               <button
-                onClick={() => handleToggleStatus(selectedPatient)}
+                onClick={() => handleToggleRequest(selectedPatient)}
                 disabled={actionLoading}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium ${selectedPatient.is_active ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"}`}
               >
@@ -229,7 +248,8 @@ const AdminPatientsPage: React.FC = () => {
 
             <div>
               <h5 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-1.5">
-                <Heart className="w-4 h-4 text-emerald-600" /> Patient Information
+                <Heart className="w-4 h-4 text-emerald-600" /> Patient
+                Information
               </h5>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <InfoRow
@@ -262,7 +282,8 @@ const AdminPatientsPage: React.FC = () => {
 
             <div>
               <h5 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-1.5">
-                <Calendar className="w-4 h-4 text-emerald-600" /> Account Details
+                <Calendar className="w-4 h-4 text-emerald-600" /> Account
+                Details
               </h5>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <InfoRow
@@ -280,6 +301,26 @@ const AdminPatientsPage: React.FC = () => {
           </div>
         )}
       </Modal>
+
+      <ActionConfirmationModal
+        isOpen={actionModalOpen}
+        onClose={() => setActionModalOpen(false)}
+        onConfirm={handleModalConfirm}
+        title={
+          actionData.target?.is_active
+            ? "Deactivate Patient"
+            : "Activate Patient"
+        }
+        message={
+          actionData.target?.is_active
+            ? `Are you sure you want to deactivate patient ${actionData.target.full_name} ?`
+            : `Are you sure you want to activate patient ${actionData.target?.full_name} ?`
+        }
+        requireReason={true}
+        reasonLabel={"Reason for status change"}
+        confirmLabel={actionData.target?.is_active ? "Deactivate" : "Activate"}
+        loading={actionLoading}
+      />
     </Layout>
   );
 };

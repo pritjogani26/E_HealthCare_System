@@ -11,7 +11,8 @@ import {
 } from "lucide-react";
 import { useToast } from "../../hooks/useToast";
 import { PatientProfile, BloodGroup, Gender } from "../../types";
-import { apiService, handleApiError, getFieldErrors } from "../../services/api";
+import { getBloodGroups, getFieldErrors, getGenders, handleApiError } from "../../services/api";
+import { updatePatientProfile } from "../../services/patient_api";
 import { editPatientProfileSchema } from "../../validation/schemas";
 import { useFormField } from "../../hooks/useFormField";
 import { FieldError } from "../common/FieldError";
@@ -51,8 +52,8 @@ const EditPatientProfile: React.FC<EditPatientProfileProps> = React.memo(({
     const loadData = async () => {
       try {
         const [bgs, gs] = await Promise.all([
-          apiService.getBloodGroups(),
-          apiService.getGenders(),
+          getBloodGroups(),
+          getGenders(),
         ]);
         setBloodGroups(bgs);
         setGenders(gs);
@@ -83,7 +84,7 @@ const EditPatientProfile: React.FC<EditPatientProfileProps> = React.memo(({
         },
       };
 
-      const updated = await apiService.updatePatientProfile(payload);
+      const updated = await updatePatientProfile(payload);
       toast.success("Profile updated successfully!");
       onUpdate(updated);
       onClose();

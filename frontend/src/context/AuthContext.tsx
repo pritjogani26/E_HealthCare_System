@@ -9,7 +9,7 @@
 // // //   useRef,
 // // //   useState,
 // // // } from "react";
-// // // import { apiService } from "../services/api";
+// // // import { getCurrentUserProfile, login, logout, refreshToken } from "../services/api";
 // // // import { useInactivityTimer } from "../hooks/useInactivityTimer";
 // // // import { InactivityModal } from "../pages/InactivityModel";
 // // // import { RestorableFormEntry } from "../types";
@@ -123,7 +123,7 @@
 // // //       // Access token missing / expired — attempt a silent refresh via the
 // // //       // httpOnly refresh-token cookie before giving up.
 // // //       try {
-// // //         const refreshed = await apiService.refreshToken();
+// // //         const refreshed = await refreshToken();
 // // //         localStorage.setItem("access_token", refreshed.access_token);
 // // //         if (refreshed.user) {
 // // //           setUser(extractBaseUser(refreshed.user));
@@ -138,7 +138,7 @@
 // // //     }
 
 // // //     try {
-// // //       const profile = await apiService.getCurrentUserProfile();
+// // //       const profile = await getCurrentUserProfile();
 // // //       setUser(extractBaseUser(profile));
 // // //     } catch {
 // // //       // Token was syntactically valid but rejected server-side.
@@ -156,7 +156,7 @@
 // // //   // ── Auth Actions ────────────────────────────────────────────────────────────
 
 // // //   const login = useCallback(async (email: string, password: string) => {
-// // //     const { access_token, user: userData } = await apiService.login({
+// // //     const { access_token, user: userData } = await login({
 // // //       email,
 // // //       password,
 // // //     });
@@ -176,7 +176,7 @@
 
 // // //     // 3. Call backend — invalidates refresh-token cookie
 // // //     try {
-// // //       await apiService.logout();
+// // //       await logout();
 // // //     } catch {
 // // //       // Non-critical — clear local state regardless
 // // //     } finally {
@@ -419,7 +419,7 @@
 // //     const token = localStorage.getItem("access_token");
 // //     if (!isTokenValid(token)) {
 // //       try {
-// //         const refreshed = await apiService.refreshToken();
+// //         const refreshed = await refreshToken();
 // //         localStorage.setItem("access_token", refreshed.access_token);
 // //         if (refreshed.user) setUser(extractBaseUser(refreshed.user));
 // //       } catch {
@@ -431,7 +431,7 @@
 // //       return;
 // //     }
 // //     try {
-// //       const profile = await apiService.getCurrentUserProfile();
+// //       const profile = await getCurrentUserProfile();
 // //       setUser(extractBaseUser(profile));
 // //     } catch {
 // //       localStorage.removeItem("access_token");
@@ -446,7 +446,7 @@
 // //   // ── Auth Actions ────────────────────────────────────────────────────────────
 
 // //   const login = useCallback(async (email: string, password: string) => {
-// //     const { access_token, user: userData } = await apiService.login({ email, password });
+// //     const { access_token, user: userData } = await login({ email, password });
 // //     if (!isTokenValid(access_token)) throw new Error("Server returned an invalid access token.");
 // //     localStorage.setItem("access_token", access_token);
 // //     setUser(extractBaseUser(userData));
@@ -456,7 +456,7 @@
 // //     setIsInactivityModalVisible(false);
 // //     restorableFormsRef.current.clear();
 // //     try {
-// //       await apiService.logout();
+// //       await logout();
 // //     } catch {
 // //       // non-critical
 // //     } finally {
@@ -643,7 +643,7 @@
 //     const token = localStorage.getItem("access_token");
 //     if (!isTokenValid(token)) {
 //       try {
-//         const refreshed = await apiService.refreshToken();
+//         const refreshed = await refreshToken();
 //         localStorage.setItem("access_token", refreshed.access_token);
 //         if (refreshed.user) setUser(extractBaseUser(refreshed.user));
 //       } catch {
@@ -655,7 +655,7 @@
 //       return;
 //     }
 //     try {
-//       const profile = await apiService.getCurrentUserProfile();
+//       const profile = await getCurrentUserProfile();
 //       setUser(extractBaseUser(profile));
 //     } catch {
 //       localStorage.removeItem("access_token");
@@ -670,7 +670,7 @@
 //   // ── Auth Actions ────────────────────────────────────────────────────────────
 
 //   const login = useCallback(async (email: string, password: string) => {
-//     const { access_token, user: userData } = await apiService.login({ email, password });
+//     const { access_token, user: userData } = await login({ email, password });
 //     if (!isTokenValid(access_token)) throw new Error("Server returned an invalid access token.");
 //     localStorage.setItem("access_token", access_token);
 //     setUser(extractBaseUser(userData));
@@ -680,7 +680,7 @@
 //     setIsInactivityModalVisible(false);
 //     restorableFormsRef.current.clear();
 //     try {
-//       await apiService.logout();
+//       await logout();
 //     } catch {
 //       // non-critical
 //     } finally {
@@ -769,7 +769,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { apiService } from "../services/api";
+import { login as apiLogin, logout as apiLogout, refreshToken as apiRefreshToken, getCurrentUserProfile as apiGetCurrentUserProfile, googleLogin as apiGoogleLogin } from "../services/api";
 import { useInactivityTimer } from "../hooks/useInactivityTimer";
 import { RestorableFormEntry } from "../types";
 
@@ -898,7 +898,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const token = localStorage.getItem("access_token");
     if (!isTokenValid(token)) {
       try {
-        const refreshed = await apiService.refreshToken();
+        const refreshed = await apiRefreshToken();
         localStorage.setItem("access_token", refreshed.access_token);
         if (refreshed.user) setUser(extractBaseUser(refreshed.user));
       } catch {
@@ -912,7 +912,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       return;
     }
     try {
-      const profile = await apiService.getCurrentUserProfile();
+      const profile = await apiGetCurrentUserProfile();
       setUser(extractBaseUser(profile));
     } catch {
       localStorage.removeItem("access_token");
@@ -931,7 +931,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   // ── Auth Actions ────────────────────────────────────────────────────────────
 
   const login = useCallback(async (email: string, password: string) => {
-    const { access_token, user: userData } = await apiService.login({
+    const { access_token, user: userData } = await apiLogin({
       email,
       password,
     });
@@ -945,7 +945,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     hideModal();
     restorableFormsRef.current.clear();
     try {
-      await apiService.logout();
+      await apiLogout();
     } catch {
       // non-critical
     } finally {

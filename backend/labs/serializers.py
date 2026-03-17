@@ -5,7 +5,7 @@ import db.lab_queries as lq
 
 
 class _UserOut(serializers.Serializer):
-    user_id = serializers.UUIDField(source="lab_id")
+    lab_id = serializers.UUIDField(source="lab_id")
     email = serializers.EmailField()
     email_verified = serializers.BooleanField()
     role = serializers.CharField()

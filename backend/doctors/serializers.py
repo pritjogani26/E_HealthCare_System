@@ -11,7 +11,7 @@ from users.models import AppointmentType
 
 
 class _UserOut(serializers.Serializer):
-    user_id = serializers.UUIDField(source="doctor_id")
+    doctor_id = serializers.UUIDField(source="doctor_id")
     email = serializers.EmailField()
     email_verified = serializers.BooleanField()
     role = serializers.CharField()
@@ -146,7 +146,8 @@ class DoctorProfileSerializer(serializers.Serializer):
         return obj if isinstance(obj, dict) else {}
 
     def get_user(self, obj):
-        return _UserOut(self._d(obj)).data
+        return obj
+        # return _UserOut(self._d(obj)).data
 
     def get_gender(self, obj):
         d = self._d(obj)
@@ -341,6 +342,7 @@ class BookAppointmentSerializer(serializers.Serializer):
         if not dq.slot_exists(value):
             raise serializers.ValidationError("Slot not found.")
         return value
+
 
 class DoctorAppointmentSerializer(serializers.Serializer):
     appointment_id = serializers.IntegerField()

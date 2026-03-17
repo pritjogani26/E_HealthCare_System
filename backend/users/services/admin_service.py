@@ -5,19 +5,25 @@ import db.lab_queries as lq
 
 class AdminService:
     @staticmethod
-    def toggle_patient_status(patient_id: int, admin_user, request=None):
+    def toggle_patient_status(patient_id: int, admin_user, reason: str = None, request=None):
         patient = pq.toggle_patient_is_active(patient_id)
         action = "activated" if patient["is_active"] else "deactivated"
-        print(
-            "Patient %s %s by %s", patient_id, action, getattr(admin_user, "email", "")
-        )
+        print(f"Patient {patient_id} {action} by {getattr(admin_user, 'email', '')}. Reason: {reason}")
         return patient, action
 
     @staticmethod
-    def toggle_doctor_status(doctor_user_id: str, admin_user, request=None):
+    def toggle_doctor_status(doctor_user_id: str, admin_user, reason: str = None, request=None):
         doctor = dq.toggle_doctor_is_active(doctor_user_id)
         action = "activated" if doctor["is_active"] else "deactivated"
+        print(f"Doctor {doctor_user_id} {action} by {getattr(admin_user, 'email', '')}. Reason: {reason}")
         return doctor, action
+
+    @staticmethod
+    def toggle_lab_status(lab_user_id: str, admin_user, reason: str = None, request=None):
+        lab = lq.toggle_lab_is_active(lab_user_id)
+        action = "activated" if lab["is_active"] else "deactivated"
+        print(f"Lab {lab_user_id} {action} by {getattr(admin_user, 'email', '')}. Reason: {reason}")
+        return lab, action
 
     @staticmethod
     def verify_doctor(

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { CheckCircle, XCircle } from "lucide-react";
 import { Toaster } from "react-hot-toast";
-import { apiService } from "../services/api";
+import { verifyEmail } from "../services/api";
 import { useToast } from "../hooks/useToast";
 
 const VerifyEmailPage: React.FC = () => {
@@ -13,7 +13,7 @@ const VerifyEmailPage: React.FC = () => {
     const toast = useToast();
 
     useEffect(() => {
-        const verifyEmail = async () => {
+        const handleVerify = async () => {
             if (!token) {
                 setStatus("error");
                 setMessage("Invalid verification link. Token is missing.");
@@ -22,7 +22,7 @@ const VerifyEmailPage: React.FC = () => {
             }
 
             try {
-                await apiService.verifyEmail(token);
+                await verifyEmail(token);
                 setStatus("success");
                 toast.success("Email verified successfully! 🎉");
             } catch (error: any) {
@@ -33,7 +33,7 @@ const VerifyEmailPage: React.FC = () => {
             }
         };
 
-        verifyEmail();
+        handleVerify();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [token]);
 

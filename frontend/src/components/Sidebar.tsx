@@ -12,7 +12,7 @@ import {
   Heart,
 } from "lucide-react";
 import { ExpandedSections } from "./types";
-import { apiService } from "../services/api";
+import { getPendingApprovalsCount } from "../services/admin_api";
 import { useAuth } from "../context/AuthContext";
 import { getUserRole, isAdmin } from "../utils/roles";
 
@@ -49,7 +49,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     if (!admin) return;
     const fetchCounts = async () => {
       try {
-        const counts = await apiService.getPendingApprovalsCount();
+        const counts = await getPendingApprovalsCount();
         setPendingCounts(counts);
       } catch (error) {
         console.error("Failed to fetch pending approval counts", error);

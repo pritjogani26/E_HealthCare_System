@@ -1,6 +1,6 @@
 import React from 'react';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
-import { apiService } from '../services/api';
+import { googleLogin } from "../services/api";
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../hooks/useToast';
@@ -13,7 +13,7 @@ const GoogleLoginButton: React.FC = () => {
     const handleSuccess = async (credentialResponse: CredentialResponse) => {
         if (credentialResponse.credential) {
             try {
-                const response = await apiService.googleLogin(credentialResponse.credential);
+                const response = await googleLogin(credentialResponse.credential);
 
                 console.log("Google Login Response:", response);
 

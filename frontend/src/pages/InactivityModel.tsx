@@ -13,7 +13,7 @@ import React, {
 // ReAuthError is imported from ../types (NOT from ../services/api).
 // This breaks the chain:  App → InactivityModel → api.ts
 // which caused AuthProvider to resolve as undefined at runtime.
-import { apiService } from "../services/api";
+import { verifyPasswordForReauth } from "../services/api";
 import { ModalStep, ReAuthError } from "../types";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -94,7 +94,7 @@ export const InactivityModal: React.FC<InactivityModalProps> = ({
       setErrorMessage("");
 
       try {
-        await apiService.verifyPasswordForReauth(password);
+        await verifyPasswordForReauth(password);
         // Success — do NOT call setPassword here; component is about to unmount
         onContinue();
       } catch (err) {

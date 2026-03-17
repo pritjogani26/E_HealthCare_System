@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
-import { apiService } from "../services/api";
+import { logout } from "../services/api";
 import { useToast } from "../hooks/useToast";
 
 interface HeaderProps {
@@ -28,7 +28,7 @@ const Header: React.FC<HeaderProps> = ({ setIsSidebarOpen, showSidebarToggle = t
 
   const handleLogout = async () => {
     try {
-      await apiService.logout();
+      await logout();
       toast.success("You have been signed out.");
       // small delay so the toast is visible before redirect
       setTimeout(() => { window.location.href = "/"; }, 600);

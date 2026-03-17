@@ -133,9 +133,9 @@ class GoogleAuthView(generics.GenericAPIView):
         if not token:
             raise ValidationException("Google token is required.")
 
-        idinfo, error = OAuthService.verify_google_token(token)
-        if error:
-            raise AuthenticationException("Google token verification failed.")
+        idinfo = OAuthService.verify_google_token(token)
+        # if error:
+        #     raise AuthenticationException("Google token verification failed.")
 
         email = idinfo.get("email")
         if not email:
@@ -298,8 +298,9 @@ class AdminTogglePatientStatusView(generics.GenericAPIView):
         if not pq.get_patient_by_id(str(user_id)):
             raise NotFoundException("Patient not found.")
 
+        reason = request.data.get("reason", "")
         patient, action = AdminService.toggle_patient_status(
-            patient_id=str(user_id), admin_user=request.user, request=request
+            patient_id=str(user_id), admin_user=request.user, reason=reason, request=request
         )
         serializer = self.get_serializer(data=patient)
         serializer.is_valid(raise_exception=True)
@@ -314,8 +315,9 @@ class AdminToggleDoctorStatusView(generics.GenericAPIView):
         if not dq.get_doctor_by_user_id(user_id):
             raise NotFoundException("Doctor not found.")
 
+        reason = request.data.get("reason", "")
         doctor, action = AdminService.toggle_doctor_status(
-            doctor_user_id=user_id, admin_user=request.user, request=request
+            doctor_user_id=user_id, admin_user=request.user, reason=reason, request=request
         )
         uid = str(doctor["doctor_id"])
         doctor["qualifications"] = dq.get_doctor_qualifications(uid)
@@ -325,6 +327,24 @@ class AdminToggleDoctorStatusView(generics.GenericAPIView):
             sched["working_days"] = dq.get_working_days(sched["schedule_id"])
         doctor["schedule"] = sched
         return _ok(doctor, message=f"Doctor {action} successfully.")
+
+
+class AdminToggleLabStatusView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated, IsAdminOrStaff]
+    serializer_class = LabProfileSerializer
+
+    def patch(self, request, user_id, *args, **kwargs):
+        if not lq.get_lab_by_user_id(user_id):
+            raise NotFoundException("Lab not found.")
+
+        reason = request.data.get("reason", "")
+        lab, action = AdminService.toggle_lab_status(
+            lab_user_id=user_id, admin_user=request.user, reason=reason, request=request
+        )
+        uid = str(lab["lab_id"])
+        lab["operating_hours"] = lq.get_lab_operating_hours(uid)
+        lab["services"] = lq.get_lab_services(uid)
+        return _ok(lab, message=f"Lab {action} successfully.")
 
 
 class AdminVerifyDoctorView(generics.GenericAPIView):
