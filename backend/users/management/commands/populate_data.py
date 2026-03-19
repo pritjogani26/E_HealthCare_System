@@ -1,9 +1,3 @@
-"""
-BUG FIX: Original referenced Gender.objects, BloodGroup.objects, Qualification.objects
-ORM models which don't exist in this project (no ORM models, raw SQL only).
-Rewritten to use the stored functions directly.
-"""
-
 from django.core.management.base import BaseCommand
 from db.connection import fn_scalar, fetchscalar
 

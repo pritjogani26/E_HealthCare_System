@@ -13,7 +13,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+        <div className="min-h-screen" style={{ backgroundColor: "#e8f0f7" }}>
             {/* ── Global Toast Container ────────────────────────────────────── */}
             <Toaster
                 position="top-right"
@@ -51,9 +51,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                     },
                     loading: {
                         style: {
-                            background: "#f8fafc",
-                            color: "#334155",
-                            border: "1px solid #e2e8f0",
+                            background: "#e8f0f7",
+                            color: "#1a3c6e",
+                            border: "1px solid #d0dff0",
                         },
                     },
                 }}
@@ -77,4 +77,3 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
     );
 };
-

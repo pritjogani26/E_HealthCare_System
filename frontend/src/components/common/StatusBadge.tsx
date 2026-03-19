@@ -15,29 +15,29 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
   label,
   showIcon = true,
 }) => {
-  const getVerificationClass = (s: string) => {
+  const getVerificationStyle = (s: string): React.CSSProperties => {
     switch (s) {
       case "VERIFIED":
-        return "bg-blue-100 text-blue-800";
+        return { backgroundColor: "#e8f0f7", color: "#1a3c6e" };
       case "PENDING":
-        return "bg-amber-100 text-amber-800";
+        return { backgroundColor: "#fef3c7", color: "#92400e" };
       case "REJECTED":
-        return "bg-red-100 text-red-800";
+        return { backgroundColor: "#fee2e2", color: "#991b1b" };
       default:
-        return "bg-slate-100 text-slate-800";
+        return { backgroundColor: "#e8f0f7", color: "#555555" };
     }
   };
 
-  const getActiveClass = (active: boolean) => {
+  const getActiveStyle = (active: boolean): React.CSSProperties => {
     return active
-      ? "bg-emerald-100 text-emerald-800"
-      : "bg-red-100 text-red-800";
+      ? { backgroundColor: "#e8f0f7", color: "#1a3c6e" }
+      : { backgroundColor: "#fee2e2", color: "#991b1b" };
   };
 
-  const className =
+  const badgeStyle =
     type === "verification"
-      ? getVerificationClass(status as string)
-      : getActiveClass(status as boolean);
+      ? getVerificationStyle(status as string)
+      : getActiveStyle(status as boolean);
 
   const displayText =
     label ||
@@ -45,7 +45,8 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
 
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${className}`}
+      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium"
+      style={badgeStyle}
     >
       {showIcon && type === "verification" && status === "PENDING" && (
         <AlertCircle className="w-3 h-3" />

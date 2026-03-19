@@ -3,9 +3,6 @@ import shutil
 
 
 def delete_pycache(root_dir: str):
-    """
-    Recursively delete all __pycache__ folders from the given directory.
-    """
     for root, dirs, files in os.walk(root_dir):
         if "__pycache__" in dirs:
             pycache_path = os.path.join(root, "__pycache__")

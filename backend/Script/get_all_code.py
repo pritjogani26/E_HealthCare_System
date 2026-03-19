@@ -27,9 +27,6 @@ def should_include_file(filename: str, extensions: set, excludes: set) -> bool:
 
 
 def collect_code(root_dir: str, output_file: str, extensions=None, excludes=None):
-    """
-    Collect all code files from root_dir and write into one file.
-    """
     extensions = extensions or DEFAULT_EXTENSIONS
     excludes = excludes or DEFAULT_EXCLUDES
     if not os.path.exists(root_dir):

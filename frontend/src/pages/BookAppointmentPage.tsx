@@ -54,17 +54,13 @@ const BookAppointmentPage: React.FC = () => {
   const [search, setSearch] = useState("");
 
   // Slot-selection state
-  const [selectedDoctor, setSelectedDoctor] = useState<DoctorListItem | null>(
-    null,
-  );
+  const [selectedDoctor, setSelectedDoctor] = useState<DoctorListItem | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   // Booking modal state
   const [bookingSlot, setBookingSlot] = useState<AppointmentSlot | null>(null);
   const [reason, setReason] = useState("");
-  const [appointmentType, setAppointmentType] = useState<
-    "in_person" | "online"
-  >("in_person");
+  const [appointmentType, setAppointmentType] = useState<"in_person" | "online">("in_person");
 
   const dates = useMemo(() => getNext7Days(), []);
 
@@ -92,15 +88,8 @@ const BookAppointmentPage: React.FC = () => {
     isError: slotsError,
     error: slotsQueryError,
   } = useQuery<AppointmentSlot[], Error>({
-    queryKey: QK.slots(
-      selectedDoctor?.doctor_id ?? "",
-      toISODate(selectedDate),
-    ),
-    queryFn: () =>
-      getDoctorSlots(
-        selectedDoctor!.doctor_id,
-        toISODate(selectedDate),
-      ),
+    queryKey: QK.slots(selectedDoctor?.doctor_id ?? "", toISODate(selectedDate)),
+    queryFn: () => getDoctorSlots(selectedDoctor!.doctor_id, toISODate(selectedDate)),
     enabled: !!selectedDoctor,
     staleTime: 60 * 1000,
   });
@@ -140,225 +129,142 @@ const BookAppointmentPage: React.FC = () => {
       (d) =>
         d.full_name.toLowerCase().includes(q) ||
         (d.specializations ?? []).some((s) =>
-          s.specialization_details?.specialization_name
-            ?.toLowerCase()
-            .includes(q),
+          s.specialization_details?.specialization_name?.toLowerCase().includes(q),
         ),
     );
   }, [search, doctors]);
-
-  // ── Styles ─────────────────────────────────────────────────────────────────
-
-  const pageStyle: React.CSSProperties = {
-    display: "flex",
-    flexDirection: "column",
-    minHeight: "100vh",
-    background:
-      "linear-gradient(135deg, #0f0c29 0%, #1a1a3e 50%, #24243e 100%)",
-    color: "#e0e0e0",
-  };
-  const mainStyle: React.CSSProperties = { flex: 1, display: "flex" };
-  const contentStyle: React.CSSProperties = {
-    flex: 1,
-    padding: "32px",
-    overflowY: "auto",
-  };
-  const cardStyle: React.CSSProperties = {
-    background: "rgba(255,255,255,0.06)",
-    borderRadius: "16px",
-    border: "1px solid rgba(255,255,255,0.1)",
-    padding: "20px",
-    cursor: "pointer",
-    transition: "all 0.25s ease",
-  };
-  const badgeStyle: React.CSSProperties = {
-    display: "inline-block",
-    padding: "3px 10px",
-    borderRadius: "20px",
-    fontSize: "11px",
-    fontWeight: 600,
-    background: "rgba(139,92,246,0.2)",
-    color: "#a78bfa",
-    marginRight: "6px",
-  };
 
   // ── Doctor-list view ───────────────────────────────────────────────────────
 
   if (!selectedDoctor) {
     return (
-      <div style={pageStyle}>
+      <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", backgroundColor: "#e8f0f7" }}>
         <Header setIsSidebarOpen={setSidebarOpen} />
-        <div style={mainStyle}>
-          <div style={contentStyle}>
-            <h1
-              style={{
-                fontSize: "28px",
-                fontWeight: 700,
-                marginBottom: "8px",
-              }}
-            >
-              Book an Appointment
-            </h1>
-            <p
-              style={{
-                color: "#9ca3af",
-                marginBottom: "24px",
-              }}
-            >
-              Select a doctor to view available time slots
-            </p>
+        <div style={{ flex: 1, padding: "32px", overflowY: "auto" }}>
 
-            {/* Search */}
-            <div
-              style={{
-                position: "relative",
-                maxWidth: "460px",
-                marginBottom: "28px",
-              }}
-            >
-              <Search
-                size={18}
-                style={{
-                  position: "absolute",
-                  left: "14px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: "#6b7280",
-                }}
-              />
-              <input
-                type="text"
-                placeholder="Search by name or specialization..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "12px 14px 12px 40px",
-                  borderRadius: "12px",
-                  border: "1px solid rgba(255,255,255,0.15)",
-                  background: "rgba(255,255,255,0.06)",
-                  color: "#fff",
-                  fontSize: "14px",
-                  outline: "none",
-                }}
-              />
-            </div>
+          <h1 style={{ fontSize: "24px", fontWeight: 700, marginBottom: "4px", color: "#1a3c6e" }}>
+            Book an Appointment
+          </h1>
+          <p style={{ color: "#555555", marginBottom: "24px", fontSize: "14px" }}>
+            Select a doctor to view available time slots
+          </p>
 
-            {doctorsLoading ? (
-              <p style={{ color: "#9ca3af" }}>Loading doctors...</p>
-            ) : doctorsError ? (
-              <p style={{ color: "#f87171" }}>
-                Failed to load doctors. Please refresh.
-              </p>
-            ) : filteredDoctors.length === 0 ? (
-              <p style={{ color: "#9ca3af" }}>No verified doctors found.</p>
-            ) : (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
-                  gap: "20px",
-                }}
-              >
-                {filteredDoctors.map((doc) => (
-                  <div
-                    key={doc.doctor_id}
-                    style={cardStyle}
-                    onClick={() => {
-                      setSelectedDoctor(doc);
-                      setSelectedDate(new Date());
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLDivElement).style.borderColor =
-                        "rgba(139,92,246,0.5)";
-                      (e.currentTarget as HTMLDivElement).style.transform =
-                        "translateY(-2px)";
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLDivElement).style.borderColor =
-                        "rgba(255,255,255,0.1)";
-                      (e.currentTarget as HTMLDivElement).style.transform =
-                        "translateY(0)";
-                    }}
-                  >
+          {/* Search */}
+          <div style={{ position: "relative", maxWidth: "460px", marginBottom: "28px" }}>
+            <Search
+              size={17}
+              style={{ position: "absolute", left: "13px", top: "50%", transform: "translateY(-50%)", color: "#555555" }}
+            />
+            <input
+              type="text"
+              placeholder="Search by name or specialization..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 14px 10px 38px",
+                borderRadius: "8px",
+                border: "1px solid #d0dff0",
+                backgroundColor: "#ffffff",
+                color: "#1a3c6e",
+                fontSize: "14px",
+                outline: "none",
+                boxSizing: "border-box",
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.border = "1px solid #f47920";
+                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(244,121,32,0.12)";
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.border = "1px solid #d0dff0";
+                e.currentTarget.style.boxShadow = "none";
+              }}
+            />
+          </div>
+
+          {doctorsLoading ? (
+            <p style={{ color: "#555555" }}>Loading doctors...</p>
+          ) : doctorsError ? (
+            <p style={{ color: "#dc2626" }}>Failed to load doctors. Please refresh.</p>
+          ) : filteredDoctors.length === 0 ? (
+            <p style={{ color: "#555555" }}>No verified doctors found.</p>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "16px" }}>
+              {filteredDoctors.map((doc) => (
+                <div
+                  key={doc.doctor_id}
+                  onClick={() => { setSelectedDoctor(doc); setSelectedDate(new Date()); }}
+                  style={{
+                    backgroundColor: "#ffffff",
+                    borderRadius: "10px",
+                    border: "1px solid #d0dff0",
+                    padding: "18px",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    boxShadow: "0 2px 8px rgba(26,60,110,0.07)",
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.borderColor = "#2e5fa3";
+                    (e.currentTarget as HTMLDivElement).style.transform = "translateY(-2px)";
+                    (e.currentTarget as HTMLDivElement).style.boxShadow = "0 4px 16px rgba(26,60,110,0.12)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.borderColor = "#d0dff0";
+                    (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
+                    (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 8px rgba(26,60,110,0.07)";
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
                     <div
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "14px",
-                        marginBottom: "14px",
+                        width: "48px", height: "48px", borderRadius: "50%",
+                        backgroundColor: "#1a3c6e",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: "18px", fontWeight: 700, color: "#fff", flexShrink: 0,
                       }}
                     >
-                      <div
-                        style={{
-                          width: "52px",
-                          height: "52px",
-                          borderRadius: "50%",
-                          background:
-                            "linear-gradient(135deg, #8b5cf6, #6366f1)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: "20px",
-                          fontWeight: 700,
-                          color: "#fff",
-                        }}
-                      >
-                        {doc.full_name.charAt(0)}
-                      </div>
-                      <div>
-                        <div
-                          style={{
-                            fontWeight: 600,
-                            fontSize: "16px",
-                            color: "#f3f4f6",
-                          }}
-                        >
-                          {doc.full_name}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "13px",
-                            color: "#9ca3af",
-                          }}
-                        >
-                          {doc.experience_years} yrs experience
-                        </div>
-                      </div>
+                      {doc.full_name.charAt(0)}
                     </div>
-
-                    <div style={{ marginBottom: "10px" }}>
-                      {(doc.specializations ?? []).map((s) => (
-                        <span key={s.specialization} style={badgeStyle}>
-                          {s.specialization_details?.specialization_name ||
-                            `Spec #${s.specialization}`}
-                        </span>
-                      ))}
-                    </div>
-
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        fontSize: "13px",
-                        color: "#9ca3af",
-                      }}
-                    >
-                      <span>₹{doc.consultation_fee || "N/A"}</span>
-                      <span
-                        style={{
-                          color: "#8b5cf6",
-                          fontWeight: 600,
-                        }}
-                      >
-                        View Slots →
-                      </span>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: "15px", color: "#1a3c6e" }}>
+                        {doc.full_name}
+                      </div>
+                      <div style={{ fontSize: "12px", color: "#555555", marginTop: "2px" }}>
+                        {doc.experience_years} yrs experience
+                      </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+
+                  <div style={{ marginBottom: "10px" }}>
+                    {(doc.specializations ?? []).map((s) => (
+                      <span
+                        key={s.specialization}
+                        style={{
+                          display: "inline-block",
+                          padding: "2px 9px",
+                          borderRadius: "20px",
+                          fontSize: "11px",
+                          fontWeight: 600,
+                          backgroundColor: "#e8f0f7",
+                          color: "#2e5fa3",
+                          marginRight: "5px",
+                          marginBottom: "4px",
+                          border: "1px solid #d0dff0",
+                        }}
+                      >
+                        {s.specialization_details?.specialization_name || `Spec #${s.specialization}`}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px" }}>
+                    <span style={{ color: "#555555" }}>₹{doc.consultation_fee || "N/A"}</span>
+                    <span style={{ color: "#f47920", fontWeight: 600 }}>View Slots →</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         <Footer />
       </div>
@@ -368,248 +274,161 @@ const BookAppointmentPage: React.FC = () => {
   // ── Slot-selection view ────────────────────────────────────────────────────
 
   return (
-    <div style={pageStyle}>
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", backgroundColor: "#e8f0f7" }}>
       <Header setIsSidebarOpen={setSidebarOpen} />
-      <div style={mainStyle}>
-        <div style={contentStyle}>
-          {/* Back */}
-          <button
-            onClick={() => setSelectedDoctor(null)}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              background: "none",
-              border: "none",
-              color: "#8b5cf6",
-              cursor: "pointer",
-              marginBottom: "20px",
-              fontSize: "14px",
-              fontWeight: 500,
-            }}
-          >
-            <ChevronLeft size={18} /> Back to Doctors
-          </button>
+      <div style={{ flex: 1, padding: "32px", overflowY: "auto" }}>
 
-          {/* Doctor info */}
+        {/* Back */}
+        <button
+          onClick={() => setSelectedDoctor(null)}
+          style={{
+            display: "flex", alignItems: "center", gap: "5px",
+            background: "none", border: "none",
+            color: "#f47920", cursor: "pointer",
+            marginBottom: "20px", fontSize: "14px", fontWeight: 500,
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#d4651a")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#f47920")}
+        >
+          <ChevronLeft size={17} /> Back to Doctors
+        </button>
+
+        {/* Doctor info card */}
+        <div
+          style={{
+            backgroundColor: "#ffffff",
+            borderRadius: "10px",
+            border: "1px solid #d0dff0",
+            padding: "18px",
+            display: "flex", alignItems: "center", gap: "16px",
+            marginBottom: "24px",
+            boxShadow: "0 2px 8px rgba(26,60,110,0.07)",
+          }}
+        >
           <div
             style={{
-              ...cardStyle,
-              display: "flex",
-              alignItems: "center",
-              gap: "18px",
-              cursor: "default",
-              marginBottom: "28px",
+              width: "56px", height: "56px", borderRadius: "50%",
+              backgroundColor: "#1a3c6e",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: "22px", fontWeight: 700, color: "#fff", flexShrink: 0,
             }}
           >
-            <div
-              style={{
-                width: "64px",
-                height: "64px",
-                borderRadius: "50%",
-                background: "linear-gradient(135deg, #8b5cf6, #6366f1)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "26px",
-                fontWeight: 700,
-                color: "#fff",
-                flexShrink: 0,
-              }}
-            >
-              {selectedDoctor.full_name.charAt(0)}
-            </div>
-            <div>
-              <h2
-                style={{
-                  margin: 0,
-                  fontSize: "22px",
-                  color: "#f3f4f6",
-                }}
-              >
-                {selectedDoctor.full_name}
-              </h2>
-              <div
-                style={{
-                  fontSize: "13px",
-                  color: "#9ca3af",
-                  marginTop: "4px",
-                }}
-              >
-                {(selectedDoctor.specializations ?? [])
-                  .map((s) => s.specialization_details?.specialization_name)
-                  .filter(Boolean)
-                  .join(", ") || "General"}
-                {" • "}₹{selectedDoctor.consultation_fee || "N/A"}
-                {" • "}
-                {selectedDoctor.experience_years} yrs exp.
-              </div>
+            {selectedDoctor.full_name.charAt(0)}
+          </div>
+          <div>
+            <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "#1a3c6e" }}>
+              {selectedDoctor.full_name}
+            </h2>
+            <div style={{ fontSize: "13px", color: "#555555", marginTop: "3px" }}>
+              {(selectedDoctor.specializations ?? [])
+                .map((s) => s.specialization_details?.specialization_name)
+                .filter(Boolean)
+                .join(", ") || "General"}
+              {" • "}₹{selectedDoctor.consultation_fee || "N/A"}
+              {" • "}
+              {selectedDoctor.experience_years} yrs exp.
             </div>
           </div>
-
-          {/* Date picker */}
-          <h3
-            style={{
-              fontSize: "16px",
-              fontWeight: 600,
-              marginBottom: "14px",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-          >
-            <Calendar size={18} /> Select Date
-          </h3>
-          <div
-            style={{
-              display: "flex",
-              gap: "10px",
-              marginBottom: "28px",
-              flexWrap: "wrap",
-            }}
-          >
-            {dates.map((d) => {
-              const active = toISODate(d) === toISODate(selectedDate);
-              return (
-                <button
-                  key={toISODate(d)}
-                  onClick={() => setSelectedDate(d)}
-                  style={{
-                    padding: "12px 18px",
-                    borderRadius: "12px",
-                    border: active
-                      ? "2px solid #8b5cf6"
-                      : "1px solid rgba(255,255,255,0.12)",
-                    background: active
-                      ? "linear-gradient(135deg, rgba(139,92,246,0.25), rgba(99,102,241,0.2))"
-                      : "rgba(255,255,255,0.04)",
-                    color: active ? "#c4b5fd" : "#9ca3af",
-                    cursor: "pointer",
-                    textAlign: "center",
-                    minWidth: "70px",
-                    transition: "all 0.2s",
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: "12px",
-                      fontWeight: 500,
-                    }}
-                  >
-                    {DAYS[d.getDay()]}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "20px",
-                      fontWeight: 700,
-                    }}
-                  >
-                    {d.getDate()}
-                  </div>
-                  <div style={{ fontSize: "11px" }}>
-                    {d.toLocaleString("default", {
-                      month: "short",
-                    })}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Slots */}
-          <h3
-            style={{
-              fontSize: "16px",
-              fontWeight: 600,
-              marginBottom: "14px",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-          >
-            <Clock size={18} /> Available Slots
-          </h3>
-
-          {slotsLoading ? (
-            <p style={{ color: "#9ca3af" }}>Loading slots...</p>
-          ) : slotsError ? (
-            <p style={{ color: "#f87171" }}>
-              Failed to load slots. Please try again.
-            </p>
-          ) : slots.length === 0 ? (
-            <div
-              style={{
-                ...cardStyle,
-                cursor: "default",
-                textAlign: "center",
-                padding: "40px",
-                color: "#6b7280",
-              }}
-            >
-              <Calendar
-                size={40}
-                style={{ marginBottom: "10px", opacity: 0.4 }}
-              />
-              <p>No available slots for this date.</p>
-              <p style={{ fontSize: "13px" }}>
-                Try selecting a different date.
-              </p>
-            </div>
-          ) : (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
-                gap: "12px",
-              }}
-            >
-              {slots.map((slot) => (
-                <button
-                  key={slot.slot_id}
-                  onClick={() => setBookingSlot(slot)}
-                  style={{
-                    padding: "14px",
-                    borderRadius: "12px",
-                    border: "1px solid rgba(139,92,246,0.3)",
-                    background: "rgba(139,92,246,0.08)",
-                    color: "#c4b5fd",
-                    cursor: "pointer",
-                    fontWeight: 600,
-                    fontSize: "14px",
-                    transition: "all 0.2s",
-                    textAlign: "center",
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.background =
-                      "rgba(139,92,246,0.2)";
-                    (e.currentTarget as HTMLButtonElement).style.borderColor =
-                      "#8b5cf6";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.background =
-                      "rgba(139,92,246,0.08)";
-                    (e.currentTarget as HTMLButtonElement).style.borderColor =
-                      "rgba(139,92,246,0.3)";
-                  }}
-                >
-                  {formatTime(slot.start_time)} – {formatTime(slot.end_time)}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
+
+        {/* Date picker */}
+        <h3 style={{ fontSize: "15px", fontWeight: 600, marginBottom: "12px", display: "flex", alignItems: "center", gap: "7px", color: "#1a3c6e" }}>
+          <Calendar size={16} style={{ color: "#f47920" }} /> Select Date
+        </h3>
+        <div style={{ display: "flex", gap: "8px", marginBottom: "24px", flexWrap: "wrap" }}>
+          {dates.map((d) => {
+            const active = toISODate(d) === toISODate(selectedDate);
+            return (
+              <button
+                key={toISODate(d)}
+                onClick={() => setSelectedDate(d)}
+                style={{
+                  padding: "10px 16px",
+                  borderRadius: "8px",
+                  border: active ? "2px solid #1a3c6e" : "1px solid #d0dff0",
+                  backgroundColor: active ? "#1a3c6e" : "#ffffff",
+                  color: active ? "#ffffff" : "#555555",
+                  cursor: "pointer",
+                  textAlign: "center",
+                  minWidth: "64px",
+                  transition: "all 0.18s",
+                  boxShadow: active ? "0 2px 8px rgba(26,60,110,0.18)" : "none",
+                }}
+              >
+                <div style={{ fontSize: "11px", fontWeight: 500 }}>{DAYS[d.getDay()]}</div>
+                <div style={{ fontSize: "18px", fontWeight: 700 }}>{d.getDate()}</div>
+                <div style={{ fontSize: "10px" }}>{d.toLocaleString("default", { month: "short" })}</div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Slots */}
+        <h3 style={{ fontSize: "15px", fontWeight: 600, marginBottom: "12px", display: "flex", alignItems: "center", gap: "7px", color: "#1a3c6e" }}>
+          <Clock size={16} style={{ color: "#f47920" }} /> Available Slots
+        </h3>
+
+        {slotsLoading ? (
+          <p style={{ color: "#555555", fontSize: "14px" }}>Loading slots...</p>
+        ) : slotsError ? (
+          <p style={{ color: "#dc2626", fontSize: "14px" }}>Failed to load slots. Please try again.</p>
+        ) : slots.length === 0 ? (
+          <div
+            style={{
+              backgroundColor: "#ffffff",
+              border: "1px solid #d0dff0",
+              borderRadius: "10px",
+              padding: "40px",
+              textAlign: "center",
+              color: "#555555",
+            }}
+          >
+            <Calendar size={36} style={{ marginBottom: "10px", color: "#d0dff0" }} />
+            <p style={{ margin: 0, fontWeight: 500, color: "#1a3c6e" }}>No available slots for this date.</p>
+            <p style={{ fontSize: "13px", marginTop: "4px", color: "#555555" }}>Try selecting a different date.</p>
+          </div>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "10px" }}>
+            {slots.map((slot) => (
+              <button
+                key={slot.slot_id}
+                onClick={() => setBookingSlot(slot)}
+                style={{
+                  padding: "12px",
+                  borderRadius: "8px",
+                  border: "1px solid #d0dff0",
+                  backgroundColor: "#ffffff",
+                  color: "#1a3c6e",
+                  cursor: "pointer",
+                  fontWeight: 600,
+                  fontSize: "13px",
+                  transition: "all 0.18s",
+                  textAlign: "center",
+                  boxShadow: "0 1px 4px rgba(26,60,110,0.06)",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#e8f0f7";
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = "#2e5fa3";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#ffffff";
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = "#d0dff0";
+                }}
+              >
+                {formatTime(slot.start_time)} – {formatTime(slot.end_time)}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Booking modal */}
       {bookingSlot && (
         <div
           style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.65)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            position: "fixed", inset: 0,
+            backgroundColor: "rgba(26,60,110,0.35)",
+            display: "flex", alignItems: "center", justifyContent: "center",
             zIndex: 1000,
           }}
           onClick={() => setBookingSlot(null)}
@@ -617,39 +436,25 @@ const BookAppointmentPage: React.FC = () => {
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: "#1e1e3a",
-              borderRadius: "20px",
-              border: "1px solid rgba(255,255,255,0.12)",
-              padding: "32px",
+              backgroundColor: "#ffffff",
+              borderRadius: "12px",
+              border: "1px solid #d0dff0",
+              padding: "28px",
               width: "100%",
-              maxWidth: "460px",
+              maxWidth: "440px",
+              boxShadow: "0 8px 32px rgba(26,60,110,0.14)",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "20px",
-              }}
-            >
-              <h3
-                style={{
-                  margin: 0,
-                  fontSize: "20px",
-                  color: "#f3f4f6",
-                }}
-              >
+            {/* Modal header */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
+              <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "#1a3c6e" }}>
                 Confirm Booking
               </h3>
               <button
                 onClick={() => setBookingSlot(null)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "#6b7280",
-                  cursor: "pointer",
-                }}
+                style={{ background: "none", border: "none", color: "#555555", cursor: "pointer" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#1a3c6e")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "#555555")}
               >
                 <X size={20} />
               </button>
@@ -658,72 +463,39 @@ const BookAppointmentPage: React.FC = () => {
             {/* Summary card */}
             <div
               style={{
-                ...cardStyle,
-                cursor: "default",
-                marginBottom: "20px",
+                backgroundColor: "#e8f0f7",
+                border: "1px solid #d0dff0",
+                borderRadius: "8px",
+                padding: "14px",
+                marginBottom: "18px",
               }}
             >
-              <div
-                style={{
-                  fontSize: "14px",
-                  color: "#9ca3af",
-                  marginBottom: "4px",
-                }}
-              >
-                Doctor
-              </div>
-              <div style={{ fontWeight: 600, color: "#f3f4f6" }}>
-                {selectedDoctor.full_name}
-              </div>
-              <div
-                style={{
-                  fontSize: "14px",
-                  color: "#9ca3af",
-                  marginTop: "12px",
-                  marginBottom: "4px",
-                }}
-              >
-                Date &amp; Time
-              </div>
-              <div style={{ fontWeight: 600, color: "#c4b5fd" }}>
-                {bookingSlot.slot_date} • {formatTime(bookingSlot.start_time)} –{" "}
-                {formatTime(bookingSlot.end_time)}
+              <div style={{ fontSize: "12px", color: "#555555", marginBottom: "2px" }}>Doctor</div>
+              <div style={{ fontWeight: 600, color: "#1a3c6e", fontSize: "14px" }}>{selectedDoctor.full_name}</div>
+              <div style={{ fontSize: "12px", color: "#555555", marginTop: "10px", marginBottom: "2px" }}>Date &amp; Time</div>
+              <div style={{ fontWeight: 600, color: "#f47920", fontSize: "14px" }}>
+                {bookingSlot.slot_date} • {formatTime(bookingSlot.start_time)} – {formatTime(bookingSlot.end_time)}
               </div>
             </div>
 
             {/* Appointment type */}
-            <div style={{ marginBottom: "16px" }}>
-              <label
-                style={{
-                  fontSize: "14px",
-                  color: "#9ca3af",
-                  display: "block",
-                  marginBottom: "8px",
-                }}
-              >
+            <div style={{ marginBottom: "14px" }}>
+              <label style={{ fontSize: "13px", color: "#555555", display: "block", marginBottom: "7px", fontWeight: 500 }}>
                 Appointment Type
               </label>
-              <div style={{ display: "flex", gap: "10px" }}>
+              <div style={{ display: "flex", gap: "8px" }}>
                 {(["in_person", "online"] as const).map((t) => (
                   <button
                     key={t}
                     onClick={() => setAppointmentType(t)}
                     style={{
-                      flex: 1,
-                      padding: "10px",
-                      borderRadius: "10px",
-                      border:
-                        appointmentType === t
-                          ? "2px solid #8b5cf6"
-                          : "1px solid rgba(255,255,255,0.12)",
-                      background:
-                        appointmentType === t
-                          ? "rgba(139,92,246,0.15)"
-                          : "rgba(255,255,255,0.04)",
-                      color: appointmentType === t ? "#c4b5fd" : "#9ca3af",
-                      cursor: "pointer",
-                      fontWeight: 600,
-                      fontSize: "13px",
+                      flex: 1, padding: "9px",
+                      borderRadius: "8px",
+                      border: appointmentType === t ? "2px solid #1a3c6e" : "1px solid #d0dff0",
+                      backgroundColor: appointmentType === t ? "#1a3c6e" : "#ffffff",
+                      color: appointmentType === t ? "#ffffff" : "#555555",
+                      cursor: "pointer", fontWeight: 600, fontSize: "13px",
+                      transition: "all 0.18s",
                     }}
                   >
                     {t === "in_person" ? "🏥 In-Person" : "💻 Online"}
@@ -733,15 +505,8 @@ const BookAppointmentPage: React.FC = () => {
             </div>
 
             {/* Reason */}
-            <div style={{ marginBottom: "20px" }}>
-              <label
-                style={{
-                  fontSize: "14px",
-                  color: "#9ca3af",
-                  display: "block",
-                  marginBottom: "8px",
-                }}
-              >
+            <div style={{ marginBottom: "18px" }}>
+              <label style={{ fontSize: "13px", color: "#555555", display: "block", marginBottom: "7px", fontWeight: 500 }}>
                 Reason (optional)
               </label>
               <textarea
@@ -749,16 +514,22 @@ const BookAppointmentPage: React.FC = () => {
                 onChange={(e) => setReason(e.target.value)}
                 rows={3}
                 style={{
-                  width: "100%",
-                  padding: "10px 14px",
-                  borderRadius: "10px",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  background: "rgba(255,255,255,0.06)",
-                  color: "#fff",
-                  resize: "vertical",
-                  fontSize: "14px",
-                  outline: "none",
-                  boxSizing: "border-box",
+                  width: "100%", padding: "9px 12px",
+                  borderRadius: "8px",
+                  border: "1px solid #d0dff0",
+                  backgroundColor: "#f9fbfd",
+                  color: "#1a3c6e",
+                  resize: "vertical", fontSize: "13px",
+                  outline: "none", boxSizing: "border-box",
+                  transition: "border 0.15s",
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.border = "1px solid #f47920";
+                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(244,121,32,0.12)";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.border = "1px solid #d0dff0";
+                  e.currentTarget.style.boxShadow = "none";
                 }}
                 placeholder="Describe your symptoms or reason for visit..."
               />
@@ -768,18 +539,21 @@ const BookAppointmentPage: React.FC = () => {
               onClick={() => bookMutation.mutate()}
               disabled={bookMutation.isPending}
               style={{
-                width: "100%",
-                padding: "14px",
-                borderRadius: "12px",
-                border: "none",
-                background: bookMutation.isPending
-                  ? "#4b5563"
-                  : "linear-gradient(135deg, #8b5cf6, #6366f1)",
-                color: "#fff",
-                fontSize: "15px",
-                fontWeight: 700,
+                width: "100%", padding: "12px",
+                borderRadius: "8px", border: "none",
+                backgroundColor: bookMutation.isPending ? "#a0aec0" : "#1a3c6e",
+                color: "#fff", fontSize: "14px", fontWeight: 700,
                 cursor: bookMutation.isPending ? "not-allowed" : "pointer",
-                transition: "all 0.2s",
+                transition: "background 0.18s",
+                boxShadow: "0 4px 12px rgba(26,60,110,0.2)",
+              }}
+              onMouseEnter={(e) => {
+                if (!bookMutation.isPending)
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#2e5fa3";
+              }}
+              onMouseLeave={(e) => {
+                if (!bookMutation.isPending)
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#1a3c6e";
               }}
             >
               {bookMutation.isPending ? "Booking..." : "Confirm Appointment"}

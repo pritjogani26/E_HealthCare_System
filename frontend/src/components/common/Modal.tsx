@@ -46,21 +46,52 @@ export const Modal: React.FC<ModalProps> = ({
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ backgroundColor: "rgba(26, 60, 110, 0.35)" }}
+        >
             <div
                 ref={modalRef}
-                className={`bg-white rounded-2xl shadow-2xl w-full max-h-[90vh] overflow-y-auto flex flex-col ${sizeClasses[size]}`}
+                className={`w-full max-h-[90vh] overflow-y-auto flex flex-col ${sizeClasses[size]}`}
+                style={{
+                    backgroundColor: "#ffffff",
+                    borderRadius: "10px",
+                    boxShadow: "0 4px 24px rgba(26, 60, 110, 0.14)",
+                    border: "1px solid #d0dff0",
+                }}
             >
-                <div className="sticky top-0 bg-white border-b border-slate-200 p-6 flex items-center justify-between z-10 shrink-0">
-                    <h3 className="text-2xl font-bold text-slate-900">{title}</h3>
+                {/* Header */}
+                <div
+                    className="sticky top-0 p-5 flex items-center justify-between z-10 shrink-0"
+                    style={{
+                        backgroundColor: "#e8f0f7",
+                        borderBottom: "1px solid #d0dff0",
+                    }}
+                >
+                    <h3
+                        className="text-xl font-semibold"
+                        style={{ color: "#1a3c6e" }}
+                    >
+                        {title}
+                    </h3>
                     <button
                         onClick={onClose}
-                        className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
+                        className="p-2 rounded-lg transition-colors"
+                        style={{ color: "#555555" }}
+                        onMouseEnter={(e) => {
+                            (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#d0dff0";
+                            (e.currentTarget as HTMLButtonElement).style.color = "#1a3c6e";
+                        }}
+                        onMouseLeave={(e) => {
+                            (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent";
+                            (e.currentTarget as HTMLButtonElement).style.color = "#555555";
+                        }}
                     >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
+                {/* Content */}
                 <div className="p-6 overflow-y-auto">
                     {children}
                 </div>

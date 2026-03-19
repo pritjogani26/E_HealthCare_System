@@ -9,8 +9,13 @@ interface PageHeaderProps {
 export const PageHeader: React.FC<PageHeaderProps> = ({ title, description }) => {
     return (
         <div className="mb-6">
-            <h2 className="text-3xl font-bold text-slate-800 mb-1">{title}</h2>
-            <p className="text-slate-600 text-sm">{description}</p>
+            <h2
+                className="text-2xl font-semibold mb-1"
+                style={{ color: "#1a3c6e" }}
+            >
+                {title}
+            </h2>
+            <p className="text-sm" style={{ color: "#555555" }}>{description}</p>
         </div>
     );
 };

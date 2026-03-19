@@ -147,8 +147,6 @@ def rotate_refresh_token(old_refresh_token: str) -> tuple[dict, str, str]:
 
 
 class PyJWTAuthentication(BaseAuthentication):
-    """Validates Bearer token from Authorization header and returns a TokenUser."""
-
     def authenticate(self, request):
         auth_header = request.META.get("HTTP_AUTHORIZATION", "")
         if not auth_header.startswith("Bearer "):

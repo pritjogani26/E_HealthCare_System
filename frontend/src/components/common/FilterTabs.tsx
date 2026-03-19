@@ -19,10 +19,30 @@ export const FilterTabs: React.FC<FilterTabsProps> = ({ tabs, activeTab, onTabCh
                 <button
                     key={tab.id}
                     onClick={() => onTabChange(tab.id)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${activeTab === tab.id
-                            ? "bg-slate-900 text-white"
-                            : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200"
-                        }`}
+                    className="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors"
+                    style={
+                        activeTab === tab.id
+                            ? {
+                                backgroundColor: "#1a3c6e",
+                                color: "#ffffff",
+                                border: "1px solid #1a3c6e",
+                              }
+                            : {
+                                backgroundColor: "#ffffff",
+                                color: "#555555",
+                                border: "1px solid #d0dff0",
+                              }
+                    }
+                    onMouseEnter={(e) => {
+                        if (activeTab !== tab.id) {
+                            (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#e8f0f7";
+                        }
+                    }}
+                    onMouseLeave={(e) => {
+                        if (activeTab !== tab.id) {
+                            (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#ffffff";
+                        }
+                    }}
                 >
                     {tab.label}
                 </button>

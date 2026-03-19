@@ -66,22 +66,49 @@ export const ActionConfirmationModal: React.FC<ActionConfirmationModalProps> = (
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center pt-8 sm:pt-16 px-4">
       {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" 
-        onClick={!loading ? handleClose : undefined} 
+      <div
+        className="fixed inset-0 transition-opacity"
+        style={{ backgroundColor: "rgba(26, 60, 110, 0.35)" }}
+        onClick={!loading ? handleClose : undefined}
       />
 
       {/* Modal Dialog */}
-      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div
+        className="relative w-full max-w-md flex flex-col overflow-hidden"
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "10px",
+          border: "1px solid #e8f0f7",
+          boxShadow: "0 4px 20px rgba(26, 60, 110, 0.12)",
+        }}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50/50">
-          <h3 className="text-base font-semibold text-slate-900">
+        <div
+          className="flex items-center justify-between px-5 py-3.5"
+          style={{
+            backgroundColor: "#e8f0f7",
+            borderBottom: "1px solid #d0dff0",
+          }}
+        >
+          <h3
+            className="text-base font-semibold"
+            style={{ color: "#1a3c6e" }}
+          >
             {step === 1 ? title : "Additional Details"}
           </h3>
           <button
             onClick={handleClose}
             disabled={loading}
-            className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors disabled:opacity-50"
+            className="p-1.5 rounded-md transition-colors disabled:opacity-50"
+            style={{ color: "#555555" }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#d0dff0";
+              (e.currentTarget as HTMLButtonElement).style.color = "#1a3c6e";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent";
+              (e.currentTarget as HTMLButtonElement).style.color = "#555555";
+            }}
           >
             <X className="w-4 h-4" />
           </button>
@@ -90,14 +117,33 @@ export const ActionConfirmationModal: React.FC<ActionConfirmationModalProps> = (
         {/* Content */}
         <div className="p-5">
           {step === 1 ? (
-            <p className="text-slate-600 text-sm leading-relaxed">{message}</p>
+            <p className="text-sm leading-relaxed" style={{ color: "#555555" }}>
+              {message}
+            </p>
           ) : (
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-700">
-                {reasonLabel} <span className="text-red-500">*</span>
+              <label
+                className="block text-sm font-medium"
+                style={{ color: "#1a3c6e" }}
+              >
+                {reasonLabel}{" "}
+                <span style={{ color: "#f47920" }}>*</span>
               </label>
               <textarea
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm resize-none outline-none transition-shadow"
+                className="w-full px-3 py-2 text-sm resize-none outline-none transition-shadow rounded-md"
+                style={{
+                  border: "1px solid #d0dff0",
+                  color: "#1a3c6e",
+                  backgroundColor: "#ffffff",
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.border = "1px solid #f47920";
+                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(244, 121, 32, 0.12)";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.border = "1px solid #d0dff0";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
                 rows={3}
                 placeholder="Please provide a reason..."
                 value={reason}
@@ -110,18 +156,42 @@ export const ActionConfirmationModal: React.FC<ActionConfirmationModalProps> = (
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex justify-end gap-2.5">
+        <div
+          className="px-5 py-3.5 flex justify-end gap-2.5"
+          style={{
+            backgroundColor: "#e8f0f7",
+            borderTop: "1px solid #d0dff0",
+          }}
+        >
           {step === 1 ? (
             <>
               <button
-                className="px-4 py-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
+                className="px-4 py-1.5 text-sm font-medium rounded-md transition-colors disabled:opacity-50"
+                style={{
+                  color: "#1a3c6e",
+                  backgroundColor: "#ffffff",
+                  border: "1px solid #d0dff0",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#d0dff0";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#ffffff";
+                }}
                 onClick={handleClose}
                 disabled={loading}
               >
                 {cancelLabel}
               </button>
               <button
-                className="px-4 py-1.5 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 shadow-sm"
+                className="px-4 py-1.5 text-sm font-medium text-white rounded-md transition-colors disabled:opacity-50"
+                style={{ backgroundColor: "#1a3c6e" }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#2e5fa3";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#1a3c6e";
+                }}
                 onClick={handleInitialConfirm}
                 disabled={loading}
               >
@@ -131,14 +201,34 @@ export const ActionConfirmationModal: React.FC<ActionConfirmationModalProps> = (
           ) : (
             <>
               <button
-                className="px-4 py-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
+                className="px-4 py-1.5 text-sm font-medium rounded-md transition-colors disabled:opacity-50"
+                style={{
+                  color: "#1a3c6e",
+                  backgroundColor: "#ffffff",
+                  border: "1px solid #d0dff0",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#d0dff0";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#ffffff";
+                }}
                 onClick={() => setStep(1)}
                 disabled={loading}
               >
                 Back
               </button>
               <button
-                className="px-4 py-1.5 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm min-w-[70px]"
+                className="px-4 py-1.5 text-sm font-medium text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-w-[70px]"
+                style={{ backgroundColor: "#1a3c6e" }}
+                onMouseEnter={(e) => {
+                  if (!loading && reason.trim()) {
+                    (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#2e5fa3";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#1a3c6e";
+                }}
                 onClick={handleFinalConfirm}
                 disabled={loading || !reason.trim()}
               >

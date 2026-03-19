@@ -43,4 +43,4 @@ def mark_token_used(token: str) -> None:
 
 
 def mark_email_verified(user_id: str) -> None:
-    fn_scalar("u_set_email_verified", [str(user_id)])
+    fn_scalar("u_set_email_verified", [user_id])

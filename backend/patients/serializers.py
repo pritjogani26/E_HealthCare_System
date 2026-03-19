@@ -1,8 +1,3 @@
-"""
-Patient serializers — pure DRF Serializer (no ModelSerializer).
-Validation and response shaping only.
-DB writes are handled directly in views via DB functions.
-"""
 
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password

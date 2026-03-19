@@ -18,10 +18,6 @@ class ProfileService(BaseProfileService):
 
     @staticmethod
     def update_lab_profile(lab_dict: dict, serializer, request=None) -> dict:
-        """
-        Apply validated_data to the lab profile using DB query functions directly.
-        DRF plain Serializer has no .update() — handled here.
-        """
         user_id = str(lab_dict.get("lab_id") or lab_dict.get("lab_user_id"))
         data = serializer.validated_data
 

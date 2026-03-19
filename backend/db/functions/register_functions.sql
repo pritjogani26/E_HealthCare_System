@@ -95,7 +95,6 @@ INSERT INTO patients (
     address_id,
     blood_group_id,
     gender_id,
-    is_active,
     created_at,
     updated_at
 )
@@ -110,7 +109,6 @@ VALUES (
     u_address_id,
     u_blood_group_id,
     u_gender_id,
-    TRUE,
     NOW(),
     NOW()
 );
@@ -195,12 +193,12 @@ VALUES (
 INSERT INTO doctors (
     doctor_id, full_name, experience_years, phone_number, consultation_fee,
     registration_number, profile_image, address_id, gender_id,
-    verification_status, is_active, created_at, updated_at
+    verification_status, created_at, updated_at
 )
 VALUES (
     v_user_id, u_full_name, u_experience_years, u_phone_number, u_consultation_fee,
     u_registration_number, u_profile_image, u_address_id, u_gender_id,
-    'PENDING', TRUE, NOW(), NOW()
+    'PENDING', NOW(), NOW()
 );
 
 RETURN QUERY
@@ -294,7 +292,6 @@ INSERT INTO labs (
     lab_logo,
     address_id,
     verification_status,
-    is_active,
     created_at,
     updated_at
 )
@@ -306,7 +303,6 @@ VALUES (
     u_lab_logo,
     u_address_id,
     'pending',
-    TRUE,
     NOW(),
     NOW()
 );

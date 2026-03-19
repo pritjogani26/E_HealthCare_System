@@ -25,12 +25,12 @@ function buildWorkingDays(existingDays?: WorkingDay[]): WorkingDay[] {
     return existing
       ? { ...existing }
       : {
-        day_of_week: idx,
-        arrival: "",
-        leaving: "",
-        lunch_start: "",
-        lunch_end: "",
-      };
+          day_of_week: idx,
+          arrival: "",
+          leaving: "",
+          lunch_start: "",
+          lunch_end: "",
+        };
   });
 }
 
@@ -44,8 +44,7 @@ const DoctorSchedulePage: React.FC = () => {
   const [consultationDuration, setConsultationDuration] = useState(30);
   const [appointmentContact, setAppointmentContact] = useState("");
   const [activeDays, setActiveDays] = useState<boolean[]>(Array(7).fill(false));
-  const [workingDays, setWorkingDays] =
-    useState<WorkingDay[]>(buildWorkingDays());
+  const [workingDays, setWorkingDays] = useState<WorkingDay[]>(buildWorkingDays());
 
   useEffect(() => {
     fetchProfile();
@@ -73,9 +72,7 @@ const DoctorSchedulePage: React.FC = () => {
       setActiveDays(active);
     } catch (err: any) {
       toast.error(
-        err?.response?.data?.message ||
-        err.message ||
-        "Failed to load schedule",
+        err?.response?.data?.message || err.message || "Failed to load schedule",
       );
     } finally {
       setLoading(false);
@@ -131,7 +128,6 @@ const DoctorSchedulePage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-
     try {
       const selectedWorkingDays: WorkingDay[] = workingDays
         .filter((_, idx) => activeDays[idx])
@@ -154,21 +150,37 @@ const DoctorSchedulePage: React.FC = () => {
       navigate("/profile");
     } catch (err: any) {
       toast.error(
-        err?.response?.data?.message ||
-        err.message ||
-        "Failed to update schedule",
+        err?.response?.data?.message || err.message || "Failed to update schedule",
       );
     } finally {
       setSaving(false);
     }
   };
 
+  const inputCls = "w-full px-4 py-2 rounded-lg text-sm outline-none transition-shadow";
+  const inputStyle: React.CSSProperties = {
+    border: "1px solid #d0dff0",
+    backgroundColor: "#ffffff",
+    color: "#1a3c6e",
+  };
+  const inputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.currentTarget.style.border = "1px solid #f47920";
+    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(244,121,32,0.12)";
+  };
+  const inputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.currentTarget.style.border = "1px solid #d0dff0";
+    e.currentTarget.style.boxShadow = "none";
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col">
+      <div style={{ minHeight: "100vh", backgroundColor: "#e8f0f7", display: "flex", flexDirection: "column" }}>
         <Header setIsSidebarOpen={setIsSidebarOpen} showSidebarToggle={false} />
         <div className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600" />
+          <div
+            className="animate-spin rounded-full h-12 w-12 border-b-2"
+            style={{ borderColor: "#1a3c6e" }}
+          />
         </div>
         <Footer />
       </div>
@@ -176,7 +188,7 @@ const DoctorSchedulePage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col">
+    <div style={{ minHeight: "100vh", backgroundColor: "#e8f0f7", display: "flex", flexDirection: "column" }}>
       <Toaster
         position="top-right"
         gutter={10}
@@ -184,7 +196,7 @@ const DoctorSchedulePage: React.FC = () => {
         toastOptions={{
           duration: 4000,
           style: {
-            fontFamily: "'Inter', system-ui, sans-serif",
+            fontFamily: "system-ui, sans-serif",
             fontSize: "0.875rem",
             fontWeight: 500,
             borderRadius: "12px",
@@ -193,20 +205,12 @@ const DoctorSchedulePage: React.FC = () => {
             maxWidth: "380px",
           },
           success: {
-            style: {
-              background: "#f0fdf4",
-              color: "#166534",
-              border: "1px solid #bbf7d0",
-            },
+            style: { background: "#f0fdf4", color: "#166534", border: "1px solid #bbf7d0" },
             iconTheme: { primary: "#16a34a", secondary: "#f0fdf4" },
           },
           error: {
             duration: 5000,
-            style: {
-              background: "#fff1f2",
-              color: "#9f1239",
-              border: "1px solid #fecdd3",
-            },
+            style: { background: "#fff1f2", color: "#9f1239", border: "1px solid #fecdd3" },
             iconTheme: { primary: "#e11d48", secondary: "#fff1f2" },
           },
         }}
@@ -214,50 +218,65 @@ const DoctorSchedulePage: React.FC = () => {
       <Header setIsSidebarOpen={setIsSidebarOpen} showSidebarToggle={false} />
 
       <main className="flex-1 max-w-4xl w-full mx-auto p-6">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold mb-1" style={{ color: "#1a3c6e" }}>
             Manage Schedule
           </h1>
-          <p className="text-slate-600 dark:text-slate-400">
+          <p className="text-sm" style={{ color: "#555555" }}>
             Configure your working hours and consultation settings.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {/* ── Workflow & Contact ─────────────────────────────── */}
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-            <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-emerald-600" /> Workflow &amp;
-              Contact
+          <div
+            className="p-5"
+            style={{
+              backgroundColor: "#ffffff",
+              border: "1px solid #d0dff0",
+              borderRadius: "10px",
+              boxShadow: "0 2px 8px rgba(26,60,110,0.07)",
+            }}
+          >
+            <h2
+              className="text-base font-semibold mb-4 flex items-center gap-2"
+              style={{ color: "#1a3c6e" }}
+            >
+              <Calendar className="w-5 h-5" style={{ color: "#f47920" }} />
+              Workflow &amp; Contact
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                <label className="block text-sm font-medium mb-1.5" style={{ color: "#1a3c6e" }}>
                   Avg. Consultation Time (minutes)
                 </label>
                 <input
                   type="number"
                   value={consultationDuration}
-                  onChange={(e) =>
-                    setConsultationDuration(Number(e.target.value))
-                  }
+                  onChange={(e) => setConsultationDuration(Number(e.target.value))}
                   min="5"
-                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 outline-none"
+                  className={inputCls}
+                  style={inputStyle}
+                  onFocus={inputFocus}
+                  onBlur={inputBlur}
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                <label className="block text-sm font-medium mb-1.5" style={{ color: "#1a3c6e" }}>
                   Appointment Inquiry Number
                 </label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-2.5 w-5 h-5 text-slate-400" />
+                  <Phone className="absolute left-3 top-2.5 w-4 h-4" style={{ color: "#555555" }} />
                   <input
                     type="text"
                     value={appointmentContact}
                     onChange={(e) => setAppointmentContact(e.target.value)}
                     placeholder="e.g. +91 XXXXX XXXXX"
-                    className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 outline-none"
+                    className="w-full pl-10 pr-4 py-2 rounded-lg text-sm outline-none transition-shadow"
+                    style={inputStyle}
+                    onFocus={inputFocus}
+                    onBlur={inputBlur}
                   />
                 </div>
               </div>
@@ -265,12 +284,23 @@ const DoctorSchedulePage: React.FC = () => {
           </div>
 
           {/* ── Working Days ───────────────────────────────────── */}
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-            <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-emerald-600" /> Working Days &amp;
-              Hours
+          <div
+            className="p-5"
+            style={{
+              backgroundColor: "#ffffff",
+              border: "1px solid #d0dff0",
+              borderRadius: "10px",
+              boxShadow: "0 2px 8px rgba(26,60,110,0.07)",
+            }}
+          >
+            <h2
+              className="text-base font-semibold mb-4 flex items-center gap-2"
+              style={{ color: "#1a3c6e" }}
+            >
+              <Clock className="w-5 h-5" style={{ color: "#f47920" }} />
+              Working Days &amp; Hours
             </h2>
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {DAY_NAMES.map((dayName, idx) => {
                 const wd = workingDays[idx];
                 const isActive = activeDays[idx];
@@ -279,10 +309,11 @@ const DoctorSchedulePage: React.FC = () => {
                 return (
                   <div
                     key={idx}
-                    className={`border rounded-xl transition-colors ${isActive
-                      ? "border-emerald-300 bg-emerald-50/40 dark:bg-emerald-900/10"
-                      : "border-slate-200 bg-slate-50 dark:bg-slate-900/30"
-                      }`}
+                    className="rounded-lg transition-colors"
+                    style={{
+                      border: isActive ? "1px solid #2e5fa3" : "1px solid #d0dff0",
+                      backgroundColor: isActive ? "#f0f5fc" : "#f9fbfd",
+                    }}
                   >
                     {/* Day header toggle */}
                     <button
@@ -292,7 +323,12 @@ const DoctorSchedulePage: React.FC = () => {
                     >
                       <div className="flex items-center gap-3">
                         <span
-                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${isActive ? "border-emerald-500 bg-emerald-500" : "border-slate-300 bg-white"}`}
+                          className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors"
+                          style={
+                            isActive
+                              ? { borderColor: "#1a3c6e", backgroundColor: "#1a3c6e" }
+                              : { borderColor: "#d0dff0", backgroundColor: "#ffffff" }
+                          }
                         >
                           {isActive && (
                             <svg
@@ -309,13 +345,17 @@ const DoctorSchedulePage: React.FC = () => {
                           )}
                         </span>
                         <span
-                          className={`font-medium text-sm ${isActive ? "text-slate-800 dark:text-white" : "text-slate-500"}`}
+                          className="font-medium text-sm"
+                          style={{ color: isActive ? "#1a3c6e" : "#555555" }}
                         >
                           {dayName}
                         </span>
                       </div>
                       {isActive && slots > 0 && (
-                        <span className="text-xs font-semibold px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full">
+                        <span
+                          className="text-xs font-semibold px-2 py-1 rounded-full"
+                          style={{ backgroundColor: "#e8f0f7", color: "#1a3c6e" }}
+                        >
                           {slots} slots
                         </span>
                       )}
@@ -324,25 +364,25 @@ const DoctorSchedulePage: React.FC = () => {
                     {/* Time inputs (shown when day is active) */}
                     {isActive && (
                       <div className="px-4 pb-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        {(
-                          [
-                            "arrival",
-                            "leaving",
-                            "lunch_start",
-                            "lunch_end",
-                          ] as const
-                        ).map((field) => (
+                        {(["arrival", "leaving", "lunch_start", "lunch_end"] as const).map((field) => (
                           <div key={field}>
-                            <label className="block text-xs text-slate-500 mb-1 capitalize">
+                            <label className="block text-xs mb-1 capitalize" style={{ color: "#555555" }}>
                               {field.replace("_", " ")}
                             </label>
                             <input
                               type="time"
                               value={wd[field] || ""}
-                              onChange={(e) =>
-                                handleTimeChange(idx, field, e.target.value)
-                              }
-                              className="w-full px-2 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+                              onChange={(e) => handleTimeChange(idx, field, e.target.value)}
+                              className="w-full px-2 py-1.5 text-sm rounded-lg outline-none transition-shadow"
+                              style={{ border: "1px solid #d0dff0", backgroundColor: "#ffffff", color: "#1a3c6e" }}
+                              onFocus={(e) => {
+                                e.currentTarget.style.border = "1px solid #f47920";
+                                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(244,121,32,0.12)";
+                              }}
+                              onBlur={(e) => {
+                                e.currentTarget.style.border = "1px solid #d0dff0";
+                                e.currentTarget.style.boxShadow = "none";
+                              }}
                             />
                           </div>
                         ))}
@@ -355,36 +395,55 @@ const DoctorSchedulePage: React.FC = () => {
           </div>
 
           {/* ── Weekly Summary ─────────────────────────────────── */}
-          <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl shadow-lg p-6 text-white">
+          <div
+            className="rounded-xl p-5"
+            style={{
+              backgroundColor: "#1a3c6e",
+              boxShadow: "0 4px 16px rgba(26,60,110,0.2)",
+            }}
+          >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-emerald-100 font-medium mb-1">
+                <p className="font-medium mb-1 text-sm" style={{ color: "rgba(255,255,255,0.75)" }}>
                   Estimated Weekly Capacity
                 </p>
-                <h3 className="text-3xl font-bold">{totalWeeklySlots} Slots</h3>
-                <p className="text-xs text-emerald-100 mt-2 opacity-80">
+                <h3 className="text-3xl font-bold text-white">{totalWeeklySlots} Slots</h3>
+                <p className="text-xs mt-2" style={{ color: "rgba(255,255,255,0.6)" }}>
                   Across {activeDays.filter(Boolean).length} working day
                   {activeDays.filter(Boolean).length !== 1 ? "s" : ""}
-                  {consultationDuration
-                    ? ` · ${consultationDuration} min/consultation`
-                    : ""}
+                  {consultationDuration ? ` · ${consultationDuration} min/consultation` : ""}
                 </p>
               </div>
-              <div className="bg-white/20 p-3 rounded-lg backdrop-blur-sm">
+              <div
+                className="p-3 rounded-lg"
+                style={{ backgroundColor: "rgba(255,255,255,0.15)" }}
+              >
                 <Calendar className="w-8 h-8 text-white" />
               </div>
             </div>
           </div>
 
+          {/* Save button */}
           <div className="flex justify-end">
             <button
               type="submit"
               disabled={saving}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium text-white transition-all duration-200 ${saving ? "bg-slate-400 cursor-not-allowed" : "bg-emerald-600 hover:bg-emerald-700 shadow-md hover:shadow-lg shadow-emerald-500/20"}`}
+              className="flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium text-white transition-all duration-200"
+              style={{
+                backgroundColor: saving ? "#a0aec0" : "#1a3c6e",
+                cursor: saving ? "not-allowed" : "pointer",
+                boxShadow: saving ? "none" : "0 4px 12px rgba(26,60,110,0.2)",
+              }}
+              onMouseEnter={(e) => {
+                if (!saving) (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#2e5fa3";
+              }}
+              onMouseLeave={(e) => {
+                if (!saving) (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#1a3c6e";
+              }}
             >
               {saving ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />{" "}
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   Saving...
                 </>
               ) : (

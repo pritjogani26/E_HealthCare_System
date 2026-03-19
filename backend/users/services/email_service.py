@@ -5,7 +5,11 @@ import logging
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 
-from common.exceptions import ValidationException, NotFoundException, ServiceUnavailableException
+from common.exceptions import (
+    ValidationException,
+    NotFoundException,
+    ServiceUnavailableException,
+)
 import db.email_queries as eq
 import db.user_queries as uq
 
@@ -16,10 +20,6 @@ class EmailService:
 
     @staticmethod
     def send_verification_email(user: dict) -> bool:
-        """Generate a verification token and send the verification email.
-
-        Returns True on success, False if sending fails (caller decides how to handle).
-        """
         token = eq.create_email_verification_token(
             user_id=user["user_id"], expires_hours=24
         )
@@ -39,7 +39,9 @@ class EmailService:
         html_content = _build_verification_html(verify_link)
 
         try:
-            msg = EmailMultiAlternatives(subject, text_content, from_email, [user["email"]])
+            msg = EmailMultiAlternatives(
+                subject, text_content, from_email, [user["email"]]
+            )
             msg.attach_alternative(html_content, "text/html")
             msg.send(fail_silently=False)
             logger.info("Verification email sent to %s", user["email"])
@@ -50,25 +52,17 @@ class EmailService:
 
     @staticmethod
     def verify_email_token(token: str) -> None:
-        """Validate a verification token and mark the email as verified.
-
-        Raises ValidationException if the token is invalid or already used.
-        """
         record = eq.get_verification_record(token)
+        print(f"\n\n\nRecords  : {record}")
         if not record:
             raise ValidationException("Invalid or already used verification token.")
 
         eq.mark_token_used(token)
-        eq.mark_email_verified(record["user_id"])
+        print(f"\n\n\nRecords  : {record}")
+        eq.mark_email_verified(record["auth_verify_token"])
 
     @staticmethod
     def resend_verification_email(email: str) -> None:
-        """Re-send the verification email for an unverified account.
-
-        Raises NotFoundException if no account exists.
-        Raises ValidationException if the email is already verified.
-        Raises ServiceUnavailableException if sending fails.
-        """
         user = uq.get_user_by_email(email)
         if not user:
             raise NotFoundException("No account found with this email address.")
@@ -78,12 +72,12 @@ class EmailService:
 
         sent = EmailService.send_verification_email(user)
         if not sent:
-            raise ServiceUnavailableException("Failed to send verification email. Please try again later.")
-
+            raise ServiceUnavailableException(
+                "Failed to send verification email. Please try again later."
+            )
 
 
 def _build_verification_html(verify_link: str) -> str:
-    """Return the HTML body for the verification email."""
     return f"""<!DOCTYPE html>
 <html>
 <head>

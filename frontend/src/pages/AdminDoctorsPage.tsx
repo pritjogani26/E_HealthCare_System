@@ -28,7 +28,6 @@ import { StatusBadge } from "../components/common/StatusBadge";
 import { Pagination } from "../components/common/Pagination";
 import { Modal } from "../components/common/Modal";
 import { ActionConfirmationModal } from "../components/common/ActionConfirmationModal";
-
 import { InfoRow } from "../components/common/InfoRow";
 import { handleApiError } from "../services/api";
 import {
@@ -214,23 +213,24 @@ const AdminDoctorsPage: React.FC = () => {
       {!loading && error && <ErrorState message={error} />}
 
       {!loading && !error && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div
+          className="overflow-hidden"
+          style={{
+            backgroundColor: "#ffffff",
+            border: "1px solid #d0dff0",
+            borderRadius: "10px",
+            boxShadow: "0 2px 8px rgba(26,60,110,0.07)",
+          }}
+        >
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 border-b border-slate-200">
-                <tr>
-                  {[
-                    "No.",
-                    "Name",
-                    "Email",
-                    "Phone",
-                    "Verification",
-                    "Status",
-                    "Actions",
-                  ].map((h) => (
+              <thead>
+                <tr style={{ backgroundColor: "#e8f0f7", borderBottom: "1px solid #d0dff0" }}>
+                  {["No.", "Name", "Email", "Phone", "Verification", "Status", "Actions"].map((h) => (
                     <th
                       key={h}
-                      className="text-left py-3 px-4 text-slate-700 font-semibold"
+                      className="text-left py-3 px-4 font-semibold"
+                      style={{ color: "#1a3c6e" }}
                     >
                       {h}
                     </th>
@@ -241,75 +241,86 @@ const AdminDoctorsPage: React.FC = () => {
                 {current.map((doc, idx) => (
                   <tr
                     key={doc.doctor_id}
-                    className="border-b border-slate-100 hover:bg-slate-50"
+                    style={{ borderBottom: "1px solid #e8f0f7" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f5f8fc")}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                   >
-                    <td className="py-3 px-4 text-slate-500">
+                    <td className="py-3 px-4" style={{ color: "#555555" }}>
                       {indexOfFirst + idx + 1}
                     </td>
-                    <td className="py-3 px-4 font-medium text-slate-900">
+                    <td className="py-3 px-4 font-medium" style={{ color: "#1a3c6e" }}>
                       {doc.full_name}
                     </td>
-                    <td className="py-3 px-4 text-slate-600">{doc.email}</td>
-                    <td className="py-3 px-4 text-slate-600">
-                      {doc.phone_number}
-                    </td>
+                    <td className="py-3 px-4" style={{ color: "#555555" }}>{doc.email}</td>
+                    <td className="py-3 px-4" style={{ color: "#555555" }}>{doc.phone_number}</td>
                     <td className="py-3 px-4">
-                      <StatusBadge
-                        status={doc.verification_status}
-                        label={doc.verification_status}
-                      />
+                      <StatusBadge status={doc.verification_status} label={doc.verification_status} />
                     </td>
                     <td className="py-3 px-4">
                       <StatusBadge type="active" status={doc.is_active} />
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-1.5">
+                        {/* View */}
                         <button
-                          onClick={() => {
-                            setSelectedDoctor(doc);
-                            setIsDetailOpen(true);
-                          }}
-                          className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100"
+                          onClick={() => { setSelectedDoctor(doc); setIsDetailOpen(true); }}
+                          className="p-1.5 rounded-lg transition-colors"
+                          style={{ backgroundColor: "#e8f0f7", color: "#1a3c6e" }}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#d0dff0")}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#e8f0f7")}
                           title="View"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
+
+                        {/* Approve / Reject */}
                         {canVerify && doc.verification_status?.toUpperCase() === "PENDING" && (
                           <>
                             <button
-                              onClick={() =>
-                                handleVerifyRequest(doc, "VERIFIED")
-                              }
+                              onClick={() => handleVerifyRequest(doc, "VERIFIED")}
                               disabled={actionLoading}
-                              className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                              className="p-1.5 rounded-lg transition-colors disabled:opacity-50"
+                              style={{ backgroundColor: "#f0fdf4", color: "#16a34a" }}
+                              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#dcfce7")}
+                              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#f0fdf4")}
                               title="Approve"
                             >
                               <Check className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() =>
-                                handleVerifyRequest(doc, "REJECTED")
-                              }
+                              onClick={() => handleVerifyRequest(doc, "REJECTED")}
                               disabled={actionLoading}
-                              className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100"
+                              className="p-1.5 rounded-lg transition-colors disabled:opacity-50"
+                              style={{ backgroundColor: "#fef2f2", color: "#dc2626" }}
+                              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#fee2e2")}
+                              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#fef2f2")}
                               title="Reject"
                             >
                               <X className="w-4 h-4" />
                             </button>
                           </>
                         )}
+
+                        {/* Toggle */}
                         {canToggle && (
                           <button
                             onClick={() => handleToggleRequest(doc)}
                             disabled={actionLoading}
-                            className={`p-1.5 rounded-lg ${doc.is_active ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"}`}
+                            className="p-1.5 rounded-lg transition-colors disabled:opacity-50"
+                            style={
+                              doc.is_active
+                                ? { backgroundColor: "#fef2f2", color: "#dc2626" }
+                                : { backgroundColor: "#f0fdf4", color: "#16a34a" }
+                            }
+                            onMouseEnter={(e) => {
+                              (e.currentTarget as HTMLButtonElement).style.backgroundColor = doc.is_active ? "#fee2e2" : "#dcfce7";
+                            }}
+                            onMouseLeave={(e) => {
+                              (e.currentTarget as HTMLButtonElement).style.backgroundColor = doc.is_active ? "#fef2f2" : "#f0fdf4";
+                            }}
                             title={doc.is_active ? "Deactivate" : "Activate"}
                           >
-                            {doc.is_active ? (
-                              <UserX className="w-4 h-4" />
-                            ) : (
-                              <UserCheck className="w-4 h-4" />
-                            )}
+                            {doc.is_active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
                           </button>
                         )}
                       </div>
@@ -318,10 +329,7 @@ const AdminDoctorsPage: React.FC = () => {
                 ))}
                 {current.length === 0 && (
                   <tr>
-                    <td
-                      colSpan={7}
-                      className="py-10 text-center text-slate-400"
-                    >
+                    <td colSpan={7} className="py-10 text-center" style={{ color: "#555555" }}>
                       No doctors found.
                     </td>
                   </tr>
@@ -344,24 +352,27 @@ const AdminDoctorsPage: React.FC = () => {
       {/* Detail Modal */}
       <Modal
         isOpen={isDetailOpen && !!selectedDoctor}
-        onClose={() => {
-          setIsDetailOpen(false);
-          setSelectedDoctor(null);
-        }}
+        onClose={() => { setIsDetailOpen(false); setSelectedDoctor(null); }}
         title="Doctor Details"
       >
         {selectedDoctor && (
           <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center gap-4 pb-4 border-b border-slate-200">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-xl font-bold">
+            <div
+              className="flex items-center gap-4 pb-4"
+              style={{ borderBottom: "1px solid #d0dff0" }}
+            >
+              <div
+                className="w-14 h-14 rounded-full flex items-center justify-center text-white text-xl font-bold flex-shrink-0"
+                style={{ backgroundColor: "#1a3c6e" }}
+              >
                 {selectedDoctor.full_name[0]}
               </div>
               <div className="flex-1">
-                <h4 className="text-lg font-bold text-slate-900">
+                <h4 className="text-base font-bold" style={{ color: "#1a3c6e" }}>
                   {selectedDoctor.full_name}
                 </h4>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm" style={{ color: "#555555" }}>
                   {selectedDoctor.registration_number}
                 </p>
               </div>
@@ -369,7 +380,12 @@ const AdminDoctorsPage: React.FC = () => {
                 <button
                   onClick={() => handleToggleRequest(selectedDoctor)}
                   disabled={actionLoading}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium ${selectedDoctor.is_active ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-600"}`}
+                  className="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                  style={
+                    selectedDoctor.is_active
+                      ? { backgroundColor: "#fef2f2", color: "#dc2626" }
+                      : { backgroundColor: "#f0fdf4", color: "#16a34a" }
+                  }
                 >
                   {selectedDoctor.is_active ? "Deactivate" : "Activate"}
                 </button>
@@ -378,73 +394,30 @@ const AdminDoctorsPage: React.FC = () => {
 
             {/* Info */}
             <div>
-              <h5 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-1.5">
-                <Stethoscope className="w-4 h-4 text-emerald-600" /> Doctor
-                Information
+              <h5
+                className="text-sm font-semibold mb-3 flex items-center gap-1.5"
+                style={{ color: "#1a3c6e" }}
+              >
+                <Stethoscope className="w-4 h-4" style={{ color: "#f47920" }} />
+                Doctor Information
               </h5>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <InfoRow
-                  icon={UserIcon}
-                  label="Full Name"
-                  value={selectedDoctor.full_name}
-                />
-                <InfoRow
-                  icon={Mail}
-                  label="Email"
-                  value={selectedDoctor.email}
-                />
-                <InfoRow
-                  icon={Phone}
-                  label="Phone"
-                  value={selectedDoctor.phone_number}
-                />
-                <InfoRow
-                  icon={UserIcon}
-                  label="Gender"
-                  value={selectedDoctor.gender}
-                />
-                <InfoRow
-                  icon={FileText}
-                  label="Reg. Number"
-                  value={selectedDoctor.registration_number}
-                />
-                <InfoRow
-                  icon={Award}
-                  label="Experience"
-                  value={`${selectedDoctor.experience_years} years`}
-                />
-                <InfoRow
-                  icon={Activity}
-                  label="Fee"
-                  value={
-                    selectedDoctor.consultation_fee
-                      ? `₹${selectedDoctor.consultation_fee}`
-                      : null
-                  }
-                />
-                <InfoRow
-                  icon={Shield}
-                  label="Verification"
-                  value={selectedDoctor.verification_status}
-                />
+                <InfoRow icon={UserIcon}  label="Full Name"   value={selectedDoctor.full_name} />
+                <InfoRow icon={Mail}      label="Email"       value={selectedDoctor.email} />
+                <InfoRow icon={Phone}     label="Phone"       value={selectedDoctor.phone_number} />
+                <InfoRow icon={UserIcon}  label="Gender"      value={selectedDoctor.gender} />
+                <InfoRow icon={FileText}  label="Reg. Number" value={selectedDoctor.registration_number} />
+                <InfoRow icon={Award}     label="Experience"  value={`${selectedDoctor.experience_years} years`} />
+                <InfoRow icon={Activity}  label="Fee"         value={selectedDoctor.consultation_fee ? `₹${selectedDoctor.consultation_fee}` : null} />
+                <InfoRow icon={Shield}    label="Verification" value={selectedDoctor.verification_status} />
                 {selectedDoctor.verified_at && (
-                  <InfoRow
-                    icon={Calendar}
-                    label="Verified At"
-                    value={new Date(
-                      selectedDoctor.verified_at,
-                    ).toLocaleString()}
-                  />
+                  <InfoRow icon={Calendar} label="Verified At" value={new Date(selectedDoctor.verified_at).toLocaleString()} />
                 )}
               </div>
             </div>
 
             {selectedDoctor.verification_notes && (
-              <InfoRow
-                icon={FileText}
-                label="Verification Notes"
-                value={selectedDoctor.verification_notes}
-              />
+              <InfoRow icon={FileText} label="Verification Notes" value={selectedDoctor.verification_notes} />
             )}
           </div>
         )}
@@ -456,12 +429,8 @@ const AdminDoctorsPage: React.FC = () => {
         onConfirm={handleModalConfirm}
         title={
           actionData.type === "TOGGLE"
-            ? actionData.target?.is_active
-              ? "Deactivate Doctor"
-              : "Activate Doctor"
-            : actionData.type === "VERIFIED"
-              ? "Verify Doctor"
-              : "Reject Doctor"
+            ? actionData.target?.is_active ? "Deactivate Doctor" : "Activate Doctor"
+            : actionData.type === "VERIFIED" ? "Verify Doctor" : "Reject Doctor"
         }
         message={
           actionData.type === "TOGGLE"
@@ -474,18 +443,12 @@ const AdminDoctorsPage: React.FC = () => {
         }
         requireReason={true}
         reasonLabel={
-          actionData.type === "TOGGLE"
-            ? "Reason for status change"
-            : "Verification Notes"
+          actionData.type === "TOGGLE" ? "Reason for status change" : "Verification Notes"
         }
         confirmLabel={
           actionData.type === "TOGGLE"
-            ? actionData.target?.is_active
-              ? "Deactivate"
-              : "Activate"
-            : actionData.type === "VERIFIED"
-              ? "Verify"
-              : "Reject"
+            ? actionData.target?.is_active ? "Deactivate" : "Activate"
+            : actionData.type === "VERIFIED" ? "Verify" : "Reject"
         }
         loading={actionLoading}
       />

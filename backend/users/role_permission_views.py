@@ -1,15 +1,4 @@
 # backend/users/role_permission_views.py
-"""
-Views for SUPERADMIN role-permission management.
-
-Endpoints:
-  GET  /api/rbac/roles/                        → list all roles
-  GET  /api/rbac/permissions/                  → list all permissions
-  GET  /api/rbac/roles/<role_id>/permissions/  → permissions for a specific role
-  POST /api/rbac/roles/<role_id>/permissions/grant/    → grant one permission
-  POST /api/rbac/roles/<role_id>/permissions/revoke/   → revoke one permission
-  POST /api/rbac/roles/<role_id>/permissions/sync/     → replace all permissions
-"""
 
 from rest_framework import generics, status
 from rest_framework.response import Response
@@ -27,10 +16,8 @@ def _ok(data=None, message="Success", http_status=status.HTTP_200_OK):
     return Response(body, status=http_status)
 
 
-# ── Roles ─────────────────────────────────────────────────────────────────────
 
 class RoleListView(generics.GenericAPIView):
-    """GET /api/rbac/roles/  → all user_roles rows"""
     permission_classes = [IsAuthenticated, IsSuperAdmin]
 
     def get(self, request, *args, **kwargs):
@@ -43,10 +30,8 @@ class RoleListView(generics.GenericAPIView):
         return _ok(roles)
 
 
-# ── Permissions ───────────────────────────────────────────────────────────────
 
 class PermissionListView(generics.GenericAPIView):
-    """GET /api/rbac/permissions/?module=<...>  → all permissions"""
     permission_classes = [IsAuthenticated, IsSuperAdmin]
 
     def get(self, request, *args, **kwargs):
@@ -59,10 +44,8 @@ class PermissionListView(generics.GenericAPIView):
         return _ok(perms)
 
 
-# ── Role permission list ───────────────────────────────────────────────────────
 
 class RolePermissionsView(generics.GenericAPIView):
-    """GET /api/rbac/roles/<role_id>/permissions/"""
     permission_classes = [IsAuthenticated, IsSuperAdmin]
 
     def get(self, request, role_id, *args, **kwargs):
@@ -73,10 +56,8 @@ class RolePermissionsView(generics.GenericAPIView):
         return _ok(perms)
 
 
-# ── Grant ─────────────────────────────────────────────────────────────────────
 
 class GrantPermissionView(generics.GenericAPIView):
-    """POST /api/rbac/roles/<role_id>/permissions/grant/   body: {permission_id}"""
     permission_classes = [IsAuthenticated, IsSuperAdmin]
 
     def post(self, request, role_id, *args, **kwargs):
@@ -94,10 +75,8 @@ class GrantPermissionView(generics.GenericAPIView):
         return _ok(message=msg or "Permission granted.")
 
 
-# ── Revoke ────────────────────────────────────────────────────────────────────
 
 class RevokePermissionView(generics.GenericAPIView):
-    """POST /api/rbac/roles/<role_id>/permissions/revoke/   body: {permission_id}"""
     permission_classes = [IsAuthenticated, IsSuperAdmin]
 
     def post(self, request, role_id, *args, **kwargs):
@@ -114,10 +93,8 @@ class RevokePermissionView(generics.GenericAPIView):
         return _ok(message=msg or "Permission revoked.")
 
 
-# ── Sync (replace entire set) ─────────────────────────────────────────────────
 
 class SyncRolePermissionsView(generics.GenericAPIView):
-    """POST /api/rbac/roles/<role_id>/permissions/sync/   body: {permission_ids: [...]}"""
     permission_classes = [IsAuthenticated, IsSuperAdmin]
 
     def post(self, request, role_id, *args, **kwargs):

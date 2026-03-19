@@ -66,14 +66,6 @@ import os
 
 
 def collect_frontend_code(root_dir: str, output_file: str):
-    """
-    Collect frontend source code into a single file.
-
-    Conditions:
-    1. Include files whose filename contains 'register'
-    2. Include specific important files (even if they don't contain 'register')
-    """
-
     # Allowed extensions
     extensions = {".ts", ".tsx", ".js", ".jsx", ".css", ".json"}
 
