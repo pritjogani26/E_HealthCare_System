@@ -17,22 +17,21 @@ const GoogleLoginButton: React.FC = () => {
 
                 console.log("Google Login Response:", response);
 
-                // Check if response contains nested data (common for successful API responses)
                 if (response.data && response.data.access_token) {
                     console.log("First If : Login Successful!")
-                    setAuthUser(response.data.user, response.data.access_token);
+                    const perms = response.permissions ?? response.data?.permissions ?? [];
+                    setAuthUser(response.data.user, response.data.access_token, perms);
                     toast.success("Login Successful!");
                     navigate('/dashboard');
                 }
-                // Check if response indicates unregistered user (custom structure)
                 else if (response.registered === false) {
                     console.log("Second If : /role-selection'")
                     navigate('/role-selection', { state: { googleData: response } });
                 }
-                // Fallback check
                 else if (response.access_token) {
                     console.log("Third Else IF Login Successfull....")
-                    setAuthUser(response.user, response.access_token);
+                    const perms = response.permissions ?? [];
+                    setAuthUser(response.user, response.access_token, perms);
                     toast.success("Login Successful!");
                     navigate('/dashboard');
                 }

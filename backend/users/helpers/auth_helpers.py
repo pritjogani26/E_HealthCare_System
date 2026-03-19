@@ -3,8 +3,8 @@ from django.http import HttpResponse
 from users.jwt_auth import generate_tokens
 
 
-def set_auth_response_with_tokens(user, message):
-    print(f"\n\nUser : {user}")
+def set_auth_response_with_tokens(user, message, permissions_list):
+    # print(f"\n\nUser : {user}")
     tokens = generate_tokens(user)
     response_dict = {
         "success": True,
@@ -15,6 +15,7 @@ def set_auth_response_with_tokens(user, message):
             "token_type": tokens["token_type"],
             "expires_in": tokens["expires_in"],
         },
+        "permissions": permissions_list
     }
     return response_dict, tokens["refresh_token"]
 

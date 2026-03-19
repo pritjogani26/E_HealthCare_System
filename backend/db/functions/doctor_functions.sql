@@ -1,12 +1,3 @@
--- ============================================================
--- DOCTOR FUNCTIONS
--- ============================================================
-
-
--- ============================================================
--- 1. GET FULL DOCTOR PROFILE  (extended to return all needed fields)
--- ============================================================
-
 CREATE OR REPLACE FUNCTION d_get_full_doctor_profile(p_doctor_id uuid)
 RETURNS TABLE(
     doctor_id          uuid,
@@ -86,10 +77,6 @@ END;
 $$;
 
 
--- ============================================================
--- 2. LIST DOCTORS
--- ============================================================
-
 CREATE OR REPLACE FUNCTION d_list_doctors()
 RETURNS TABLE(
     doctor_id           uuid,
@@ -119,7 +106,7 @@ BEGIN
         d.consultation_fee,
         d.experience_years,
         d.registration_number,
-        d.is_active,
+        u.is_active,
         d.verification_status,
         d.verified_at,
         d.verification_notes,
@@ -134,9 +121,6 @@ BEGIN
 END;
 $$;
 
--- ============================================================
--- 3. UPDATE DOCTOR PROFILE
--- ============================================================
 
 CREATE OR REPLACE FUNCTION d_update_doctor_profile(
     p_doctor_id          uuid,
@@ -174,10 +158,6 @@ END;
 $$;
 
 
--- ============================================================
--- 4. ADMIN VERIFY DOCTOR
--- ============================================================
-
 CREATE OR REPLACE FUNCTION a_verify_doctor(
     p_admin_id            uuid,
     p_doctor_id           uuid,
@@ -208,10 +188,6 @@ BEGIN
 END;
 $$;
 
-
--- ============================================================
--- 5. GET DOCTOR QUALIFICATIONS  (was missing)
--- ============================================================
 
 CREATE OR REPLACE FUNCTION d_get_qualifications(p_doctor_id uuid)
 RETURNS TABLE(
@@ -244,10 +220,6 @@ END;
 $$;
 
 
--- ============================================================
--- 6. ADD QUALIFICATION
--- ============================================================
-
 CREATE OR REPLACE FUNCTION d_add_qualification(
     p_doctor_id          uuid,
     p_qualification_id   int,
@@ -272,10 +244,6 @@ BEGIN
 END;
 $$;
 
-
--- ============================================================
--- 7. ADD SPECIALIZATION
--- ============================================================
 
 CREATE OR REPLACE FUNCTION d_add_specialization(
     p_doctor_id         uuid,
@@ -305,10 +273,6 @@ BEGIN
 END;
 $$;
 
-
--- ============================================================
--- 8. GET SPECIALIZATIONS
--- ============================================================
 
 CREATE OR REPLACE FUNCTION d_get_specializations(p_doctor_id uuid)
 RETURNS TABLE(
@@ -341,10 +305,6 @@ END;
 $$;
 
 
--- ============================================================
--- 9. UPSERT SCHEDULE
--- ============================================================
-
 CREATE OR REPLACE FUNCTION d_upsert_schedule(
     p_doctor_id                uuid,
     p_consultation_duration_min int,
@@ -369,10 +329,6 @@ BEGIN
 END;
 $$;
 
-
--- ============================================================
--- 10. GET FULL SCHEDULE  (was missing)
--- ============================================================
 
 CREATE OR REPLACE FUNCTION d_get_full_schedule(p_doctor_id uuid)
 RETURNS TABLE(
@@ -400,9 +356,6 @@ END;
 $$;
 
 
--- ============================================================
--- 11. UPSERT WORKING DAY  (was missing)
--- ============================================================
 
 CREATE OR REPLACE FUNCTION d_upsert_working_day(
     p_schedule_id  int,
@@ -437,10 +390,6 @@ END;
 $$;
 
 
--- ============================================================
--- 12. GET AVAILABLE SLOTS
--- ============================================================
-
 CREATE OR REPLACE FUNCTION d_get_available_slots(p_doctor_id uuid, p_date date)
 RETURNS TABLE(slot_id int, slot_date date, start_time time, end_time time)
 LANGUAGE plpgsql AS $$
@@ -458,9 +407,6 @@ END;
 $$;
 
 
--- ============================================================
--- 13. BOOK APPOINTMENT
--- ============================================================
 
 CREATE OR REPLACE FUNCTION d_book_appointment(
     p_patient_id      uuid,
@@ -499,10 +445,6 @@ END;
 $$;
 
 
--- ============================================================
--- 14. CANCEL APPOINTMENT  (was missing)
--- ============================================================
-
 CREATE OR REPLACE FUNCTION d_cancel_appointment(
     p_appointment_id   int,
     p_cancelled_by_id  uuid,
@@ -525,10 +467,6 @@ BEGIN
 END;
 $$;
 
-
--- ============================================================
--- 15. GET APPOINTMENTS  (was missing)
--- ============================================================
 
 CREATE OR REPLACE FUNCTION d_get_appointments(
     p_doctor_id  uuid DEFAULT NULL,

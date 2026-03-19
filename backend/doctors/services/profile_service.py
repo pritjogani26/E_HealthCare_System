@@ -1,8 +1,13 @@
-# backend\doctors\services\profile_service.py
+# doctors/services/profile_service.py
+import logging
+
 import db.doctor_queries as dq
 import db.user_queries as uq
+from common.exceptions import ValidationException
 from doctors.serializers import DoctorProfileSerializer
 from users.services.base_profile_service import BaseProfileService
+
+logger = logging.getLogger(__name__)
 
 
 class ProfileService(BaseProfileService):
@@ -41,16 +46,12 @@ class ProfileService(BaseProfileService):
 
         profile_fields = {
             k: data[k]
-            for k in (
-                "full_name", "experience_years", "phone_number",
-                "consultation_fee", "registration_number",
-                "profile_image", "gender_id",
-            )
+            for k in ("full_name", "experience_years", "phone_number",
+                      "consultation_fee", "registration_number", "profile_image", "gender_id")
             if k in data
         }
         if address_id and address_id != doctor_dict.get("address_id"):
             profile_fields["address_id"] = address_id
-
         if profile_fields:
             dq.update_doctor(user_id, **profile_fields)
 
@@ -58,20 +59,16 @@ class ProfileService(BaseProfileService):
             dq.delete_doctor_qualifications(user_id)
             for q in data["qualifications"]:
                 dq.insert_doctor_qualification(
-                    user_id,
-                    q["qualification_id"],
-                    q.get("institution"),
-                    q.get("year_of_completion"),
+                    user_id, q["qualification_id"],
+                    q.get("institution"), q.get("year_of_completion"),
                 )
 
         if "specializations" in data:
             dq.delete_doctor_specializations(user_id)
             for s in data["specializations"]:
                 dq.insert_doctor_specialization(
-                    user_id,
-                    s["specialization_id"],
-                    s.get("is_primary", False),
-                    s.get("years_in_specialty"),
+                    user_id, s["specialization_id"],
+                    s.get("is_primary", False), s.get("years_in_specialty"),
                 )
 
         if "schedule" in data:
@@ -82,7 +79,9 @@ class ProfileService(BaseProfileService):
                 sched_data.get("appointment_contact"),
             )
             schedule = dq.get_schedule_by_doctor(user_id)
+
             if schedule and "working_days" in sched_data:
+                dq.delete_future_unbooked_slots(schedule["schedule_id"])
                 dq.delete_working_days(schedule["schedule_id"])
                 for wd in sched_data["working_days"]:
                     dq.insert_working_day(
@@ -93,13 +92,22 @@ class ProfileService(BaseProfileService):
                         wd.get("lunch_start"),
                         wd.get("lunch_end"),
                     )
+                from doctors.services.appointment_service import AppointmentService
+                count = AppointmentService.generate_slots_for_doctor(user_id, days=30)
+                logger.info("Auto-generated %d slot(s) for doctor %s.", count, user_id)
+                if count == 0:
+                    logger.warning(
+                        "generate_slots_for_doctor returned 0 for doctor %s. "
+                        "Check that working days have non-null arrival/leaving times "
+                        "and that consultation_duration_min is set.",
+                        user_id,
+                    )
 
         updated = dq.get_doctor_by_user_id(user_id)
-        updated["qualifications"] = dq.get_doctor_qualifications(user_id)
+        updated["qualifications"]  = dq.get_doctor_qualifications(user_id)
         updated["specializations"] = dq.get_doctor_specializations(user_id)
         schedule = dq.get_schedule_by_doctor(user_id)
         if schedule:
             schedule["working_days"] = dq.get_working_days(schedule["schedule_id"])
         updated["schedule"] = schedule
-
         return updated

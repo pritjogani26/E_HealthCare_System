@@ -1,14 +1,3 @@
--- ============================================================
--- AUTH FUNCTIONS
--- Covers: Login, Refresh Tokens, Email Verification,
---         Password Reset, Change Password
--- ============================================================
-
-
--- ============================================================
--- 1. LOGIN
--- ============================================================
-
 CREATE OR REPLACE FUNCTION auth_get_user_for_login(
     p_email varchar
 )
@@ -96,21 +85,18 @@ $$;
 
 
 
-CREATE OR REPLACE FUNCTION auth_toggle_patient_is_active(u_user_id uuid)
+CREATE OR REPLACE FUNCTION auth_toggle_user_is_active(u_user_id uuid, u_reason varchar)
 RETURNS void
 LANGUAGE plpgsql
 AS $$
 BEGIN
     UPDATE users
-    SET is_active = NOT is_active
+    SET is_active = NOT is_active, status_change_reason = u_reason, updated_at = NOW()
     WHERE user_id = u_user_id;
 END;
 $$;
 
 
--- ============================================================
--- 2. REFRESH TOKENS
--- ============================================================
 
 CREATE OR REPLACE FUNCTION auth_insert_refresh_token(
     p_user_id uuid,
@@ -241,10 +227,6 @@ $$;
 
 
 
--- ============================================================
--- 3. EMAIL VERIFICATION
--- ============================================================
-
 CREATE OR REPLACE FUNCTION auth_create_verification(
     p_user_id uuid,
     p_verification_type_id int,
@@ -371,11 +353,6 @@ END;
 $$;
 
 
-
-
--- ============================================================
--- 4. PASSWORD MANAGEMENT
--- ============================================================
 
 CREATE OR REPLACE FUNCTION auth_change_password(
     p_user_id uuid,

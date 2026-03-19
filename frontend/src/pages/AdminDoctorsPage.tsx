@@ -16,9 +16,9 @@ import {
   Shield,
   Check,
   X,
-  MapPin,
 } from "lucide-react";
 import { useToast } from "../hooks/useToast";
+import { useAuth } from "../context/AuthContext";
 import { Layout } from "../components/common/Layout";
 import { PageHeader } from "../components/common/PageHeader";
 import { FilterTabs } from "../components/common/FilterTabs";
@@ -37,7 +37,6 @@ import {
   verifyDoctor,
 } from "../services/admin_api";
 import { DoctorList } from "../types";
-import { act } from "@testing-library/react";
 
 const AdminDoctorsPage: React.FC = () => {
   const [doctors, setDoctors] = useState<DoctorList[]>([]);
@@ -52,6 +51,10 @@ const AdminDoctorsPage: React.FC = () => {
     "ALL" | "PENDING" | "VERIFIED" | "REJECTED"
   >("ALL");
   const toast = useToast();
+  const { hasPermission } = useAuth();
+
+  const canToggle = hasPermission("doctor : toggle_status");
+  const canVerify = hasPermission("doctor : verify");
 
   const [actionModalOpen, setActionModalOpen] = useState(false);
   const [actionData, setActionData] = useState<{
@@ -271,8 +274,7 @@ const AdminDoctorsPage: React.FC = () => {
                         >
                           <Eye className="w-4 h-4" />
                         </button>
-                        {doc.verification_status?.toUpperCase() ===
-                          "PENDING" && (
+                        {canVerify && doc.verification_status?.toUpperCase() === "PENDING" && (
                           <>
                             <button
                               onClick={() =>
@@ -296,18 +298,20 @@ const AdminDoctorsPage: React.FC = () => {
                             </button>
                           </>
                         )}
-                        <button
-                          onClick={() => handleToggleRequest(doc)}
-                          disabled={actionLoading}
-                          className={`p-1.5 rounded-lg ${doc.is_active ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"}`}
-                          title={doc.is_active ? "Deactivate" : "Activate"}
-                        >
-                          {doc.is_active ? (
-                            <UserX className="w-4 h-4" />
-                          ) : (
-                            <UserCheck className="w-4 h-4" />
-                          )}
-                        </button>
+                        {canToggle && (
+                          <button
+                            onClick={() => handleToggleRequest(doc)}
+                            disabled={actionLoading}
+                            className={`p-1.5 rounded-lg ${doc.is_active ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"}`}
+                            title={doc.is_active ? "Deactivate" : "Activate"}
+                          >
+                            {doc.is_active ? (
+                              <UserX className="w-4 h-4" />
+                            ) : (
+                              <UserCheck className="w-4 h-4" />
+                            )}
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -361,13 +365,15 @@ const AdminDoctorsPage: React.FC = () => {
                   {selectedDoctor.registration_number}
                 </p>
               </div>
-              <button
-                onClick={() => handleToggleRequest(selectedDoctor)}
-                disabled={actionLoading}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium ${selectedDoctor.is_active ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-600"}`}
-              >
-                {selectedDoctor.is_active ? "Deactivate" : "Activate"}
-              </button>
+              {canToggle && (
+                <button
+                  onClick={() => handleToggleRequest(selectedDoctor)}
+                  disabled={actionLoading}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium ${selectedDoctor.is_active ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-600"}`}
+                >
+                  {selectedDoctor.is_active ? "Deactivate" : "Activate"}
+                </button>
+              )}
             </div>
 
             {/* Info */}

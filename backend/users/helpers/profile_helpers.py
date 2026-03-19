@@ -24,7 +24,7 @@ def get_profile_data_by_role(user):
     if role == UserRole.LAB:
         return _lab_profile(user_id)
 
-    if role in (UserRole.ADMIN, UserRole.STAFF):
+    if role in (UserRole.ADMIN, UserRole.STAFF, UserRole.SUPERADMIN):
         return _admin_profile(user_id)
 
     logger.warning("get_profile_data_by_role: unrecognised role=%s for user_id=%s", role, user_id)

@@ -40,8 +40,6 @@ import db.doctor_queries as dq
 import db.lab_queries as lq
 import db.patient_queries as pq
 
-logger = logging.getLogger(__name__)
-
 
 def _ok(data=None, message="Success", http_status=status.HTTP_200_OK):
     body = {"success": True, "message": message}
@@ -64,7 +62,7 @@ class LoginView(generics.GenericAPIView):
 
         user = uq.get_user_by_email(email)
         if not user:
-            raise AuthenticationException("Invalid credentials.")
+            raise PermissionException("Invalid credentials.")
 
         is_locked, lock_msg = AuthService.check_account_lockout(user)
         if is_locked:
@@ -76,13 +74,16 @@ class LoginView(generics.GenericAPIView):
 
         if not password_service.verify_password(password, user.get("password", "")):
             _, msg = AuthService.handle_failed_login(user)
-            raise AuthenticationException(msg)
+            raise PermissionException(msg)
 
         AuthService.handle_successful_login(user["user_id"])
         user = uq.get_user_by_id(user["user_id"])
-
+        print(f"\nUser : {user}\n")
+        user_permission = uq.get_user_permission_by_id(user["role_id"])
+        print("\nuser_permission :\n")
+        print(user_permission)
         response_dict, refresh_token = set_auth_response_with_tokens(
-            user, "Login successful."
+            user, "Login successful.", user_permission
         )
         response = Response(response_dict, status=status.HTTP_200_OK)
         set_refresh_token_cookie(response, refresh_token)
@@ -166,10 +167,12 @@ class GoogleAuthView(generics.GenericAPIView):
             uq.update_oauth_provider(user["user_id"], "google", idinfo.get("sub"))
             user = uq.get_user_by_id(user["user_id"])
 
-        AuthService.handle_successful_login(user["user_id"])
+
+        AuthService.handle_successful_login(user["user_id"], )
+        user_permission = uq.get_user_permission_by_id(user["role_id"])
 
         response_dict, rt = set_auth_response_with_tokens(
-            user, "Google login successful."
+            user, "Google login successful.", user_permission 
         )
         response = Response(response_dict, status=status.HTTP_200_OK)
         set_refresh_token_cookie(response, rt)
@@ -184,11 +187,9 @@ class VerifyEmailView(generics.GenericAPIView):
         token = request.data.get("token")
         if not token:
             raise ValidationException("Verification token is required.")
-
-        ok, err = EmailService.verify_email_token(token)
-        if ok:
-            return _ok(message="Email verified successfully.")
-        raise ServiceUnavailableException(err)
+        # verify_email_token raises on failure, returns None on success
+        EmailService.verify_email_token(token)
+        return _ok(message="Email verified successfully.")
 
 
 class ResendVerificationEmailView(generics.GenericAPIView):
@@ -199,11 +200,8 @@ class ResendVerificationEmailView(generics.GenericAPIView):
         email = request.data.get("email")
         if not email:
             raise ValidationException("Email is required.")
-
-        ok, msg = EmailService.resend_verification_email(email)
-        if ok:
-            return _ok(message=msg)
-        raise ServiceUnavailableException(msg)
+        EmailService.resend_verification_email(email)
+        return _ok(message="Verification email sent successfully.")
 
 
 class AdminStaffProfileView(generics.GenericAPIView):
@@ -253,13 +251,12 @@ class QualificationListView(generics.GenericAPIView):
                 QualificationSerializer(uq.get_all_qualifications(), many=True).data
             )
         except Exception:
-            logger.exception("Failed to load qualification list")
-            raise ServiceUnavailableException(
-                "Unable to load qualifications."
-            )
+            print("Failed to load qualification list")
+            raise ServiceUnavailableException("Unable to load qualifications.")
+
 
 class AdminPatientListView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated, IsAdminOrStaff]
+    permission_classes = [IsAuthenticated]
     pagination_class = None
     serializer_class = PatientListSerializer
 
@@ -270,18 +267,21 @@ class AdminPatientListView(generics.GenericAPIView):
 
 
 class AdminDoctorListView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated, IsAdminOrStaff]
+    permission_classes = [IsAuthenticated]
     pagination_class = None
     serializer_class = DoctorListSerializer
 
     def get(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=dq.get_all_doctors(), many=True)
+        data = dq.get_all_doctors()
+        # print(data)
+        serializer = self.get_serializer(data=data, many=True)
         serializer.is_valid(raise_exception=True)
-        return _ok(serializer.validated_data)
+        data = serializer.validated_data
+        return _ok(data)
 
 
 class AdminLabListView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated, IsAdminOrStaff]
+    permission_classes = [IsAuthenticated]
     serializer_class = LabListSerializer
 
     def get(self, request, *args, **kwargs):
@@ -291,7 +291,7 @@ class AdminLabListView(generics.GenericAPIView):
 
 
 class AdminTogglePatientStatusView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated, IsAdminOrStaff]
+    permission_classes = [IsAuthenticated]
     serializer_class = PatientProfileSerializer
 
     def patch(self, request, user_id, *args, **kwargs):
@@ -300,7 +300,8 @@ class AdminTogglePatientStatusView(generics.GenericAPIView):
 
         reason = request.data.get("reason", "")
         patient, action = AdminService.toggle_patient_status(
-            patient_id=str(user_id), admin_user=request.user, reason=reason, request=request
+            patient_id=str(user_id),
+            reason=reason,
         )
         serializer = self.get_serializer(data=patient)
         serializer.is_valid(raise_exception=True)
@@ -308,7 +309,7 @@ class AdminTogglePatientStatusView(generics.GenericAPIView):
 
 
 class AdminToggleDoctorStatusView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated, IsAdminOrStaff]
+    permission_classes = [IsAuthenticated]
     serializer_class = DoctorProfileSerializer
 
     def patch(self, request, user_id, *args, **kwargs):
@@ -317,7 +318,8 @@ class AdminToggleDoctorStatusView(generics.GenericAPIView):
 
         reason = request.data.get("reason", "")
         doctor, action = AdminService.toggle_doctor_status(
-            doctor_user_id=user_id, admin_user=request.user, reason=reason, request=request
+            doctor_user_id=user_id,
+            reason=reason,
         )
         uid = str(doctor["doctor_id"])
         doctor["qualifications"] = dq.get_doctor_qualifications(uid)
@@ -330,7 +332,7 @@ class AdminToggleDoctorStatusView(generics.GenericAPIView):
 
 
 class AdminToggleLabStatusView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated, IsAdminOrStaff]
+    permission_classes = [IsAuthenticated]
     serializer_class = LabProfileSerializer
 
     def patch(self, request, user_id, *args, **kwargs):
@@ -339,7 +341,7 @@ class AdminToggleLabStatusView(generics.GenericAPIView):
 
         reason = request.data.get("reason", "")
         lab, action = AdminService.toggle_lab_status(
-            lab_user_id=user_id, admin_user=request.user, reason=reason, request=request
+            lab_user_id=user_id, reason=reason
         )
         uid = str(lab["lab_id"])
         lab["operating_hours"] = lq.get_lab_operating_hours(uid)
@@ -348,7 +350,7 @@ class AdminToggleLabStatusView(generics.GenericAPIView):
 
 
 class AdminVerifyDoctorView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated, IsAdminOrStaff]
+    permission_classes = [IsAuthenticated]
 
     def patch(self, request, user_id, *args, **kwargs):
         if not dq.get_doctor_by_user_id(user_id):
@@ -356,9 +358,7 @@ class AdminVerifyDoctorView(generics.GenericAPIView):
 
         new_status = request.data.get("status")
         if new_status not in [VerificationStatus.VERIFIED, VerificationStatus.REJECTED]:
-            raise ValidationException(
-                "Invalid status. Must be VERIFIED or REJECTED."
-            )
+            raise ValidationException("Invalid status. Must be VERIFIED or REJECTED.")
 
         doctor = AdminService.verify_doctor(
             doctor_user_id=user_id,
@@ -378,7 +378,7 @@ class AdminVerifyDoctorView(generics.GenericAPIView):
 
 
 class AdminVerifyLabView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated, IsAdminOrStaff]
+    permission_classes = [IsAuthenticated]
 
     def patch(self, request, user_id, *args, **kwargs):
         from labs.serializers import LabProfileSerializer
@@ -388,9 +388,7 @@ class AdminVerifyLabView(generics.GenericAPIView):
 
         new_status = request.data.get("status")
         if new_status not in [VerificationStatus.VERIFIED, VerificationStatus.REJECTED]:
-            raise ValidationException(
-                "Invalid status. Must be VERIFIED or REJECTED."
-            )
+            raise ValidationException("Invalid status. Must be VERIFIED or REJECTED.")
 
         lab = AdminService.verify_lab(
             lab_user_id=user_id,
@@ -407,15 +405,16 @@ class AdminVerifyLabView(generics.GenericAPIView):
             message=f"Lab {new_status.lower()} successfully.",
         )
 
+
 class PendingApprovalsCountView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated, IsAdminOrStaff]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
         return _ok(AdminService.get_pending_approvals_count())
 
 
 class RecentActivityView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated, IsAdminOrStaff]
+    permission_classes = [IsAuthenticated]
     _EXCLUDED_ACTIONS = ("USER_LOGIN", "USER_LOGOUT")
 
     def get(self, request, *args, **kwargs):

@@ -5,24 +5,36 @@ import db.lab_queries as lq
 
 class AdminService:
     @staticmethod
-    def toggle_patient_status(patient_id: int, admin_user, reason: str = None, request=None):
-        patient = pq.toggle_patient_is_active(patient_id)
+    def toggle_patient_status(
+        patient_id: int, reason: str = None
+    ):
+        patient = pq.toggle_patient_is_active(patient_id, reason)
         action = "activated" if patient["is_active"] else "deactivated"
-        print(f"Patient {patient_id} {action} by {getattr(admin_user, 'email', '')}. Reason: {reason}")
         return patient, action
 
     @staticmethod
-    def toggle_doctor_status(doctor_user_id: str, admin_user, reason: str = None, request=None):
-        doctor = dq.toggle_doctor_is_active(doctor_user_id)
+    def toggle_doctor_status(
+        doctor_user_id: str, reason: str = None
+    ):
+        doctor = dq.toggle_doctor_is_active(doctor_user_id, reason)
         action = "activated" if doctor["is_active"] else "deactivated"
-        print(f"Doctor {doctor_user_id} {action} by {getattr(admin_user, 'email', '')}. Reason: {reason}")
+        
         return doctor, action
 
+    def toggle_doctor_is_active(user_id: str, reason: str) -> dict:
+        fn_scalar(
+            "auth_toggle_user_is_active",
+            [str(patient_id), reason],
+        )
+
+        return fn_fetchone("p_get_full_patient_profile", [str(patient_id)])
+
     @staticmethod
-    def toggle_lab_status(lab_user_id: str, admin_user, reason: str = None, request=None):
-        lab = lq.toggle_lab_is_active(lab_user_id)
+    def toggle_lab_status(
+        lab_user_id: str, reason: str = None
+    ):
+        lab = lq.toggle_lab_is_active(lab_user_id, reason)
         action = "activated" if lab["is_active"] else "deactivated"
-        print(f"Lab {lab_user_id} {action} by {getattr(admin_user, 'email', '')}. Reason: {reason}")
         return lab, action
 
     @staticmethod

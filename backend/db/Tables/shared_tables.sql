@@ -43,16 +43,7 @@ CREATE TABLE IF NOT EXISTS public.user_documents
 )
 
 
-CREATE TABLE IF NOT EXISTS public.user_roles
-(
-    role_id integer NOT NULL DEFAULT nextval('user_roles_id_seq'::regclass),
-    role character varying(30) COLLATE pg_catalog."default" NOT NULL,
-    role_description text COLLATE pg_catalog."default",
-    created_at timestamp with time zone NOT NULL DEFAULT now(),
-    updated_at timestamp with time zone NOT NULL DEFAULT now(),
-    CONSTRAINT user_roles_pkey PRIMARY KEY (role_id),
-    CONSTRAINT user_roles_name_key UNIQUE (role)
-);
+
 
 
 

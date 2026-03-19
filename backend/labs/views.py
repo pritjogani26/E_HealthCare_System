@@ -18,7 +18,9 @@ from .serializers import (
     LabProfileSerializer,
     LabProfileUpdateSerializer,
 )
-from .services import profile_service
+
+# from .services import profile_service
+from .services import ProfileService as LabProfileService
 
 
 def _ok(data=None, message="Success", http_status=status.HTTP_200_OK):
@@ -42,9 +44,7 @@ class LabRegistrationView(generics.GenericAPIView):
                 try:
                     data[field] = json.loads(raw)
                 except json.JSONDecodeError:
-                    raise ValidationException(
-                        f"Invalid JSON in field: {field}"
-                    )
+                    raise ValidationException(f"Invalid JSON in field: {field}")
 
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
@@ -80,7 +80,7 @@ class LabProfileView(generics.GenericAPIView):
     def _get_lab(self, request):
         if getattr(request.user, "role", None) != UserRole.LAB:
             raise PermissionException("Access denied. Lab role required.")
-        lab = profile_service.get_lab_profile(request.user)
+        lab = LabProfileService.get_lab_profile(request.user)
         if not lab:
             raise NotFoundException("Lab profile not found.")
         return lab
@@ -111,7 +111,7 @@ class LabProfileView(generics.GenericAPIView):
         if image_path:
             serializer.validated_data["lab_logo"] = image_path
 
-        updated_data = profile_service.update_lab_profile(
+        updated_data = LabProfileService.update_lab_profile(
             lab, serializer, request=request
         )
         return _ok(updated_data, message="Profile updated successfully.")

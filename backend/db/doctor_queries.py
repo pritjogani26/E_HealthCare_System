@@ -113,19 +113,12 @@ def update_doctor(user_id: str, **fields) -> dict:
     return get_doctor_by_user_id(user_id)
 
 
-def toggle_doctor_is_active(user_id: str) -> dict:
-    execute(
-        "UPDATE doctors SET is_active = NOT is_active, updated_at=NOW() WHERE doctor_id=%s",
-        [str(user_id)],
+def toggle_doctor_is_active(user_id: str, reason: str) -> dict:
+    fn_scalar(
+        "auth_toggle_user_is_active",
+        [str(user_id), reason],
     )
-    execute(
-        """
-        UPDATE users u SET is_active = d.is_active, updated_at=NOW()
-        FROM doctors d WHERE d.doctor_id=%s AND u.user_id = d.doctor_id
-        """,
-        [str(user_id)],
-    )
-    return get_doctor_by_user_id(user_id)
+    return fn_fetchone("d_get_full_doctor_profile", [str(user_id)])
 
 
 def update_doctor_verification(
@@ -215,6 +208,14 @@ def get_working_days(schedule_id: int) -> list:
 
 def delete_working_days(schedule_id: int):
     execute("DELETE FROM doctor_working_days WHERE schedule_id=%s", [schedule_id])
+
+def delete_future_unbooked_slots(schedule_id: int):
+    from django.utils import timezone
+    today = timezone.localdate()
+    execute(
+        "DELETE FROM appointment_slots WHERE schedule_id=%s AND slot_date >= %s AND is_booked=FALSE",
+        [schedule_id, today],
+    )
 
 
 def insert_working_day(

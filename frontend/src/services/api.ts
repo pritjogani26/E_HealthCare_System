@@ -137,8 +137,12 @@ export function unwrap<T>(responseData: ApiResponse<T>): T {
 }
 
 export async function login(data: LoginData): Promise<LoginResponse> {
-  const res = await api.post<ApiResponse<LoginResponse>>("/users/auth/login/", data);
-  return unwrap(res.data);
+  const res = await api.post<{ success: boolean; message: string; data: LoginResponse; permissions?: string[] }>("/users/auth/login/", data);
+  const body = res.data;
+  // Backend shape: { success, message, data: { user, access_token, ... }, permissions: [...] }
+  const loginData = body.data;
+  const permissions = (body as any).permissions ?? loginData.permissions ?? [];
+  return { ...loginData, permissions };
 }
 
 export async function logout(): Promise<void> {

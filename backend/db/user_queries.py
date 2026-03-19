@@ -12,6 +12,16 @@ def get_user_by_id(user_id: str) -> dict | None:
     return fn_fetchone("u_get_user_by_id", [str(user_id)])
 
 
+def get_user_permission_by_id(role_id) -> dict | None:
+    permissions = fn_fetchall("r_get_permissions_by_role", [role_id])
+    # print(permissions)
+    permissions_list = []
+    for row in permissions:
+        permissions_list.append(row["module"] +" : " + row["action"])
+    # print(permissions_list)
+    return permissions_list
+
+
 def email_exists(email: str) -> bool:
     return fetchscalar("SELECT COUNT(*) FROM users WHERE email = %s", [email]) > 0
 
@@ -51,7 +61,9 @@ def handle_failed_login(user: dict, max_attempts: int = 5, lockout_minutes: int 
     if attempts >= max_attempts:
         lockout_until = timezone.now() + timezone.timedelta(minutes=lockout_minutes)
         fn_scalar("u_lock_user", [str(user["user_id"]), lockout_until])
-        print(f"Too many failed login attempts. Account locked for {lockout_minutes} minutes.")
+        print(
+            f"Too many failed login attempts. Account locked for {lockout_minutes} minutes."
+        )
         return (
             True,
             f"Too many failed login attempts. Account locked for {lockout_minutes} minutes.",
@@ -64,7 +76,7 @@ def handle_failed_login(user: dict, max_attempts: int = 5, lockout_minutes: int 
     )
     remaining = max_attempts - attempts
     print(f"Invalid credentials. {remaining} attempt(s) remaining before lockout.")
-    
+
     return (
         False,
         f"Invalid credentials. {remaining} attempt(s) remaining before lockout.",
@@ -80,12 +92,12 @@ def update_oauth_provider(user_id: str, provider: str, provider_id: str):
     )
 
 
-def toggle_user_status(admin_id: str, target_id: str, is_active: bool) -> bool:
-    """Calls u_toggle_user_status(admin_id, target_id, is_active)."""
-    return fn_scalar(
-        "u_toggle_user_status",
-        [str(admin_id), str(target_id), is_active],
-    )
+# def toggle_user_status(admin_id: str, target_id: str, is_active: bool) -> bool:
+#     """Calls u_toggle_user_status(admin_id, target_id, is_active)."""
+#     return fn_scalar(
+#         "u_toggle_user_status",
+#         [str(admin_id), str(target_id), is_active],
+#     )
 
 
 def get_all_genders() -> list:
@@ -147,4 +159,3 @@ def update_address(address_id: int, **fields):
 
 def get_address(address_id: int) -> dict | None:
     return fetchone("SELECT * FROM addresses WHERE address_id=%s", [address_id])
-

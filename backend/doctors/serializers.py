@@ -11,14 +11,14 @@ from users.models import AppointmentType
 
 
 class _UserOut(serializers.Serializer):
-    doctor_id = serializers.UUIDField(source="doctor_id")
+    doctor_id = serializers.UUIDField()
     email = serializers.EmailField()
     email_verified = serializers.BooleanField()
     role = serializers.CharField()
-    is_active = serializers.BooleanField(source="user_is_active")
+    is_active = serializers.BooleanField()
     two_factor_enabled = serializers.BooleanField()
-    created_at = serializers.DateTimeField(source="user_created_at")
-    updated_at = serializers.DateTimeField(source="user_updated_at")
+    created_at = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
     last_login_at = serializers.DateTimeField(allow_null=True)
 
 
@@ -33,8 +33,8 @@ class _AddressOut(serializers.Serializer):
 class WorkingDaySerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     day_of_week = serializers.IntegerField(min_value=0, max_value=6)
-    arrival = serializers.TimeField(allow_null=True)
-    leaving = serializers.TimeField(allow_null=True)
+    arrival = serializers.TimeField()
+    leaving = serializers.TimeField()
     lunch_start = serializers.TimeField(allow_null=True)
     lunch_end = serializers.TimeField(allow_null=True)
 
@@ -132,8 +132,8 @@ class DoctorProfileSerializer(serializers.Serializer):
     verification_status = serializers.CharField()
     verified_at = serializers.DateTimeField(allow_null=True)
     verification_notes = serializers.CharField(allow_null=True)
-    created_at = serializers.DateTimeField(source="doctor_created_at")
-    updated_at = serializers.DateTimeField(source="doctor_updated_at", allow_null=True)
+    created_at = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField(allow_null=True)
 
     gender = serializers.SerializerMethodField()
     address = serializers.SerializerMethodField()
@@ -379,5 +379,7 @@ class DoctorListSerializer(serializers.Serializer):
     created_at = serializers.DateTimeField()
     updated_at = serializers.DateTimeField()
     gender = serializers.CharField()
-    verified_by_id = serializers.UUIDField()
-    verified_by_email = serializers.EmailField()
+    verified_by_id = serializers.UUIDField(required=False, allow_null=True)
+    verified_by_email = serializers.EmailField(
+        required=False, allow_blank=True, allow_null=True
+    )

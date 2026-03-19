@@ -122,7 +122,7 @@ const Dashboard: React.FC = () => {
 
   // Single authoritative role derivation – no repeated (user as any) casts below.
   const role = getUserRole(user);
-  const isAdminOrStaff = role === "ADMIN" || role === "STAFF";
+  const isAdminOrStaff = role === "ADMIN" || role === "STAFF" || role === "SUPERADMIN";
 
   const [pendingCounts, setPendingCounts] = useState<{
     doctors: number; labs: number; total: number;

@@ -116,6 +116,7 @@ class DoctorListView(generics.GenericAPIView):
     authentication_classes = []
     permission_classes = [AllowAny]
     pagination_class = None
+    serializer_class = DoctorListSerializer
 
     def get(self, request, *args, **kwargs):
         doctors = dq.get_verified_active_doctors()
@@ -123,7 +124,11 @@ class DoctorListView(generics.GenericAPIView):
             doc["specializations"] = dq.get_doctor_specializations(
                 str(doc["doctor_id"])
             )
-        return _ok(DoctorListSerializer(doctors, many=True).data)
+        # print(doctors)
+        serializer = self.get_serializer(data=doctors, many=True)
+        serializer.is_valid(raise_exception=True)
+        return _ok(serializer.validated_data)
+        # return doctors
 
 
 class DoctorDetailView(generics.GenericAPIView):
@@ -172,7 +177,7 @@ class GenerateSlotsView(generics.GenericAPIView):
         if getattr(request.user, "role", None) != UserRole.DOCTOR:
             raise PermissionException("Doctor role required.")
 
-        days = int(request.data.get("days", 7))
+        days = int(request.data.get("days", 30))
         count = AppointmentService.generate_slots_for_doctor(
             str(request.user.user_id), days=days
         )

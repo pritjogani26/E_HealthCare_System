@@ -12,12 +12,14 @@ class UserRole:
     DOCTOR = "DOCTOR"
     PATIENT = "PATIENT"
     LAB = "LAB_TECHNICIAN"
+    SUPERADMIN = "SUPERADMIN"
     choices = [
         (ADMIN, "ADMIN"),
         (STAFF, "STAFF"),
         (DOCTOR, "DOCTOR"),
         (PATIENT, "PATIENT"),
         (LAB, "LAB"),
+        (SUPERADMIN, "SUPERADMIN"),
     ]
 
 

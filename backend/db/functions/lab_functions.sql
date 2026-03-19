@@ -1,12 +1,3 @@
--- ============================================================
--- LAB FUNCTIONS
--- ============================================================
-
-
--- ============================================================
--- 1. GET LAB PROFILE  (extended to return all needed fields)
--- ============================================================
-
 CREATE OR REPLACE FUNCTION l_get_full_lab_profile(p_lab_id uuid)
 RETURNS TABLE(
     lab_id             uuid,
@@ -78,10 +69,6 @@ END;
 $$;
 
 
--- ============================================================
--- 2. LIST LABS
--- ============================================================
-
 CREATE OR REPLACE FUNCTION l_list_labs()
 RETURNS TABLE(
     lab_id             uuid,
@@ -151,9 +138,6 @@ END;
 $$;
 
 
--- ============================================================
--- 3. UPDATE LAB PROFILE
--- ============================================================
 
 CREATE OR REPLACE FUNCTION l_update_lab_profile(
     p_lab_id            uuid,
@@ -189,10 +173,6 @@ END;
 $$;
 
 
--- ============================================================
--- 4. ADMIN VERIFY LAB
--- ============================================================
-
 CREATE OR REPLACE FUNCTION a_verify_lab(
     p_admin_id            uuid,
     p_lab_id              uuid,
@@ -221,10 +201,6 @@ BEGIN
 END;
 $$;
 
-
--- ============================================================
--- 5. OPERATING HOURS
--- ============================================================
 
 
 CREATE OR REPLACE FUNCTION l_upsert_operating_hours(
@@ -283,9 +259,6 @@ END;
 $$;
 
 
--- ============================================================
--- 6. LAB SERVICES  (l_add_service — removed is_active param, hardcoded TRUE)
--- ============================================================
 
 CREATE OR REPLACE FUNCTION l_add_service(
     p_lab_id           uuid,

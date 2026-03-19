@@ -14,6 +14,7 @@ import {
   Droplets,
 } from "lucide-react";
 import { useToast } from "../hooks/useToast";
+import { useAuth } from "../context/AuthContext";
 import { Layout } from "../components/common/Layout";
 import { PageHeader } from "../components/common/PageHeader";
 import { LoadingState } from "../components/common/LoadingState";
@@ -40,6 +41,8 @@ const AdminPatientsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const toast = useToast();
+  const { hasPermission } = useAuth();
+  const canToggle = hasPermission("patient : toggle_status");
 
   const [actionModalOpen, setActionModalOpen] = useState(false);
   const [actionData, setActionData] = useState<{
@@ -172,18 +175,20 @@ const AdminPatientsPage: React.FC = () => {
                         >
                           <Eye className="w-4 h-4" />
                         </button>
-                        <button
-                          onClick={() => handleToggleRequest(patient)}
-                          disabled={actionLoading}
-                          className={`p-1.5 rounded-lg transition-colors ${patient.is_active ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"}`}
-                          title={patient.is_active ? "Deactivate" : "Activate"}
-                        >
-                          {patient.is_active ? (
-                            <UserX className="w-4 h-4" />
-                          ) : (
-                            <UserCheck className="w-4 h-4" />
-                          )}
-                        </button>
+                        {canToggle && (
+                          <button
+                            onClick={() => handleToggleRequest(patient)}
+                            disabled={actionLoading}
+                            className={`p-1.5 rounded-lg transition-colors ${patient.is_active ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"}`}
+                            title={patient.is_active ? "Deactivate" : "Activate"}
+                          >
+                            {patient.is_active ? (
+                              <UserX className="w-4 h-4" />
+                            ) : (
+                              <UserCheck className="w-4 h-4" />
+                            )}
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -237,13 +242,15 @@ const AdminPatientsPage: React.FC = () => {
                   Patient ID: {selectedPatient.patient_id}
                 </p>
               </div>
-              <button
-                onClick={() => handleToggleRequest(selectedPatient)}
-                disabled={actionLoading}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium ${selectedPatient.is_active ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"}`}
-              >
-                {selectedPatient.is_active ? "Deactivate" : "Activate"}
-              </button>
+              {canToggle && (
+                <button
+                  onClick={() => handleToggleRequest(selectedPatient)}
+                  disabled={actionLoading}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium ${selectedPatient.is_active ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"}`}
+                >
+                  {selectedPatient.is_active ? "Deactivate" : "Activate"}
+                </button>
+              )}
             </div>
 
             <div>

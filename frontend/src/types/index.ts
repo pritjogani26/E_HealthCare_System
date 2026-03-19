@@ -4,7 +4,7 @@ export interface User {
   user_id: string;
   email: string;
   email_verified: boolean;
-  role: "PATIENT" | "DOCTOR" | "LAB" | "ADMIN" | "STAFF";
+  role: "PATIENT" | "DOCTOR" | "LAB" | "ADMIN" | "STAFF" | "SUPERADMIN";
   is_active: boolean;
   is_staff?: boolean;
   account_status?: string;
@@ -259,7 +259,7 @@ export interface AdminStaffProfile {
   user_id: string;
   email: string;
   email_verified: boolean;
-  role: "ADMIN" | "STAFF";
+  role: "ADMIN" | "STAFF" | "SUPERADMIN";
   role_display: string;
   account_status: string;
   account_status_display: string;
@@ -281,7 +281,10 @@ export interface LoginData {
 
 export interface LoginResponse {
   access_token: string;
+  token_type?: string;
+  expires_in?: number;
   user: PatientProfile | DoctorProfile | LabProfile | AdminStaffProfile;
+  permissions?: string[];
 }
 
 export interface RegisterResponse {

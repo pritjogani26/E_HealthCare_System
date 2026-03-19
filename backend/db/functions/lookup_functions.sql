@@ -1,12 +1,4 @@
--- ============================================================
--- LOOKUP / REFERENCE DATA FUNCTIONS (FIXED)
--- ============================================================
-
-
--- ============================================================
--- 1. BLOOD GROUPS
--- ============================================================
-
+DROP FUNCTION IF EXISTS o_get_blood_groups;
 CREATE OR REPLACE FUNCTION o_get_blood_groups(
     p_active_only boolean DEFAULT TRUE
 )
@@ -64,10 +56,7 @@ END;
 $$;
 
 
--- ============================================================
--- 2. GENDERS
--- ============================================================
-
+DROP FUNCTION IF EXISTS o_get_genders;
 CREATE OR REPLACE FUNCTION o_get_genders()
 RETURNS TABLE(
     gender_id int,
@@ -87,7 +76,7 @@ BEGIN
 END;
 $$;
 
-
+DROP FUNCTION IF EXISTS o_insert_gender;
 CREATE OR REPLACE FUNCTION o_insert_gender(
     p_gender_value varchar
 )
@@ -123,10 +112,7 @@ END;
 $$;
 
 
--- ============================================================
--- 3. SPECIALIZATIONS
--- ============================================================
-
+DROP FUNCTION IF EXISTS o_get_specializations;
 CREATE OR REPLACE FUNCTION o_get_specializations(
     p_active_only boolean DEFAULT TRUE
 )
@@ -153,7 +139,7 @@ BEGIN
 END;
 $$;
 
-
+DROP FUNCTION IF EXISTS o_insert_specialization;
 CREATE OR REPLACE FUNCTION o_insert_specialization(
     p_name varchar,
     p_description text DEFAULT NULL
@@ -228,10 +214,7 @@ END;
 $$;
 
 
--- ============================================================
--- 4. QUALIFICATIONS
--- ============================================================
-
+DROP FUNCTION IF EXISTS o_get_qualifications;
 CREATE OR REPLACE FUNCTION o_get_qualifications(
     p_active_only boolean DEFAULT TRUE
 )
@@ -259,6 +242,7 @@ END;
 $$;
 
 
+DROP FUNCTION IF EXISTS o_insert_qualification;
 CREATE OR REPLACE FUNCTION o_insert_qualification(
     p_code varchar,
     p_name varchar
@@ -305,7 +289,7 @@ BEGIN
 END;
 $$;
 
-
+DROP FUNCTION IF EXISTS o_toggle_qualification;
 CREATE OR REPLACE FUNCTION o_toggle_qualification(
     p_qualification_id int,
     p_is_active boolean
@@ -337,10 +321,7 @@ END;
 $$;
 
 
--- ============================================================
--- 5. VERIFICATION TYPES
--- ============================================================
-
+DROP FUNCTION IF EXISTS o_get_verification_types;
 CREATE OR REPLACE FUNCTION o_get_verification_types()
 RETURNS TABLE(
     id smallint,
@@ -363,6 +344,7 @@ END;
 $$;
 
 
+DROP FUNCTION IF EXISTS o_insert_verification_type;
 CREATE OR REPLACE FUNCTION o_insert_verification_type(
     p_name        varchar,
     p_description text DEFAULT NULL
@@ -393,69 +375,6 @@ BEGIN
     INTO v_id
     FROM public.verification_types
     WHERE name = TRIM(p_name);
-
-    RETURN v_id;
-
-END;
-$$;
-
-
--- ============================================================
--- 6. USER ROLES
--- ============================================================
-
-CREATE OR REPLACE FUNCTION o_get_user_roles()
-RETURNS TABLE(
-    role_id int,
-    role varchar,
-    role_description text,
-    created_at timestamptz
-)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    RETURN QUERY
-    SELECT
-        r.role_id,
-        r.role,
-        r.role_description,
-        r.created_at
-    FROM public.user_roles r
-    ORDER BY r.role;
-END;
-$$;
-
-
-CREATE OR REPLACE FUNCTION o_insert_user_role(
-    p_role        varchar,
-    p_description text DEFAULT NULL
-)
-RETURNS int
-LANGUAGE plpgsql
-AS $$
-DECLARE
-    v_id int;
-BEGIN
-
-    IF p_role IS NULL OR TRIM(p_role) = '' THEN
-        RAISE EXCEPTION 'INVALID_ROLE: role cannot be null or empty';
-    END IF;
-
-    INSERT INTO public.user_roles (
-        role,
-        role_description
-    )
-    VALUES (
-        TRIM(p_role),
-        p_description
-    )
-    ON CONFLICT (role)
-    DO UPDATE SET role_description = EXCLUDED.role_description;
-
-    SELECT role_id
-    INTO v_id
-    FROM public.user_roles
-    WHERE role = TRIM(p_role);
 
     RETURN v_id;
 

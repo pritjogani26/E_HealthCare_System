@@ -5,14 +5,14 @@ import db.lab_queries as lq
 
 
 class _UserOut(serializers.Serializer):
-    lab_id = serializers.UUIDField(source="lab_id")
+    lab_id = serializers.UUIDField()
     email = serializers.EmailField()
     email_verified = serializers.BooleanField()
     role = serializers.CharField()
-    is_active = serializers.BooleanField(source="user_is_active")
+    is_active = serializers.BooleanField()
     two_factor_enabled = serializers.BooleanField()
-    created_at = serializers.DateTimeField(source="user_created_at")
-    updated_at = serializers.DateTimeField(source="user_updated_at")
+    created_at = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
     last_login_at = serializers.DateTimeField(allow_null=True)
 
 

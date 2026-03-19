@@ -15,10 +15,10 @@ def get_all_patients() -> list:
     return fn_fetchall("p_list_patients", [])
 
 
-def toggle_patient_is_active(patient_id) -> dict:
+def toggle_patient_is_active(patient_id, reason: str) -> dict:
     fn_scalar(
-        "auth_toggle_patient_is_active",
-        [str(patient_id)],
+        "auth_toggle_user_is_active",
+        [str(patient_id), reason],
     )
     return fn_fetchone("p_get_full_patient_profile", [str(patient_id)])
 
@@ -55,4 +55,4 @@ def update_patient(patient_id: str, **fields) -> dict:
             fields.get("blood_group_id"),
         ],
     )
-    return get_patient_by_id(patient_id)
+    return get_patient_by_id(patient_id)

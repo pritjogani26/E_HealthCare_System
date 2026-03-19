@@ -16,10 +16,10 @@ class _UserOut(serializers.Serializer):
     email = serializers.EmailField()
     email_verified = serializers.BooleanField()
     role = serializers.CharField()
-    is_active = serializers.BooleanField(source="user_is_active")
+    is_active = serializers.BooleanField()
     two_factor_enabled = serializers.BooleanField()
-    created_at = serializers.DateTimeField(source="user_created_at")
-    updated_at = serializers.DateTimeField(source="user_updated_at")
+    created_at = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
     last_login_at = serializers.DateTimeField(allow_null=True)
 
 
@@ -62,7 +62,7 @@ class PatientProfileSerializer(serializers.Serializer):
         return obj if isinstance(obj, dict) else vars(obj)
 
     def get_user(self, obj):
-        print(f"\n\nUser : {obj}")
+        # print(f"\n\nUser : {obj}")
         # return _UserOut(self._src(obj)).data
         return obj
 

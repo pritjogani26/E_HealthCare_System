@@ -55,6 +55,9 @@ class LoginSerializer(serializers.Serializer):
         required=True, write_only=True, style={"input_type": "password"}
     )
 
+class LogoutSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+
 
  
 class ReAuthVerifySerializer(serializers.Serializer): 

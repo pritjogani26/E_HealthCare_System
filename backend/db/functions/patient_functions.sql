@@ -1,13 +1,3 @@
--- ============================================================
--- PATIENT FUNCTIONS
--- Covers: Get patient profile, list patients, update profile
--- ============================================================
-
-
--- ============================================================
--- 1. GET FULL PATIENT PROFILE
--- ============================================================
-
 CREATE OR REPLACE FUNCTION p_get_full_patient_profile(
     p_patient_id uuid
 )
@@ -85,11 +75,6 @@ END;
 $$;
 
 
-
--- ============================================================
--- 2. LIST ALL PATIENTS
--- ============================================================
-
 CREATE OR REPLACE FUNCTION p_list_patients()
 RETURNS TABLE(
     patient_id uuid,
@@ -113,7 +98,7 @@ SELECT
     p.mobile,
     bg.blood_group_value,
     g.gender_value,
-    p.is_active,
+    u.is_active,
     p.created_at
 FROM patients p
 JOIN users u
@@ -128,10 +113,6 @@ END;
 $$;
 
 
-
--- ============================================================
--- 3. UPDATE PATIENT PROFILE
--- ============================================================
 
 CREATE OR REPLACE FUNCTION p_update_patient_profile(
     p_patient_id uuid,

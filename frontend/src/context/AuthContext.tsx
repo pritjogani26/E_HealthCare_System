@@ -781,6 +781,7 @@ export interface AuthUser {
   role: string;
   is_email_verified?: boolean;
   is_active?: boolean;
+  permissions?: string[];
 }
 
 interface JwtPayload {
@@ -794,10 +795,12 @@ interface AuthContextValue {
   user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  permissions: string[];
+  hasPermission: (permission: string) => boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
-  setAuthUser: (user: AuthUser, token: string) => void;
+  setAuthUser: (user: AuthUser, token: string, perms?: string[]) => void;
   registerRestorableForm: (
     formId: string,
     onRestore: () => void,
@@ -872,6 +875,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [permissions, setPermissions] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem("user_permissions");
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
 
   const [isInactivityModalVisible, setIsInactivityModalVisible] =
     useState<boolean>(() => hasInactivityFlag());
@@ -931,13 +942,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   // ── Auth Actions ────────────────────────────────────────────────────────────
 
   const login = useCallback(async (email: string, password: string) => {
-    const { access_token, user: userData } = await apiLogin({
-      email,
-      password,
-    });
+    const response = await apiLogin({ email, password });
+    const { access_token, user: userData, permissions: perms } = response;
     if (!isTokenValid(access_token))
       throw new Error("Server returned an invalid access token.");
     localStorage.setItem("access_token", access_token);
+    const userPerms = perms ?? [];
+    localStorage.setItem("user_permissions", JSON.stringify(userPerms));
+    setPermissions(userPerms);
     setUser(extractBaseUser(userData));
   }, []);
 
@@ -950,6 +962,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // non-critical
     } finally {
       localStorage.removeItem("access_token");
+      localStorage.removeItem("user_permissions");
+      setPermissions([]);
       setUser(null);
     }
   }, [hideModal]);
@@ -958,8 +972,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     await initAuth();
   }, [initAuth]);
 
-  const setAuthUser = useCallback((authUser: AuthUser, token: string) => {
+  const setAuthUser = useCallback((authUser: AuthUser, token: string, perms?: string[]) => {
     localStorage.setItem("access_token", token);
+    const userPerms = perms ?? authUser.permissions ?? [];
+    localStorage.setItem("user_permissions", JSON.stringify(userPerms));
+    setPermissions(userPerms);
     setUser(authUser);
   }, []);
 
@@ -1018,11 +1035,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // ── Value ───────────────────────────────────────────────────────────────────
 
+  const hasPermission = useCallback(
+    (permission: string) => {
+      return permissions.includes(permission);
+    },
+    [permissions],
+  );
+
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
       isAuthenticated: user !== null,
       isLoading,
+      permissions,
+      hasPermission,
       login,
       logout,
       refreshUser,
@@ -1035,6 +1061,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     [
       user,
       isLoading,
+      permissions,
+      hasPermission,
       login,
       logout,
       refreshUser,

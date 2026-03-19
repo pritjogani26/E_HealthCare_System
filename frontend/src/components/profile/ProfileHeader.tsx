@@ -23,16 +23,18 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     "—";
 
   // Resolve avatar initials / image
-  let profileImage =
-    profile?.profile_image && !profile.profile_image.includes("/defaults/")
-      ? profile.profile_image
-      : profile?.lab_logo && !profile.lab_logo.includes("/defaults/")
-        ? profile.lab_logo
-        : null;
+  let profileImage = profile?.profile_image;
+  // let profileImage =
+  //   profile?.profile_image && !profile.profile_image.includes("/defaults/")
+  //     ? profile.profile_image
+  //     : profile?.lab_logo && !profile.lab_logo.includes("/defaults/")
+  //       ? profile.lab_logo
+  //       : null;
 
-  if (profileImage && profileImage.startsWith('/')) {
+  if (profileImage && profileImage.startsWith("/")) {
     const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
     profileImage = `${baseUrl}${profileImage}`;
+    console.log(profileImage);
   }
 
   const initials = (displayName[0] ?? "U").toUpperCase();
@@ -42,8 +44,13 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   const accountStatus =
     user?.account_status_display ??
     user?.account_status ??
-    (user?.is_active === true ? "Active" : user?.is_active === false ? "Inactive" : "Active");
-  const emailVerified = user?.email_verified ?? user?.is_email_verified ?? false;
+    (user?.is_active === true
+      ? "Active"
+      : user?.is_active === false
+        ? "Inactive"
+        : "Active");
+  const emailVerified =
+    user?.email_verified ?? user?.is_email_verified ?? false;
 
   return (
     <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
@@ -79,10 +86,11 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               </span>
             )}
             <span
-              className={`text-xs px-2 py-0.5 rounded-full font-medium border ${accountStatus === "ACTIVE" || accountStatus === "Active"
-                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                : "bg-red-50 text-red-700 border-red-200"
-                }`}
+              className={`text-xs px-2 py-0.5 rounded-full font-medium border ${
+                accountStatus === "ACTIVE" || accountStatus === "Active"
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                  : "bg-red-50 text-red-700 border-red-200"
+              }`}
             >
               {accountStatus}
             </span>
@@ -100,10 +108,10 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           value={
             user?.created_at
               ? new Date(user.created_at).toLocaleDateString("en-IN", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })
               : null
           }
         />

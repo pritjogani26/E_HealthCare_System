@@ -61,6 +61,7 @@ const ProfilePage: React.FC = () => {
         setLoading(true);
         setError(null);
         const data = await getCurrentUserProfile();
+        console.log(data)
         if (!cancelled) {
           setProfile(data);
           refreshUser();

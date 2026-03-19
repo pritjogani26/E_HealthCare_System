@@ -84,17 +84,10 @@ def update_lab(user_id: str, **fields) -> dict:
     return get_lab_by_user_id(user_id)
 
 
-def toggle_lab_is_active(user_id: str) -> dict:
-    execute(
-        "UPDATE labs SET is_active = NOT is_active, updated_at=NOW() WHERE lab_id=%s",
-        [str(user_id)],
-    )
-    execute(
-        """
-        UPDATE users u SET is_active = l.is_active, updated_at=NOW()
-        FROM labs l WHERE l.lab_id=%s AND u.user_id = l.lab_id
-        """,
-        [str(user_id)],
+def toggle_lab_is_active(user_id: str, reason: str) -> dict:
+    fn_scalar(
+        "auth_toggle_user_is_active",
+        [str(user_id), reason],
     )
     return get_lab_by_user_id(user_id)
 

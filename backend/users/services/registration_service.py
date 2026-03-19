@@ -52,7 +52,7 @@ class RegistrationService:
     def register_doctor(data: dict, request=None, image_path: str = None):
         from users.services.password_service import hash_password
 
-        print(f"\n\nDoctor : {data}\n\n")
+        # print(f"\n\nDoctor : {data}\n\n")
 
         hashed_password = hash_password(data["password"])
         profile_image = image_path or "/media/defaults/doctor.png"

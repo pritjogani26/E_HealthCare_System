@@ -10,11 +10,12 @@ import {
   Settings,
   AlertCircle,
   Heart,
+  Shield,
 } from "lucide-react";
 import { ExpandedSections } from "./types";
 import { getPendingApprovalsCount } from "../services/admin_api";
 import { useAuth } from "../context/AuthContext";
-import { getUserRole, isAdmin } from "../utils/roles";
+import { isAdmin } from "../utils/roles";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -27,8 +28,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
 
   const { user } = useAuth();
 
-  const role = getUserRole(user);
   const admin = isAdmin(user);
+
+  // Fine-grained permission helpers (from login response)
+  const { permissions } = useAuth();
+  const can = (perm: string) => permissions.includes(perm);
 
   const [expandedSections, setExpandedSections] = useState<ExpandedSections>({
     patients: false,
@@ -85,25 +89,31 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     return false;
   };
 
-  const menuItems: any[] = [
+  const baseMenuItems: any[] = [
     { icon: Home, label: "Dashboard", route: "/dashboard" },
-    {
-      icon: Users,
-      label: "Patients",
-      route: "/admin/patients",
-    },
-    {
-      icon: Stethoscope,
-      label: "Doctors",
-      route: "/admin/doctors",
-    },
-    {
-      icon: FlaskConical,
-      label: "Laboratory",
-      route: "/admin/labs",
-    },
-    { icon: Settings, label: "Settings", route: "/settings" },
+    // Patient management — only for admin roles or explicit permission
+    ...(can("patient : view") || admin
+      ? [{ icon: Users, label: "Patients", route: "/admin/patients" }]
+      : []),
+    // Doctor management — only for admin roles or explicit permission
+    ...(can("doctor : view") || admin
+      ? [{ icon: Stethoscope, label: "Doctors", route: "/admin/doctors" }]
+      : []),
+    // Lab management
+    ...(can("lab : view") || admin
+      ? [{ icon: FlaskConical, label: "Laboratory", route: "/admin/labs" }]
+      : []),
+    // Settings
+    ...(can("settings : view") || admin
+      ? [{ icon: Settings, label: "Settings", route: "/settings" }]
+      : []),
+    // Role Permissions — SUPERADMIN only
+    ...((user?.role || (user as any)?.user?.role) === "SUPERADMIN"
+      ? [{ icon: Shield, label: "Role Permissions", route: "/admin/role-permissions" }]
+      : []),
   ];
+
+  const menuItems: any[] = [...baseMenuItems];
 
   const userRole = user?.role || (user as any)?.user?.role;
 
@@ -133,28 +143,31 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     );
   }
 
-  const supportItems: any[] = [
-    {
-      icon: AlertCircle,
-      label: "Pending Approvals",
-      badge:
-        pendingCounts && pendingCounts.total > 0
-          ? pendingCounts.total.toString()
-          : "",
-      badgeColor: "bg-orange-500",
-      section: "approvals",
-      subitems: [
+  // Pending approvals only relevant for admin-type users
+  const supportItems: any[] = admin
+    ? [
         {
-          label: `Doctor Approvals ${pendingCounts && pendingCounts.doctors > 0 ? `(${pendingCounts.doctors})` : ""}`,
-          route: "/admin/doctors?status=PENDING",
+          icon: AlertCircle,
+          label: "Pending Approvals",
+          badge:
+            pendingCounts && pendingCounts.total > 0
+              ? pendingCounts.total.toString()
+              : "",
+          badgeColor: "bg-orange-500",
+          section: "approvals",
+          subitems: [
+            {
+              label: `Doctor Approvals ${pendingCounts && pendingCounts.doctors > 0 ? `(${pendingCounts.doctors})` : ""}`,
+              route: "/admin/doctors?status=PENDING",
+            },
+            {
+              label: `Lab Approvals ${pendingCounts && pendingCounts.labs > 0 ? `(${pendingCounts.labs})` : ""}`,
+              route: "/admin/labs?status=PENDING",
+            },
+          ],
         },
-        {
-          label: `Lab Approvals ${pendingCounts && pendingCounts.labs > 0 ? `(${pendingCounts.labs})` : ""}`,
-          route: "/admin/labs?status=PENDING",
-        },
-      ],
-    },
-  ];
+      ]
+    : [];
 
   return (
     <>

@@ -101,7 +101,6 @@ class ExceptionMiddleware:
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-        # ── unexpected exceptions ───────────────────────────────
         logger.exception("Unhandled exception on %s %s", request.method, request.path)
         return JsonResponse(
             {"success": False, "message": "An unexpected error occurred. Please try again."},

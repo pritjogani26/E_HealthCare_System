@@ -15,6 +15,7 @@ import {
   UserX,
 } from "lucide-react";
 import { useToast } from "../hooks/useToast";
+import { useAuth } from "../context/AuthContext";
 import { Layout } from "../components/common/Layout";
 import { PageHeader } from "../components/common/PageHeader";
 import { FilterTabs } from "../components/common/FilterTabs";
@@ -50,6 +51,9 @@ const AdminLabsPage: React.FC = () => {
   const [selectedLab, setSelectedLab] = useState<LabList | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const toast = useToast();
+  const { hasPermission } = useAuth();
+  const canToggle = hasPermission("lab : toggle_status");
+  const canVerify = hasPermission("lab : verify");
 
   const [actionModalOpen, setActionModalOpen] = useState(false);
   const [actionData, setActionData] = useState<{
@@ -258,20 +262,21 @@ const AdminLabsPage: React.FC = () => {
                         >
                           <Eye className="w-4 h-4" />
                         </button>
-                        <button
-                          onClick={() => handleToggleRequest(lab)}
-                          disabled={actionLoading}
-                          className={`p-1.5 rounded-lg transition-colors ${lab.is_active ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"}`}
-                          title={lab.is_active ? "Deactivate" : "Activate"}
-                        >
-                          {lab.is_active ? (
-                            <UserX className="w-4 h-4" />
-                          ) : (
-                            <UserCheck className="w-4 h-4" />
-                          )}
-                        </button>
-                        {lab.verification_status?.toUpperCase() ===
-                          "PENDING" && (
+                        {canToggle && (
+                          <button
+                            onClick={() => handleToggleRequest(lab)}
+                            disabled={actionLoading}
+                            className={`p-1.5 rounded-lg transition-colors ${lab.is_active ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"}`}
+                            title={lab.is_active ? "Deactivate" : "Activate"}
+                          >
+                            {lab.is_active ? (
+                              <UserX className="w-4 h-4" />
+                            ) : (
+                              <UserCheck className="w-4 h-4" />
+                            )}
+                          </button>
+                        )}
+                        {canVerify && lab.verification_status?.toUpperCase() === "PENDING" && (
                           <>
                             <button
                               onClick={() =>
@@ -340,13 +345,15 @@ const AdminLabsPage: React.FC = () => {
                   {selectedLab.license_number ?? "No license on file"}
                 </p>
               </div>
-              <button
-                onClick={() => handleToggleRequest(selectedLab)}
-                disabled={actionLoading}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium ${selectedLab.is_active ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"}`}
-              >
-                {selectedLab.is_active ? "Deactivate" : "Activate"}
-              </button>
+              {canToggle && (
+                <button
+                  onClick={() => handleToggleRequest(selectedLab)}
+                  disabled={actionLoading}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium ${selectedLab.is_active ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"}`}
+                >
+                  {selectedLab.is_active ? "Deactivate" : "Activate"}
+                </button>
+              )}
             </div>
 
             {/* Info */}

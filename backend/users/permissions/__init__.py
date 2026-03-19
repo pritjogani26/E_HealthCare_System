@@ -1,5 +1,6 @@
-from .role_permissions import IsAdminOrStaff
+from .role_permissions import IsAdminOrStaff, IsSuperAdmin
 
 __all__ = [
     "IsAdminOrStaff",
+    "IsSuperAdmin",
 ]

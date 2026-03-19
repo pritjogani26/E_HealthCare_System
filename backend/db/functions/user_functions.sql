@@ -1,14 +1,3 @@
--- ============================================================
--- USER FUNCTIONS
--- Covers: User retrieval, account management, status control,
---         and document management
--- ============================================================
-
-
--- ============================================================
--- 1. GET USER
--- ============================================================
-
 CREATE OR REPLACE FUNCTION u_get_user_by_id(u_user_id uuid)
 RETURNS TABLE (
     user_id uuid,
@@ -24,6 +13,7 @@ RETURNS TABLE (
     created_at timestamptz,
     updated_at timestamptz,
     last_login_at timestamptz,
+    role_id int,
     role varchar
 )
 LANGUAGE plpgsql
@@ -45,6 +35,7 @@ SELECT
     u.created_at,
     u.updated_at,
     u.last_login_at,
+    u.role_id
     r.role
 FROM users u
 JOIN user_roles r
@@ -71,6 +62,7 @@ RETURNS TABLE (
     created_at timestamptz,
     updated_at timestamptz,
     last_login_at timestamptz,
+    role_id int,
     role varchar
 )
 LANGUAGE plpgsql
@@ -92,6 +84,7 @@ SELECT
     u.created_at,
     u.updated_at,
     u.last_login_at,
+    u.role_id,
     r.role
 FROM users u
 JOIN user_roles r
@@ -129,9 +122,6 @@ $$;
 
 
 
--- ============================================================
--- 2. UPDATE USER ACCOUNT SETTINGS
--- ============================================================
 
 CREATE OR REPLACE FUNCTION u_set_email_verified(p_user_id uuid)
 RETURNS boolean
@@ -213,11 +203,6 @@ END;
 $$;
 
 
-
--- ============================================================
--- 3. LOCK / UNLOCK USER
--- ============================================================
-
 CREATE OR REPLACE FUNCTION u_lock_user(
     p_user_id uuid,
     p_locked_until timestamptz DEFAULT (NOW() + INTERVAL '24 hours')
@@ -268,10 +253,6 @@ $$;
 
 
 
--- ============================================================
--- 4. USER STATUS MANAGEMENT
--- ============================================================
-
 CREATE OR REPLACE FUNCTION u_toggle_user_status(
     p_admin_id uuid,
     p_target_id uuid,
@@ -295,7 +276,6 @@ IF NOT FOUND THEN
     RAISE EXCEPTION 'USER_NOT_FOUND';
 END IF;
 
--- Sync profile tables
 UPDATE patients SET is_active = p_is_active WHERE patient_id = p_target_id;
 UPDATE doctors  SET is_active = p_is_active WHERE doctor_id = p_target_id;
 UPDATE labs     SET is_active = p_is_active WHERE lab_id = p_target_id;
@@ -334,10 +314,6 @@ END;
 $$;
 
 
-
--- ============================================================
--- 5. USER LISTING
--- ============================================================
 
 CREATE OR REPLACE FUNCTION u_list_users()
 RETURNS TABLE(
@@ -407,11 +383,6 @@ WHERE u.user_id = p_user_id;
 END;
 $$;
 
-
-
--- ============================================================
--- 6. USER DOCUMENTS
--- ============================================================
 
 CREATE OR REPLACE FUNCTION u_insert_document(
     p_user_id uuid,

@@ -1,13 +1,3 @@
--- ============================================================
--- REGISTRATION FUNCTIONS
--- Covers: Register patient, doctor, lab
--- Creates user + profile in one transaction
--- ============================================================
-
-
--- ============================================================
--- 1. REGISTER PATIENT
--- ============================================================
 CREATE OR REPLACE FUNCTION register_patient_user(
     u_email varchar,
     u_full_name varchar,
@@ -37,7 +27,6 @@ DECLARE
     v_email_verified boolean;
 BEGIN
 
--- Validate auth method
 IF NOT (
     (u_password IS NOT NULL AND u_oauth_provider_id IS NULL)
     OR
@@ -46,12 +35,10 @@ IF NOT (
     RAISE EXCEPTION 'INVALID_AUTH_METHOD';
 END IF;
 
--- Email uniqueness
 IF EXISTS (SELECT 1 FROM users u WHERE u.email = u_email) THEN
     RAISE EXCEPTION 'EMAIL_ALREADY_EXISTS';
 END IF;
 
--- Get role id
 SELECT ur.role_id INTO v_role_id
 FROM user_roles ur
 WHERE ur.role = 'PATIENT';
@@ -60,7 +47,6 @@ IF v_role_id IS NULL THEN
     RAISE EXCEPTION 'ROLE_NOT_FOUND';
 END IF;
 
--- Generate user id
 v_user_id := gen_random_uuid();
 v_email_verified := FALSE;
 
@@ -68,7 +54,7 @@ IF u_oauth_provider_id IS NOT NULL AND u_oauth_provider IS NOT NULL THEN
     v_email_verified := TRUE;
 END IF;
 
--- Insert user
+
 INSERT INTO users (
     user_id,
     email,
@@ -98,7 +84,6 @@ VALUES (
     NOW()
 );
 
--- Insert patient profile
 INSERT INTO patients (
     patient_id,
     full_name,
@@ -136,9 +121,6 @@ END;
 $$;
 
 
--- ============================================================
--- 2. REGISTER DOCTOR
--- ============================================================
 
 
 CREATE OR REPLACE FUNCTION register_doctor_user(
@@ -228,9 +210,7 @@ RETURN QUERY
 END;
 $$;
 
--- ============================================================
--- 3. REGISTER LAB
--- ============================================================
+
 
 CREATE OR REPLACE FUNCTION register_lab_user(
     u_email varchar,
@@ -251,7 +231,6 @@ DECLARE
     v_role_id int;
 BEGIN
 
--- Validate auth
 IF NOT (
     (u_password IS NOT NULL AND u_oauth_provider_id IS NULL)
     OR
@@ -260,17 +239,14 @@ IF NOT (
     RAISE EXCEPTION 'INVALID_AUTH_METHOD';
 END IF;
 
--- Email check
 IF EXISTS (SELECT 1 FROM users WHERE email = u_email) THEN
     RAISE EXCEPTION 'EMAIL_ALREADY_EXISTS';
 END IF;
 
--- License check
 IF EXISTS (SELECT 1 FROM labs WHERE license_number = u_license_number) THEN
     RAISE EXCEPTION 'LICENSE_ALREADY_EXISTS';
 END IF;
 
--- Get role
 SELECT role_id INTO v_role_id
 FROM user_roles
 WHERE role = 'LAB_TECHNICIAN';
@@ -281,7 +257,6 @@ END IF;
 
 v_user_id := gen_random_uuid();
 
--- Create user
 INSERT INTO users (
     user_id,
     email,
@@ -311,7 +286,6 @@ VALUES (
     NOW()
 );
 
--- Create lab profile
 INSERT INTO labs (
     lab_id,
     lab_name,
