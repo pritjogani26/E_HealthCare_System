@@ -11,6 +11,7 @@ import {
   AlertCircle,
   Heart,
   Shield,
+  ClipboardList,
 } from "lucide-react";
 import { ExpandedSections } from "./types";
 import { getPendingApprovalsCount } from "../services/admin_api";
@@ -33,6 +34,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   // Fine-grained permission helpers (from login response)
   const { permissions } = useAuth();
   const can = (perm: string) => permissions.includes(perm);
+
+  const userRole = user?.role || (user as any)?.user?.role;
+  const isSuperAdmin = userRole === "SUPERADMIN";
+  const isAdminOrSuper = admin || isSuperAdmin;
 
   const [expandedSections, setExpandedSections] = useState<ExpandedSections>({
     patients: false,
@@ -84,8 +89,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const isActive = (route?: string) => {
     if (!route) return false;
     if (route === "/profile" && location.pathname === "/profile") return true;
-    if (route !== "/profile" && location.pathname.startsWith(route))
-      return true;
+    if (route !== "/profile" && location.pathname.startsWith(route)) return true;
     return false;
   };
 
@@ -103,30 +107,28 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     ...(can("lab : view") || admin
       ? [{ icon: FlaskConical, label: "Laboratory", route: "/admin/labs" }]
       : []),
+    // Audit Logs — ADMIN and SUPERADMIN only
+    ...(isAdminOrSuper
+      ? [{ icon: ClipboardList, label: "Audit Logs", route: "/audit-logs" }]
+      : []),
     // Settings
     ...(can("settings : view") || admin
       ? [{ icon: Settings, label: "Settings", route: "/settings" }]
       : []),
     // Role Permissions — SUPERADMIN only
-    ...((user?.role || (user as any)?.user?.role) === "SUPERADMIN"
+    ...(isSuperAdmin
       ? [{ icon: Shield, label: "Role Permissions", route: "/admin/role-permissions" }]
       : []),
   ];
 
   const menuItems: any[] = [...baseMenuItems];
 
-  const userRole = user?.role || (user as any)?.user?.role;
-
   if (userRole === "DOCTOR") {
     menuItems.splice(
       1,
       0,
       { icon: Calendar, label: "My Schedule", route: "/doctor/schedule" },
-      {
-        icon: Calendar,
-        label: "My Appointments",
-        route: "/doctor/appointments",
-      },
+      { icon: Calendar, label: "My Appointments", route: "/doctor/appointments" },
     );
   }
 
@@ -134,11 +136,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     menuItems.splice(
       1,
       0,
-      {
-        icon: Stethoscope,
-        label: "Book Appointment",
-        route: "/book-appointment",
-      },
+      { icon: Stethoscope, label: "Book Appointment", route: "/book-appointment" },
       { icon: Calendar, label: "My Appointments", route: "/my-appointments" },
     );
   }
@@ -168,6 +166,85 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
         },
       ]
     : [];
+
+  const renderMenuItem = (item: any, idx: number) => {
+    const active =
+      isActive(item.route) ||
+      (item.subitems && item.subitems.some((sub: any) => isActive(sub.route)));
+
+    return (
+      <div key={idx}>
+        <button
+          onClick={() => {
+            if (item.section) {
+              toggleSection(item.section);
+            } else {
+              handleNavigation(item.route);
+            }
+          }}
+          className={`
+            w-full flex items-center justify-between px-3 py-2.5 rounded-lg
+            transition-all duration-200 group
+            ${
+              active
+                ? "bg-emerald-50 dark:bg-gradient-to-r dark:from-emerald-500/10 dark:to-teal-500/10 text-emerald-600 dark:text-emerald-400 shadow-sm dark:shadow-lg dark:shadow-emerald-500/5"
+                : "text-slate-700 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50"
+            }
+          `}
+        >
+          <div className="flex items-center gap-3">
+            <item.icon
+              className={`w-5 h-5 ${active ? "text-emerald-600 dark:text-emerald-400" : "text-slate-600 dark:text-slate-400"}`}
+            />
+            <span className="font-medium text-sm">{item.label}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {item.badge && (
+              <span
+                className={`px-2 py-0.5 ${item.badgeColor} text-white text-xs rounded-md font-medium animate-pulse`}
+              >
+                {item.badge}
+              </span>
+            )}
+            {item.section && (
+              <ChevronDown
+                className={`w-4 h-4 transition-transform duration-200 ${
+                  expandedSections[item.section] ? "rotate-180" : ""
+                }`}
+              />
+            )}
+          </div>
+        </button>
+
+        {/* Subitems */}
+        {item.subitems && item.section && expandedSections[item.section] && (
+          <div className="ml-8 mt-1 space-y-1">
+            {item.subitems.map((subitem: any, subIdx: number) => {
+              const subActive = isActive(subitem.route);
+              return (
+                <button
+                  key={subIdx}
+                  onClick={() => handleNavigation(subitem.route)}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-md transition-all duration-200 ${
+                    subActive
+                      ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-slate-800/50 font-medium"
+                      : "text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-800/30"
+                  }`}
+                >
+                  <span className="text-sm">{subitem.label}</span>
+                  {subitem.badge && (
+                    <span className="px-2 py-0.5 bg-emerald-500 text-white text-xs rounded-md font-medium">
+                      {subitem.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <>
@@ -212,162 +289,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
             MAIN MENU
           </p>
           <nav className="space-y-1">
-            {menuItems.map((item: any, idx: any) => {
-              const active =
-                isActive(item.route) ||
-                (item.subitems &&
-                  item.subitems.some((sub: any) => isActive(sub.route)));
-
-              return (
-                <div key={idx}>
-                  <button
-                    onClick={() => {
-                      if (item.section) {
-                        toggleSection(item.section);
-                      } else {
-                        handleNavigation(item.route);
-                      }
-                    }}
-                    className={`
-                      w-full flex items-center justify-between px-3 py-2.5 rounded-lg
-                      transition-all duration-200 group
-                      ${
-                        active
-                          ? "bg-emerald-50 dark:bg-gradient-to-r dark:from-emerald-500/10 dark:to-teal-500/10 text-emerald-600 dark:text-emerald-400 shadow-sm dark:shadow-lg dark:shadow-emerald-500/5"
-                          : "text-slate-700 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50"
-                      }
-                    `}
-                  >
-                    <div className="flex items-center gap-3">
-                      <item.icon
-                        className={`w-5 h-5 ${active ? "text-emerald-600 dark:text-emerald-400" : "text-slate-600 dark:text-slate-400"}`}
-                      />
-                      <span className="font-medium text-sm">{item.label}</span>
-                    </div>
-                    {item.section && (
-                      <ChevronDown
-                        className={`w-4 h-4 transition-transform duration-200 ${
-                          expandedSections[item.section] ? "rotate-180" : ""
-                        }`}
-                      />
-                    )}
-                  </button>
-
-                  {/* Subitems */}
-                  {item.subitems &&
-                    item.section &&
-                    expandedSections[item.section] && (
-                      <div className="ml-8 mt-1 space-y-1">
-                        {item.subitems.map((subitem: any, subIdx: any) => {
-                          const subActive = isActive(subitem.route);
-                          return (
-                            <button
-                              key={subIdx}
-                              onClick={() => handleNavigation(subitem.route)}
-                              className={`w-full flex items-center justify-between px-3 py-2 rounded-md transition-all duration-200 ${
-                                subActive
-                                  ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-slate-800/50 font-medium"
-                                  : "text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-800/30"
-                              }`}
-                            >
-                              <span className="text-sm">{subitem.label}</span>
-                              {subitem.badge && (
-                                <span className="px-2 py-0.5 bg-emerald-500 text-white text-xs rounded-md font-medium">
-                                  {subitem.badge}
-                                </span>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                </div>
-              );
-            })}
+            {menuItems.map((item: any, idx: number) => renderMenuItem(item, idx))}
           </nav>
 
           {/* Support Section */}
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-8 mb-4 px-3">
-            NOTIFICATIONS
-          </p>
-          <nav className="space-y-1">
-            {supportItems.map((item, idx) => {
-              const active =
-                isActive(item.route) ||
-                (item.subitems &&
-                  item.subitems.some((sub: any) => isActive(sub.route)));
-
-              return (
-                <div key={idx}>
-                  <button
-                    onClick={() => {
-                      if (item.section) {
-                        toggleSection(item.section);
-                      } else {
-                        handleNavigation(item.route);
-                      }
-                    }}
-                    className={`
-                  w-full flex items-center justify-between px-3 py-2.5 rounded-lg
-                  transition-all duration-200 group
-                  ${
-                    active
-                      ? "bg-emerald-50 dark:bg-gradient-to-r dark:from-emerald-500/10 dark:to-teal-500/10 text-emerald-600 dark:text-emerald-400 shadow-sm dark:shadow-lg dark:shadow-emerald-500/5"
-                      : "text-slate-700 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50"
-                  }
-                `}
-                  >
-                    <div className="flex items-center gap-3">
-                      <item.icon
-                        className={`w-5 h-5 ${active ? "text-emerald-600 dark:text-emerald-400" : "text-slate-600 dark:text-slate-400"}`}
-                      />
-                      <span className="font-medium text-sm">{item.label}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {item.badge && (
-                        <span
-                          className={`px-2 py-0.5 ${item.badgeColor} text-white text-xs rounded-md font-medium animate-pulse`}
-                        >
-                          {item.badge}
-                        </span>
-                      )}
-                      {item.section && (
-                        <ChevronDown
-                          className={`w-4 h-4 transition-transform duration-200 ${
-                            expandedSections[item.section] ? "rotate-180" : ""
-                          }`}
-                        />
-                      )}
-                    </div>
-                  </button>
-
-                  {/* Subitems */}
-                  {item.subitems &&
-                    item.section &&
-                    expandedSections[item.section] && (
-                      <div className="ml-8 mt-1 space-y-1">
-                        {item.subitems.map((subitem: any, subIdx: any) => {
-                          const subActive = isActive(subitem.route);
-                          return (
-                            <button
-                              key={subIdx}
-                              onClick={() => handleNavigation(subitem.route)}
-                              className={`w-full flex items-center justify-between px-3 py-2 rounded-md transition-all duration-200 ${
-                                subActive
-                                  ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-slate-800/50 font-medium"
-                                  : "text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-800/30"
-                              }`}
-                            >
-                              <span className="text-sm">{subitem.label}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                </div>
-              );
-            })}
-          </nav>
+          {supportItems.length > 0 && (
+            <>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-8 mb-4 px-3">
+                NOTIFICATIONS
+              </p>
+              <nav className="space-y-1">
+                {supportItems.map((item, idx) => renderMenuItem(item, idx))}
+              </nav>
+            </>
+          )}
         </div>
       </aside>
     </>

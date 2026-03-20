@@ -71,3 +71,8 @@ class ReAuthVerifySerializer(serializers.Serializer):
             "max_length": "Password is too long.",
         },
     )
+
+
+class AuditLogsDownload(serializers.Serializer):
+    status = serializers.CharField()
+    type = serializers.CharField()

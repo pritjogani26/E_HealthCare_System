@@ -40,6 +40,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 // caused AuthProvider to resolve as `undefined` at runtime.
 import { InactivityModal } from "./pages/InactivityModel";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import AuditLogs from "./components/AuditLogs";
 
 const InactivityModalPortal: React.FC = () => {
   const { isInactivityModalVisible, handleInactivityContinue, logout } =
@@ -178,6 +179,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <SettingsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/audit-logs"
+                  element={
+                    <ProtectedRoute>
+                      <AuditLogs />
                     </ProtectedRoute>
                   }
                 />

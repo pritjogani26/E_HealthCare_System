@@ -19,8 +19,9 @@ def insert_audit_log(
     )
 
 
-def get_recent_activity(limit: int = 50, exclude_actions: tuple = ()) -> list:
+# def get_recent_activity(limit: int = 100, exclude_actions: tuple = ()) -> list:
+def get_recent_activity(limit: int = 100) -> list:
     rows = fn_fetchall("o_get_audit_logs", [limit])
-    if exclude_actions:
-        rows = [r for r in rows if r.get("action") not in exclude_actions]
+    # if exclude_actions:
+    #     rows = [r for r in rows if r.get("action") not in exclude_actions]
     return rows

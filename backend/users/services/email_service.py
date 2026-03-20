@@ -33,8 +33,7 @@ class EmailService:
             f"Thank you for registering with E-Healthcare System.\n"
             f"Please verify your email by visiting: {verify_link}\n\n"
             f"This link expires in 24 hours.\n"
-            f"If you did not create an account, please ignore this email.\n\n"
-            f"Best regards,\nE-Healthcare System Team"
+            f"\nE-Healthcare System Team"
         )
         html_content = _build_verification_html(verify_link)
 
@@ -99,7 +98,7 @@ def _build_verification_html(verify_link: str) -> str:
                         <td style="padding:40px;">
                             <h2 style="margin:0 0 20px 0;color:#111827;font-size:24px;">Welcome!</h2>
                             <p style="margin:0 0 20px 0;color:#4b5563;font-size:16px;line-height:24px;">
-                                Thank you for registering. To complete your registration, please verify your email address.
+                                please verify your email address.
                             </p>
                             <table role="presentation" style="margin:30px 0;">
                                 <tr>
@@ -113,16 +112,6 @@ def _build_verification_html(verify_link: str) -> str:
                             </table>
                             <p style="margin:0 0 20px 0;padding:12px;background-color:#f9fafb;border:1px solid #e5e7eb;border-radius:4px;word-break:break-all;font-size:12px;color:#374151;">
                                 {verify_link}
-                            </p>
-                            <div style="margin:30px 0;padding:16px;background-color:#fef3c7;border-left:4px solid #f59e0b;border-radius:4px;">
-                                <p style="margin:0;color:#92400e;font-size:14px;"><strong>⚠ Important:</strong> This link expires in 24 hours.</p>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="padding:30px 40px;background-color:#f9fafb;border-radius:0 0 8px 8px;border-top:1px solid #e5e7eb;">
-                            <p style="margin:0;color:#6b7280;font-size:12px;text-align:center;">
-                                © 2026 E-Healthcare System. All rights reserved.
                             </p>
                         </td>
                     </tr>

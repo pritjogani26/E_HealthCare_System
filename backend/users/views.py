@@ -1,6 +1,7 @@
 # backend/users/views.py
 
 import logging
+from datetime import datetime
 from django.http import HttpRequest
 from rest_framework import generics, status
 from rest_framework.response import Response
@@ -25,8 +26,10 @@ from .helpers import (
     set_refresh_token_cookie,
 )
 from .permissions import IsAdminOrStaff
+from .services import download_audit_service
 from .jwt_auth import rotate_refresh_token, UserWrapper
 from .serializers import (
+    AuditLogsDownload,
     LoginSerializer,
     GenderSerializer,
     BloodGroupSerializer,
@@ -415,10 +418,11 @@ class PendingApprovalsCountView(generics.GenericAPIView):
 
 class RecentActivityView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
-    _EXCLUDED_ACTIONS = ("USER_LOGIN", "USER_LOGOUT")
+    EXCLUDED_ACTIONS = ()
+    serializer_class = AuditLogsDownload
 
     def get(self, request, *args, **kwargs):
-        rows = aq.get_recent_activity(limit=50, exclude_actions=self._EXCLUDED_ACTIONS)
+        rows = aq.get_recent_activity(limit=100)
         data = [
             {
                 "log_id": r["log_id"],
@@ -437,7 +441,55 @@ class RecentActivityView(generics.GenericAPIView):
             }
             for r in rows
         ]
+        print(f"\n\nLength of Audit Logs : {len(rows)}")
         return _ok(data)
+    
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        status = serializer.validated_data["status"]
+        file_type = serializer.validated_data["type"]
+        
+        print(f"\n\nStatus : {status} \nType : {file_type}")
+
+        rows = aq.get_recent_activity(limit=100)
+        # print(f"Rows : {rows}")
+        # for r in rows:
+        #     print("Status of Row is ", end="  ")
+        #     print(r.get("status"), end="\n")
+
+        rows = [r for r in rows if r.get("status")==status or status == "ALL" ]
+        # print(rows)
+
+        data = [
+            {
+                "log_id": str(r["log_id"]),
+                "action": str(r["action"]),
+                "entity_type": str(r.get("entity_type")),
+                "details": str(r.get("details")),
+                "status": str(r.get("status")),
+                "performed_by": str(r.get("performed_by_email")),
+                "target_user": str(r.get("target_user_email")),
+                "ip_address": str((r["ip_address"])) if r.get("ip_address") else None,
+                "request_path": str(r.get("request_path")),
+                "duration_ms": str(r.get("duration_ms")),
+                "timestamp": (
+                    r["created_at"].isoformat() if r.get("created_at") else None
+                ),
+            }
+            for r in rows
+        ]
+        print(f"\n\nLength of Audit Logs : {len(rows)}")
+
+        filename = f"audit_logs_{status.lower()}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+
+        if file_type == "CSV":
+            return download_audit_service.generate_csv(data, filename)
+        elif file_type == "PDF":
+            return download_audit_service.generate_pdf(data, filename)
+
+        else:
+            raise ValidationException
 
 
 class ReAuthVerifyView(generics.GenericAPIView):

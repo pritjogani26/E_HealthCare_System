@@ -108,6 +108,12 @@ urlpatterns = [
         RecentActivityView.as_view(),
         name="recent-activity",
     ),
+    path(
+        "admin/download-audit-logs/",
+        RecentActivityView.as_view(),
+        name="recent-activity",
+    ),
+    
 
     path("settings/blood-groups/", SettingsBloodGroupsView.as_view(), name="settings-blood-groups"),
     path("settings/genders/", SettingsGendersView.as_view(), name="settings-genders"),

@@ -383,3 +383,4 @@ class DoctorListSerializer(serializers.Serializer):
     verified_by_email = serializers.EmailField(
         required=False, allow_blank=True, allow_null=True
     )
+

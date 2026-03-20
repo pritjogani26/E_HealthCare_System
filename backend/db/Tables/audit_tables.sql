@@ -19,3 +19,24 @@ CREATE TABLE IF NOT EXISTS public.audit_logs
         ON DELETE SET NULL
 )
 
+
+-- -- LOGIN, LOGOUT, LOGIN_FAILED, PASSWORD_RESET, TOKEN_REFRESH | ACCOUNT_LOCKED
+-- create table audit_auth (
+
+--     id bigserial primary key,
+--     user_id uuid, --ref user id
+--     user_role int,  -- ref user_roles
+--     ip_address 
+-- )
+
+-- create table doctor_audit_logs (
+
+-- )
+
+-- create table patient_audit_logs (
+
+-- )
+
+-- create table lab_audit_logs (
+
+-- )
