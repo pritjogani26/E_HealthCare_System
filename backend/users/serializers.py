@@ -56,7 +56,7 @@ class LoginSerializer(serializers.Serializer):
     )
 
 class LogoutSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=True)
+    email = serializers.EmailField(required=False, allow_null=True)
 
 
  

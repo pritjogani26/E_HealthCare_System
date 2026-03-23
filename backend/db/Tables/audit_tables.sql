@@ -17,26 +17,83 @@ CREATE TABLE IF NOT EXISTS public.audit_logs
         REFERENCES public.users (user_id) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE SET NULL
-)
+);
 
 
--- -- LOGIN, LOGOUT, LOGIN_FAILED, PASSWORD_RESET, TOKEN_REFRESH | ACCOUNT_LOCKED
--- create table audit_auth (
+-- USER_LOGIN, LOGOUT, LOGIN_FAILED, PASSWORD_RESET, TOKEN_REFRESH | ACCOUNT_LOCKED
+-- drop table audit_auth;
+create table audit_auth (
+    audit_id bigserial primary key,
+    user_id uuid NOT NULL, --ref user id
 
---     id bigserial primary key,
---     user_id uuid, --ref user id
---     user_role int,  -- ref user_roles
---     ip_address 
--- )
+    action VARCHAR(30),
+    status VARCHAR(10) NOT NULL DEFAULT 'SUCCESS' CHECK (status IN ('SUCCESS', 'FAILURE')),
 
--- create table doctor_audit_logs (
+    failure_reason TEXT,
+    created_at timestamptz not null default now()
+);
 
--- )
 
--- create table patient_audit_logs (
+-- drop table audit_patients;
+create table audit_patients (
+    audit_id bigserial primary key,
+    user_id uuid, -- ref user id
+    targeted_user_id uuid, -- ref user id
 
--- )
+    action varchar(30) NOT NULL, -- REGISTER | TOGGLE_STATUS | UPDATE_PROFILE | ACTIVE/INACTIVE 
+    status VARCHAR(10) NOT NULL DEFAULT 'SUCCESS' CHECK (status IN ('SUCCESS', 'FAILURE')),
 
--- create table lab_audit_logs (
+    old_data JSONB,
+    new_data JSONB,
 
--- )
+    failure_reason TEXT,
+    created_at timestamptz not null default now()
+);
+
+-- drop table audit_doctor;
+create table audit_doctor (
+    audit_id bigserial primary key,
+    user_id uuid, -- ref user id
+    targeted_user_id uuid, -- ref user id
+
+    action VARCHAR(30) NOT NULL,
+    status VARCHAR(10) NOT NULL DEFAULT 'SUCCESS' CHECK (status IN ('SUCCESS', 'FAILURE')),
+
+    old_data JSONB,
+    new_data JSONB,
+
+    failure_reason TEXT,
+    created_at timestamptz not null default now()
+);
+
+drop table audit_lab;
+create table audit_lab (
+    audit_id bigserial primary key,
+    user_id uuid, -- ref user id
+    targeted_user_id uuid, -- ref user id
+
+    action VARCHAR(30) NOT NULL,
+    status VARCHAR(10) NOT NULL DEFAULT 'SUCCESS' CHECK (status IN ('SUCCESS', 'FAILURE')),
+
+    old_data JSONB,
+    new_data JSONB,
+
+    failure_reason TEXT,
+    created_at timestamptz not null default now()
+);
+
+-- drop table audit_admin;
+create table if not exists audit_admin (
+    audit_id bigserial primary key,
+    user_id uuid, -- ref user id
+    targeted_user_id uuid, -- ref user id
+    
+    action VARCHAR(30) NOT NULL,
+    status VARCHAR(10) NOT NULL DEFAULT 'SUCCESS' CHECK (status IN ('SUCCESS', 'FAILURE')),
+
+    old_data JSONB,
+    new_data JSONB,
+
+    failure_reason TEXT,
+    created_at timestamptz not null default now()
+);

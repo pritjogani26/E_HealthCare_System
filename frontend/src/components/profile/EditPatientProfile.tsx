@@ -119,17 +119,17 @@ const EditPatientProfile: React.FC<EditPatientProfileProps> = React.memo(({
       mobile: profile.mobile || "",
       date_of_birth: profile.date_of_birth || "",
       gender_id: profile.gender_details?.gender_id?.toString() ||
-        genders.find(g => g.gender_value === (profile as any).gender)?.gender_id?.toString() || "",
+        genders.find(g => g.gender_value === ((profile as any).user?.gender || (profile as any).gender))?.gender_id?.toString() || "",
       blood_group_id:
         profile.blood_group_details?.blood_group_id?.toString() ||
-        bloodGroups.find(bg => bg.blood_group_value === (profile as any).blood_group)?.blood_group_id?.toString() || "",
+        bloodGroups.find(bg => bg.blood_group_value === ((profile as any).user?.blood_group || (profile as any).blood_group))?.blood_group_id?.toString() || "",
       emergency_contact_name: profile.emergency_contact_name || "",
       emergency_contact_phone: profile.emergency_contact_phone || "",
       address: {
-        address_line: (profile as any).address_line || profile.address?.address_line || "",
-        city: (profile as any).city || profile.address?.city || "",
-        state: (profile as any).state || profile.address?.state || "",
-        pincode: (profile as any).pincode || profile.address?.pincode || "",
+        address_line: (profile as any).user?.address_line || (profile as any).address_line || profile.address?.address_line || "",
+        city: (profile as any).user?.city || (profile as any).city || profile.address?.city || "",
+        state: (profile as any).user?.state || (profile as any).state || profile.address?.state || "",
+        pincode: (profile as any).user?.pincode || (profile as any).pincode || profile.address?.pincode || "",
       },
     },
     validationSchema: editPatientProfileSchema,

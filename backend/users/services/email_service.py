@@ -5,6 +5,7 @@ import logging
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 
+from db.audit_queries import insert_auth_audit
 from common.exceptions import (
     ValidationException,
     NotFoundException,
@@ -55,10 +56,7 @@ class EmailService:
         print(f"\n\n\nRecords  : {record}")
         if not record:
             raise ValidationException("Invalid or already used verification token.")
-
-        eq.mark_token_used(token)
         print(f"\n\n\nRecords  : {record}")
-        eq.mark_email_verified(record["auth_verify_token"])
 
     @staticmethod
     def resend_verification_email(email: str) -> None:

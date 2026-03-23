@@ -1,3 +1,4 @@
+from db.connection import fn_fetchone, fn_scalar
 import db.patient_queries as pq
 import db.doctor_queries as dq
 import db.lab_queries as lq
@@ -24,10 +25,10 @@ class AdminService:
     def toggle_doctor_is_active(user_id: str, reason: str) -> dict:
         fn_scalar(
             "auth_toggle_user_is_active",
-            [str(patient_id), reason],
+            [str(user_id), reason],
         )
 
-        return fn_fetchone("p_get_full_patient_profile", [str(patient_id)])
+        return fn_fetchone("d_get_full_doctor_profile", [str(user_id)])
 
     @staticmethod
     def toggle_lab_status(

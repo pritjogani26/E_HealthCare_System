@@ -1,3 +1,4 @@
+# backend\db\user_queries.py
 from django.contrib.auth.hashers import make_password
 from django.utils import timezone
 import uuid
@@ -56,27 +57,16 @@ def create_user(
     return get_user_by_id(user_id)
 
 
-def handle_failed_login(user: dict, max_attempts: int = 5, lockout_minutes: int = 30):
-    attempts = (user.get("failed_login_attempts") or 0) + 1
+def handle_failed_login(user: dict, max_attempts: int = 5, lockout_minutes: int = 15, failure_reason: str = "Invalid password") -> tuple[bool, str]:
+    attempts = fn_scalar("auth_login_failed", [str(user["user_id"]), failure_reason])
+
     if attempts >= max_attempts:
-        lockout_until = timezone.now() + timezone.timedelta(minutes=lockout_minutes)
-        fn_scalar("u_lock_user", [str(user["user_id"]), lockout_until])
-        print(
-            f"Too many failed login attempts. Account locked for {lockout_minutes} minutes."
-        )
         return (
             True,
             f"Too many failed login attempts. Account locked for {lockout_minutes} minutes.",
         )
-    from db.connection import execute
 
-    execute(
-        "UPDATE users SET failed_login_attempts=%s, updated_at=NOW() WHERE user_id=%s",
-        [attempts, str(user["user_id"])],
-    )
     remaining = max_attempts - attempts
-    print(f"Invalid credentials. {remaining} attempt(s) remaining before lockout.")
-
     return (
         False,
         f"Invalid credentials. {remaining} attempt(s) remaining before lockout.",
@@ -90,15 +80,6 @@ def update_oauth_provider(user_id: str, provider: str, provider_id: str):
         "UPDATE users SET oauth_provider=%s, oauth_provider_id=%s, updated_at=NOW() WHERE user_id=%s",
         [provider, provider_id, str(user_id)],
     )
-
-
-# def toggle_user_status(admin_id: str, target_id: str, is_active: bool) -> bool:
-#     """Calls u_toggle_user_status(admin_id, target_id, is_active)."""
-#     return fn_scalar(
-#         "u_toggle_user_status",
-#         [str(admin_id), str(target_id), is_active],
-#     )
-
 
 def get_all_genders() -> list:
     return fn_fetchall("o_get_genders", [])

@@ -5,8 +5,6 @@ import logging
 
 from db.connection import execute, fetchscalar, fn_fetchone, fn_scalar
 
-logger = logging.getLogger(__name__)
-
 
 def _get_verification_type_id(name: str) -> int:
     return fetchscalar(
@@ -33,14 +31,3 @@ def create_email_verification_token(user_id: str, expires_hours: int = 24) -> st
 
 def get_verification_record(token: str) -> dict | None:
     return fn_fetchone("auth_verify_token", [token])
-
-
-def mark_token_used(token: str) -> None:
-    execute(
-        "UPDATE email_verification_table SET is_used=TRUE WHERE token=%s",
-        [token],
-    )
-
-
-def mark_email_verified(user_id: str) -> None:
-    fn_scalar("u_set_email_verified", [user_id])

@@ -16,17 +16,21 @@ class ProfileService(BaseProfileService):
         print("\n\nInside update_patient_profile.")
         patient_id = str(patient_dict.get("patient_id") or patient_dict.get("user_id"))
         data = serializer.validated_data
-
+        print(f"\nPatient data : {data}")
         address_id = patient_dict.get("address_id")
         address_fields = {
             k: data.get(k) for k in ("address_line", "city", "state", "pincode")
         }
+        print(f"\n\nAddress Fields : {address_fields}")
+
         if any(v is not None for v in address_fields.values()):
             if address_id:
+                print("\nYes Address Id is available.")
                 uq.update_address(
                     address_id,
-                    **{k: v for k, v in address_fields.items() if v is not None}
+                    **{k: v for k, v in address_fields.items() if v is not None},
                 )
+                print("\nUpdate Successful.")
             else:
                 address_id = uq.create_address(
                     address_line=address_fields.get("address_line", ""),

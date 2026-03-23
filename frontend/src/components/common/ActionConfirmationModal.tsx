@@ -14,7 +14,9 @@ interface ActionConfirmationModalProps {
   loading?: boolean;
 }
 
-export const ActionConfirmationModal: React.FC<ActionConfirmationModalProps> = ({
+export const ActionConfirmationModal: React.FC<
+  ActionConfirmationModalProps
+> = ({
   isOpen,
   onClose,
   onConfirm,
@@ -90,10 +92,7 @@ export const ActionConfirmationModal: React.FC<ActionConfirmationModalProps> = (
             borderBottom: "1px solid #d0dff0",
           }}
         >
-          <h3
-            className="text-base font-semibold"
-            style={{ color: "#1a3c6e" }}
-          >
+          <h3 className="text-base font-semibold" style={{ color: "#1a3c6e" }}>
             {step === 1 ? title : "Additional Details"}
           </h3>
           <button
@@ -102,11 +101,13 @@ export const ActionConfirmationModal: React.FC<ActionConfirmationModalProps> = (
             className="p-1.5 rounded-md transition-colors disabled:opacity-50"
             style={{ color: "#555555" }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#d0dff0";
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                "#d0dff0";
               (e.currentTarget as HTMLButtonElement).style.color = "#1a3c6e";
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent";
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                "transparent";
               (e.currentTarget as HTMLButtonElement).style.color = "#555555";
             }}
           >
@@ -126,8 +127,7 @@ export const ActionConfirmationModal: React.FC<ActionConfirmationModalProps> = (
                 className="block text-sm font-medium"
                 style={{ color: "#1a3c6e" }}
               >
-                {reasonLabel}{" "}
-                <span style={{ color: "#f47920" }}>*</span>
+                {reasonLabel} <span style={{ color: "#36454F" }}>*</span>
               </label>
               <textarea
                 className="w-full px-3 py-2 text-sm resize-none outline-none transition-shadow rounded-md"
@@ -137,8 +137,9 @@ export const ActionConfirmationModal: React.FC<ActionConfirmationModalProps> = (
                   backgroundColor: "#ffffff",
                 }}
                 onFocus={(e) => {
-                  e.currentTarget.style.border = "1px solid #f47920";
-                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(244, 121, 32, 0.12)";
+                  e.currentTarget.style.border = "1px solid #36454F";
+                  e.currentTarget.style.boxShadow =
+                    "0 0 0 3px rgba(244, 121, 32, 0.12)";
                 }}
                 onBlur={(e) => {
                   e.currentTarget.style.border = "1px solid #d0dff0";
@@ -173,10 +174,12 @@ export const ActionConfirmationModal: React.FC<ActionConfirmationModalProps> = (
                   border: "1px solid #d0dff0",
                 }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#d0dff0";
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                    "#d0dff0";
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#ffffff";
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                    "#ffffff";
                 }}
                 onClick={handleClose}
                 disabled={loading}
@@ -187,10 +190,12 @@ export const ActionConfirmationModal: React.FC<ActionConfirmationModalProps> = (
                 className="px-4 py-1.5 text-sm font-medium text-white rounded-md transition-colors disabled:opacity-50"
                 style={{ backgroundColor: "#1a3c6e" }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#2e5fa3";
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                    "#2e5fa3";
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#1a3c6e";
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                    "#1a3c6e";
                 }}
                 onClick={handleInitialConfirm}
                 disabled={loading}
@@ -208,10 +213,12 @@ export const ActionConfirmationModal: React.FC<ActionConfirmationModalProps> = (
                   border: "1px solid #d0dff0",
                 }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#d0dff0";
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                    "#d0dff0";
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#ffffff";
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                    "#ffffff";
                 }}
                 onClick={() => setStep(1)}
                 disabled={loading}
@@ -223,11 +230,14 @@ export const ActionConfirmationModal: React.FC<ActionConfirmationModalProps> = (
                 style={{ backgroundColor: "#1a3c6e" }}
                 onMouseEnter={(e) => {
                   if (!loading && reason.trim()) {
-                    (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#2e5fa3";
+                    (
+                      e.currentTarget as HTMLButtonElement
+                    ).style.backgroundColor = "#2e5fa3";
                   }
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#1a3c6e";
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                    "#1a3c6e";
                 }}
                 onClick={handleFinalConfirm}
                 disabled={loading || !reason.trim()}

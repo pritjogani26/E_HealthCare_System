@@ -7,7 +7,11 @@ import toast from "react-hot-toast";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { handleApiError } from "../services/api";
-import { bookAppointment, getDoctorSlots, getDoctorsList } from "../services/doctor_api";
+import {
+  bookAppointment,
+  getDoctorSlots,
+  getDoctorsList,
+} from "../services/doctor_api";
 import { DoctorListItem, AppointmentSlot } from "../types";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -54,13 +58,17 @@ const BookAppointmentPage: React.FC = () => {
   const [search, setSearch] = useState("");
 
   // Slot-selection state
-  const [selectedDoctor, setSelectedDoctor] = useState<DoctorListItem | null>(null);
+  const [selectedDoctor, setSelectedDoctor] = useState<DoctorListItem | null>(
+    null,
+  );
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   // Booking modal state
   const [bookingSlot, setBookingSlot] = useState<AppointmentSlot | null>(null);
   const [reason, setReason] = useState("");
-  const [appointmentType, setAppointmentType] = useState<"in_person" | "online">("in_person");
+  const [appointmentType, setAppointmentType] = useState<
+    "in_person" | "online"
+  >("in_person");
 
   const dates = useMemo(() => getNext7Days(), []);
 
@@ -88,8 +96,12 @@ const BookAppointmentPage: React.FC = () => {
     isError: slotsError,
     error: slotsQueryError,
   } = useQuery<AppointmentSlot[], Error>({
-    queryKey: QK.slots(selectedDoctor?.doctor_id ?? "", toISODate(selectedDate)),
-    queryFn: () => getDoctorSlots(selectedDoctor!.doctor_id, toISODate(selectedDate)),
+    queryKey: QK.slots(
+      selectedDoctor?.doctor_id ?? "",
+      toISODate(selectedDate),
+    ),
+    queryFn: () =>
+      getDoctorSlots(selectedDoctor!.doctor_id, toISODate(selectedDate)),
     enabled: !!selectedDoctor,
     staleTime: 60 * 1000,
   });
@@ -129,7 +141,9 @@ const BookAppointmentPage: React.FC = () => {
       (d) =>
         d.full_name.toLowerCase().includes(q) ||
         (d.specializations ?? []).some((s) =>
-          s.specialization_details?.specialization_name?.toLowerCase().includes(q),
+          s.specialization_details?.specialization_name
+            ?.toLowerCase()
+            .includes(q),
         ),
     );
   }, [search, doctors]);
@@ -138,22 +152,49 @@ const BookAppointmentPage: React.FC = () => {
 
   if (!selectedDoctor) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", backgroundColor: "#e8f0f7" }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          minHeight: "100vh",
+          backgroundColor: "#e8f0f7",
+        }}
+      >
         <Header setIsSidebarOpen={setSidebarOpen} />
         <div style={{ flex: 1, padding: "32px", overflowY: "auto" }}>
-
-          <h1 style={{ fontSize: "24px", fontWeight: 700, marginBottom: "4px", color: "#1a3c6e" }}>
+          <h1
+            style={{
+              fontSize: "24px",
+              fontWeight: 700,
+              marginBottom: "4px",
+              color: "#1a3c6e",
+            }}
+          >
             Book an Appointment
           </h1>
-          <p style={{ color: "#555555", marginBottom: "24px", fontSize: "14px" }}>
+          <p
+            style={{ color: "#555555", marginBottom: "24px", fontSize: "14px" }}
+          >
             Select a doctor to view available time slots
           </p>
 
           {/* Search */}
-          <div style={{ position: "relative", maxWidth: "460px", marginBottom: "28px" }}>
+          <div
+            style={{
+              position: "relative",
+              maxWidth: "460px",
+              marginBottom: "28px",
+            }}
+          >
             <Search
               size={17}
-              style={{ position: "absolute", left: "13px", top: "50%", transform: "translateY(-50%)", color: "#555555" }}
+              style={{
+                position: "absolute",
+                left: "13px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: "#555555",
+              }}
             />
             <input
               type="text"
@@ -172,8 +213,9 @@ const BookAppointmentPage: React.FC = () => {
                 boxSizing: "border-box",
               }}
               onFocus={(e) => {
-                e.currentTarget.style.border = "1px solid #f47920";
-                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(244,121,32,0.12)";
+                e.currentTarget.style.border = "1px solid #36454F";
+                e.currentTarget.style.boxShadow =
+                  "0 0 0 3px rgba(244,121,32,0.12)";
               }}
               onBlur={(e) => {
                 e.currentTarget.style.border = "1px solid #d0dff0";
@@ -185,15 +227,26 @@ const BookAppointmentPage: React.FC = () => {
           {doctorsLoading ? (
             <p style={{ color: "#555555" }}>Loading doctors...</p>
           ) : doctorsError ? (
-            <p style={{ color: "#dc2626" }}>Failed to load doctors. Please refresh.</p>
+            <p style={{ color: "#dc2626" }}>
+              Failed to load doctors. Please refresh.
+            </p>
           ) : filteredDoctors.length === 0 ? (
             <p style={{ color: "#555555" }}>No verified doctors found.</p>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "16px" }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+                gap: "16px",
+              }}
+            >
               {filteredDoctors.map((doc) => (
                 <div
                   key={doc.doctor_id}
-                  onClick={() => { setSelectedDoctor(doc); setSelectedDate(new Date()); }}
+                  onClick={() => {
+                    setSelectedDoctor(doc);
+                    setSelectedDate(new Date());
+                  }}
                   style={{
                     backgroundColor: "#ffffff",
                     borderRadius: "10px",
@@ -204,32 +257,64 @@ const BookAppointmentPage: React.FC = () => {
                     boxShadow: "0 2px 8px rgba(26,60,110,0.07)",
                   }}
                   onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLDivElement).style.borderColor = "#2e5fa3";
-                    (e.currentTarget as HTMLDivElement).style.transform = "translateY(-2px)";
-                    (e.currentTarget as HTMLDivElement).style.boxShadow = "0 4px 16px rgba(26,60,110,0.12)";
+                    (e.currentTarget as HTMLDivElement).style.borderColor =
+                      "#2e5fa3";
+                    (e.currentTarget as HTMLDivElement).style.transform =
+                      "translateY(-2px)";
+                    (e.currentTarget as HTMLDivElement).style.boxShadow =
+                      "0 4px 16px rgba(26,60,110,0.12)";
                   }}
                   onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLDivElement).style.borderColor = "#d0dff0";
-                    (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
-                    (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 8px rgba(26,60,110,0.07)";
+                    (e.currentTarget as HTMLDivElement).style.borderColor =
+                      "#d0dff0";
+                    (e.currentTarget as HTMLDivElement).style.transform =
+                      "translateY(0)";
+                    (e.currentTarget as HTMLDivElement).style.boxShadow =
+                      "0 2px 8px rgba(26,60,110,0.07)";
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      marginBottom: "12px",
+                    }}
+                  >
                     <div
                       style={{
-                        width: "48px", height: "48px", borderRadius: "50%",
+                        width: "48px",
+                        height: "48px",
+                        borderRadius: "50%",
                         backgroundColor: "#1a3c6e",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: "18px", fontWeight: 700, color: "#fff", flexShrink: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "18px",
+                        fontWeight: 700,
+                        color: "#fff",
+                        flexShrink: 0,
                       }}
                     >
                       {doc.full_name.charAt(0)}
                     </div>
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: "15px", color: "#1a3c6e" }}>
+                      <div
+                        style={{
+                          fontWeight: 600,
+                          fontSize: "15px",
+                          color: "#1a3c6e",
+                        }}
+                      >
                         {doc.full_name}
                       </div>
-                      <div style={{ fontSize: "12px", color: "#555555", marginTop: "2px" }}>
+                      <div
+                        style={{
+                          fontSize: "12px",
+                          color: "#555555",
+                          marginTop: "2px",
+                        }}
+                      >
                         {doc.experience_years} yrs experience
                       </div>
                     </div>
@@ -252,14 +337,25 @@ const BookAppointmentPage: React.FC = () => {
                           border: "1px solid #d0dff0",
                         }}
                       >
-                        {s.specialization_details?.specialization_name || `Spec #${s.specialization}`}
+                        {s.specialization_details?.specialization_name ||
+                          `Spec #${s.specialization}`}
                       </span>
                     ))}
                   </div>
 
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px" }}>
-                    <span style={{ color: "#555555" }}>₹{doc.consultation_fee || "N/A"}</span>
-                    <span style={{ color: "#f47920", fontWeight: 600 }}>View Slots →</span>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      fontSize: "13px",
+                    }}
+                  >
+                    <span style={{ color: "#555555" }}>
+                      ₹{doc.consultation_fee || "N/A"}
+                    </span>
+                    <span style={{ color: "#36454F", fontWeight: 600 }}>
+                      View Slots →
+                    </span>
                   </div>
                 </div>
               ))}
@@ -274,21 +370,33 @@ const BookAppointmentPage: React.FC = () => {
   // ── Slot-selection view ────────────────────────────────────────────────────
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", backgroundColor: "#e8f0f7" }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
+        backgroundColor: "#e8f0f7",
+      }}
+    >
       <Header setIsSidebarOpen={setSidebarOpen} />
       <div style={{ flex: 1, padding: "32px", overflowY: "auto" }}>
-
         {/* Back */}
         <button
           onClick={() => setSelectedDoctor(null)}
           style={{
-            display: "flex", alignItems: "center", gap: "5px",
-            background: "none", border: "none",
-            color: "#f47920", cursor: "pointer",
-            marginBottom: "20px", fontSize: "14px", fontWeight: 500,
+            display: "flex",
+            alignItems: "center",
+            gap: "5px",
+            background: "none",
+            border: "none",
+            color: "#36454F",
+            cursor: "pointer",
+            marginBottom: "20px",
+            fontSize: "14px",
+            fontWeight: 500,
           }}
           onMouseEnter={(e) => (e.currentTarget.style.color = "#d4651a")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "#f47920")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#36454F")}
         >
           <ChevronLeft size={17} /> Back to Doctors
         </button>
@@ -300,26 +408,44 @@ const BookAppointmentPage: React.FC = () => {
             borderRadius: "10px",
             border: "1px solid #d0dff0",
             padding: "18px",
-            display: "flex", alignItems: "center", gap: "16px",
+            display: "flex",
+            alignItems: "center",
+            gap: "16px",
             marginBottom: "24px",
             boxShadow: "0 2px 8px rgba(26,60,110,0.07)",
           }}
         >
           <div
             style={{
-              width: "56px", height: "56px", borderRadius: "50%",
+              width: "56px",
+              height: "56px",
+              borderRadius: "50%",
               backgroundColor: "#1a3c6e",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: "22px", fontWeight: 700, color: "#fff", flexShrink: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "22px",
+              fontWeight: 700,
+              color: "#fff",
+              flexShrink: 0,
             }}
           >
             {selectedDoctor.full_name.charAt(0)}
           </div>
           <div>
-            <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "#1a3c6e" }}>
+            <h2
+              style={{
+                margin: 0,
+                fontSize: "18px",
+                fontWeight: 700,
+                color: "#1a3c6e",
+              }}
+            >
               {selectedDoctor.full_name}
             </h2>
-            <div style={{ fontSize: "13px", color: "#555555", marginTop: "3px" }}>
+            <div
+              style={{ fontSize: "13px", color: "#555555", marginTop: "3px" }}
+            >
               {(selectedDoctor.specializations ?? [])
                 .map((s) => s.specialization_details?.specialization_name)
                 .filter(Boolean)
@@ -332,10 +458,27 @@ const BookAppointmentPage: React.FC = () => {
         </div>
 
         {/* Date picker */}
-        <h3 style={{ fontSize: "15px", fontWeight: 600, marginBottom: "12px", display: "flex", alignItems: "center", gap: "7px", color: "#1a3c6e" }}>
-          <Calendar size={16} style={{ color: "#f47920" }} /> Select Date
+        <h3
+          style={{
+            fontSize: "15px",
+            fontWeight: 600,
+            marginBottom: "12px",
+            display: "flex",
+            alignItems: "center",
+            gap: "7px",
+            color: "#1a3c6e",
+          }}
+        >
+          <Calendar size={16} style={{ color: "#36454F" }} /> Select Date
         </h3>
-        <div style={{ display: "flex", gap: "8px", marginBottom: "24px", flexWrap: "wrap" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: "8px",
+            marginBottom: "24px",
+            flexWrap: "wrap",
+          }}
+        >
           {dates.map((d) => {
             const active = toISODate(d) === toISODate(selectedDate);
             return (
@@ -355,23 +498,41 @@ const BookAppointmentPage: React.FC = () => {
                   boxShadow: active ? "0 2px 8px rgba(26,60,110,0.18)" : "none",
                 }}
               >
-                <div style={{ fontSize: "11px", fontWeight: 500 }}>{DAYS[d.getDay()]}</div>
-                <div style={{ fontSize: "18px", fontWeight: 700 }}>{d.getDate()}</div>
-                <div style={{ fontSize: "10px" }}>{d.toLocaleString("default", { month: "short" })}</div>
+                <div style={{ fontSize: "11px", fontWeight: 500 }}>
+                  {DAYS[d.getDay()]}
+                </div>
+                <div style={{ fontSize: "18px", fontWeight: 700 }}>
+                  {d.getDate()}
+                </div>
+                <div style={{ fontSize: "10px" }}>
+                  {d.toLocaleString("default", { month: "short" })}
+                </div>
               </button>
             );
           })}
         </div>
 
         {/* Slots */}
-        <h3 style={{ fontSize: "15px", fontWeight: 600, marginBottom: "12px", display: "flex", alignItems: "center", gap: "7px", color: "#1a3c6e" }}>
-          <Clock size={16} style={{ color: "#f47920" }} /> Available Slots
+        <h3
+          style={{
+            fontSize: "15px",
+            fontWeight: 600,
+            marginBottom: "12px",
+            display: "flex",
+            alignItems: "center",
+            gap: "7px",
+            color: "#1a3c6e",
+          }}
+        >
+          <Clock size={16} style={{ color: "#36454F" }} /> Available Slots
         </h3>
 
         {slotsLoading ? (
           <p style={{ color: "#555555", fontSize: "14px" }}>Loading slots...</p>
         ) : slotsError ? (
-          <p style={{ color: "#dc2626", fontSize: "14px" }}>Failed to load slots. Please try again.</p>
+          <p style={{ color: "#dc2626", fontSize: "14px" }}>
+            Failed to load slots. Please try again.
+          </p>
         ) : slots.length === 0 ? (
           <div
             style={{
@@ -383,12 +544,25 @@ const BookAppointmentPage: React.FC = () => {
               color: "#555555",
             }}
           >
-            <Calendar size={36} style={{ marginBottom: "10px", color: "#d0dff0" }} />
-            <p style={{ margin: 0, fontWeight: 500, color: "#1a3c6e" }}>No available slots for this date.</p>
-            <p style={{ fontSize: "13px", marginTop: "4px", color: "#555555" }}>Try selecting a different date.</p>
+            <Calendar
+              size={36}
+              style={{ marginBottom: "10px", color: "#d0dff0" }}
+            />
+            <p style={{ margin: 0, fontWeight: 500, color: "#1a3c6e" }}>
+              No available slots for this date.
+            </p>
+            <p style={{ fontSize: "13px", marginTop: "4px", color: "#555555" }}>
+              Try selecting a different date.
+            </p>
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "10px" }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
+              gap: "10px",
+            }}
+          >
             {slots.map((slot) => (
               <button
                 key={slot.slot_id}
@@ -407,12 +581,16 @@ const BookAppointmentPage: React.FC = () => {
                   boxShadow: "0 1px 4px rgba(26,60,110,0.06)",
                 }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#e8f0f7";
-                  (e.currentTarget as HTMLButtonElement).style.borderColor = "#2e5fa3";
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                    "#e8f0f7";
+                  (e.currentTarget as HTMLButtonElement).style.borderColor =
+                    "#2e5fa3";
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#ffffff";
-                  (e.currentTarget as HTMLButtonElement).style.borderColor = "#d0dff0";
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                    "#ffffff";
+                  (e.currentTarget as HTMLButtonElement).style.borderColor =
+                    "#d0dff0";
                 }}
               >
                 {formatTime(slot.start_time)} – {formatTime(slot.end_time)}
@@ -426,9 +604,12 @@ const BookAppointmentPage: React.FC = () => {
       {bookingSlot && (
         <div
           style={{
-            position: "fixed", inset: 0,
+            position: "fixed",
+            inset: 0,
             backgroundColor: "rgba(26,60,110,0.35)",
-            display: "flex", alignItems: "center", justifyContent: "center",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
             zIndex: 1000,
           }}
           onClick={() => setBookingSlot(null)}
@@ -446,13 +627,32 @@ const BookAppointmentPage: React.FC = () => {
             }}
           >
             {/* Modal header */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
-              <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "#1a3c6e" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "18px",
+              }}
+            >
+              <h3
+                style={{
+                  margin: 0,
+                  fontSize: "18px",
+                  fontWeight: 700,
+                  color: "#1a3c6e",
+                }}
+              >
                 Confirm Booking
               </h3>
               <button
                 onClick={() => setBookingSlot(null)}
-                style={{ background: "none", border: "none", color: "#555555", cursor: "pointer" }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#555555",
+                  cursor: "pointer",
+                }}
                 onMouseEnter={(e) => (e.currentTarget.style.color = "#1a3c6e")}
                 onMouseLeave={(e) => (e.currentTarget.style.color = "#555555")}
               >
@@ -470,17 +670,49 @@ const BookAppointmentPage: React.FC = () => {
                 marginBottom: "18px",
               }}
             >
-              <div style={{ fontSize: "12px", color: "#555555", marginBottom: "2px" }}>Doctor</div>
-              <div style={{ fontWeight: 600, color: "#1a3c6e", fontSize: "14px" }}>{selectedDoctor.full_name}</div>
-              <div style={{ fontSize: "12px", color: "#555555", marginTop: "10px", marginBottom: "2px" }}>Date &amp; Time</div>
-              <div style={{ fontWeight: 600, color: "#f47920", fontSize: "14px" }}>
-                {bookingSlot.slot_date} • {formatTime(bookingSlot.start_time)} – {formatTime(bookingSlot.end_time)}
+              <div
+                style={{
+                  fontSize: "12px",
+                  color: "#555555",
+                  marginBottom: "2px",
+                }}
+              >
+                Doctor
+              </div>
+              <div
+                style={{ fontWeight: 600, color: "#1a3c6e", fontSize: "14px" }}
+              >
+                {selectedDoctor.full_name}
+              </div>
+              <div
+                style={{
+                  fontSize: "12px",
+                  color: "#555555",
+                  marginTop: "10px",
+                  marginBottom: "2px",
+                }}
+              >
+                Date &amp; Time
+              </div>
+              <div
+                style={{ fontWeight: 600, color: "#36454F", fontSize: "14px" }}
+              >
+                {bookingSlot.slot_date} • {formatTime(bookingSlot.start_time)} –{" "}
+                {formatTime(bookingSlot.end_time)}
               </div>
             </div>
 
             {/* Appointment type */}
             <div style={{ marginBottom: "14px" }}>
-              <label style={{ fontSize: "13px", color: "#555555", display: "block", marginBottom: "7px", fontWeight: 500 }}>
+              <label
+                style={{
+                  fontSize: "13px",
+                  color: "#555555",
+                  display: "block",
+                  marginBottom: "7px",
+                  fontWeight: 500,
+                }}
+              >
                 Appointment Type
               </label>
               <div style={{ display: "flex", gap: "8px" }}>
@@ -489,12 +721,19 @@ const BookAppointmentPage: React.FC = () => {
                     key={t}
                     onClick={() => setAppointmentType(t)}
                     style={{
-                      flex: 1, padding: "9px",
+                      flex: 1,
+                      padding: "9px",
                       borderRadius: "8px",
-                      border: appointmentType === t ? "2px solid #1a3c6e" : "1px solid #d0dff0",
-                      backgroundColor: appointmentType === t ? "#1a3c6e" : "#ffffff",
+                      border:
+                        appointmentType === t
+                          ? "2px solid #1a3c6e"
+                          : "1px solid #d0dff0",
+                      backgroundColor:
+                        appointmentType === t ? "#1a3c6e" : "#ffffff",
                       color: appointmentType === t ? "#ffffff" : "#555555",
-                      cursor: "pointer", fontWeight: 600, fontSize: "13px",
+                      cursor: "pointer",
+                      fontWeight: 600,
+                      fontSize: "13px",
                       transition: "all 0.18s",
                     }}
                   >
@@ -506,7 +745,15 @@ const BookAppointmentPage: React.FC = () => {
 
             {/* Reason */}
             <div style={{ marginBottom: "18px" }}>
-              <label style={{ fontSize: "13px", color: "#555555", display: "block", marginBottom: "7px", fontWeight: 500 }}>
+              <label
+                style={{
+                  fontSize: "13px",
+                  color: "#555555",
+                  display: "block",
+                  marginBottom: "7px",
+                  fontWeight: 500,
+                }}
+              >
                 Reason (optional)
               </label>
               <textarea
@@ -514,18 +761,22 @@ const BookAppointmentPage: React.FC = () => {
                 onChange={(e) => setReason(e.target.value)}
                 rows={3}
                 style={{
-                  width: "100%", padding: "9px 12px",
+                  width: "100%",
+                  padding: "9px 12px",
                   borderRadius: "8px",
                   border: "1px solid #d0dff0",
                   backgroundColor: "#f9fbfd",
                   color: "#1a3c6e",
-                  resize: "vertical", fontSize: "13px",
-                  outline: "none", boxSizing: "border-box",
+                  resize: "vertical",
+                  fontSize: "13px",
+                  outline: "none",
+                  boxSizing: "border-box",
                   transition: "border 0.15s",
                 }}
                 onFocus={(e) => {
-                  e.currentTarget.style.border = "1px solid #f47920";
-                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(244,121,32,0.12)";
+                  e.currentTarget.style.border = "1px solid #36454F";
+                  e.currentTarget.style.boxShadow =
+                    "0 0 0 3px rgba(244,121,32,0.12)";
                 }}
                 onBlur={(e) => {
                   e.currentTarget.style.border = "1px solid #d0dff0";
@@ -539,21 +790,27 @@ const BookAppointmentPage: React.FC = () => {
               onClick={() => bookMutation.mutate()}
               disabled={bookMutation.isPending}
               style={{
-                width: "100%", padding: "12px",
-                borderRadius: "8px", border: "none",
+                width: "100%",
+                padding: "12px",
+                borderRadius: "8px",
+                border: "none",
                 backgroundColor: bookMutation.isPending ? "#a0aec0" : "#1a3c6e",
-                color: "#fff", fontSize: "14px", fontWeight: 700,
+                color: "#fff",
+                fontSize: "14px",
+                fontWeight: 700,
                 cursor: bookMutation.isPending ? "not-allowed" : "pointer",
                 transition: "background 0.18s",
                 boxShadow: "0 4px 12px rgba(26,60,110,0.2)",
               }}
               onMouseEnter={(e) => {
                 if (!bookMutation.isPending)
-                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#2e5fa3";
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                    "#2e5fa3";
               }}
               onMouseLeave={(e) => {
                 if (!bookMutation.isPending)
-                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#1a3c6e";
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                    "#1a3c6e";
               }}
             >
               {bookMutation.isPending ? "Booking..." : "Confirm Appointment"}

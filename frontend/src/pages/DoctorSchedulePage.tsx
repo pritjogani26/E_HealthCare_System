@@ -44,7 +44,8 @@ const DoctorSchedulePage: React.FC = () => {
   const [consultationDuration, setConsultationDuration] = useState(30);
   const [appointmentContact, setAppointmentContact] = useState("");
   const [activeDays, setActiveDays] = useState<boolean[]>(Array(7).fill(false));
-  const [workingDays, setWorkingDays] = useState<WorkingDay[]>(buildWorkingDays());
+  const [workingDays, setWorkingDays] =
+    useState<WorkingDay[]>(buildWorkingDays());
 
   useEffect(() => {
     fetchProfile();
@@ -72,7 +73,9 @@ const DoctorSchedulePage: React.FC = () => {
       setActiveDays(active);
     } catch (err: any) {
       toast.error(
-        err?.response?.data?.message || err.message || "Failed to load schedule",
+        err?.response?.data?.message ||
+          err.message ||
+          "Failed to load schedule",
       );
     } finally {
       setLoading(false);
@@ -150,21 +153,24 @@ const DoctorSchedulePage: React.FC = () => {
       navigate("/profile");
     } catch (err: any) {
       toast.error(
-        err?.response?.data?.message || err.message || "Failed to update schedule",
+        err?.response?.data?.message ||
+          err.message ||
+          "Failed to update schedule",
       );
     } finally {
       setSaving(false);
     }
   };
 
-  const inputCls = "w-full px-4 py-2 rounded-lg text-sm outline-none transition-shadow";
+  const inputCls =
+    "w-full px-4 py-2 rounded-lg text-sm outline-none transition-shadow";
   const inputStyle: React.CSSProperties = {
     border: "1px solid #d0dff0",
     backgroundColor: "#ffffff",
     color: "#1a3c6e",
   };
   const inputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    e.currentTarget.style.border = "1px solid #f47920";
+    e.currentTarget.style.border = "1px solid #36454F";
     e.currentTarget.style.boxShadow = "0 0 0 3px rgba(244,121,32,0.12)";
   };
   const inputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -174,7 +180,14 @@ const DoctorSchedulePage: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ minHeight: "100vh", backgroundColor: "#e8f0f7", display: "flex", flexDirection: "column" }}>
+      <div
+        style={{
+          minHeight: "100vh",
+          backgroundColor: "#e8f0f7",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
         <Header setIsSidebarOpen={setIsSidebarOpen} showSidebarToggle={false} />
         <div className="flex-1 flex items-center justify-center">
           <div
@@ -188,7 +201,14 @@ const DoctorSchedulePage: React.FC = () => {
   }
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#e8f0f7", display: "flex", flexDirection: "column" }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        backgroundColor: "#e8f0f7",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       <Toaster
         position="top-right"
         gutter={10}
@@ -205,12 +225,20 @@ const DoctorSchedulePage: React.FC = () => {
             maxWidth: "380px",
           },
           success: {
-            style: { background: "#f0fdf4", color: "#166534", border: "1px solid #bbf7d0" },
+            style: {
+              background: "#f0fdf4",
+              color: "#166534",
+              border: "1px solid #bbf7d0",
+            },
             iconTheme: { primary: "#16a34a", secondary: "#f0fdf4" },
           },
           error: {
             duration: 5000,
-            style: { background: "#fff1f2", color: "#9f1239", border: "1px solid #fecdd3" },
+            style: {
+              background: "#fff1f2",
+              color: "#9f1239",
+              border: "1px solid #fecdd3",
+            },
             iconTheme: { primary: "#e11d48", secondary: "#fff1f2" },
           },
         }}
@@ -242,18 +270,23 @@ const DoctorSchedulePage: React.FC = () => {
               className="text-base font-semibold mb-4 flex items-center gap-2"
               style={{ color: "#1a3c6e" }}
             >
-              <Calendar className="w-5 h-5" style={{ color: "#f47920" }} />
+              <Calendar className="w-5 h-5" style={{ color: "#36454F" }} />
               Workflow &amp; Contact
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-sm font-medium mb-1.5" style={{ color: "#1a3c6e" }}>
+                <label
+                  className="block text-sm font-medium mb-1.5"
+                  style={{ color: "#1a3c6e" }}
+                >
                   Avg. Consultation Time (minutes)
                 </label>
                 <input
                   type="number"
                   value={consultationDuration}
-                  onChange={(e) => setConsultationDuration(Number(e.target.value))}
+                  onChange={(e) =>
+                    setConsultationDuration(Number(e.target.value))
+                  }
                   min="5"
                   className={inputCls}
                   style={inputStyle}
@@ -263,11 +296,17 @@ const DoctorSchedulePage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1.5" style={{ color: "#1a3c6e" }}>
+                <label
+                  className="block text-sm font-medium mb-1.5"
+                  style={{ color: "#1a3c6e" }}
+                >
                   Appointment Inquiry Number
                 </label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-2.5 w-4 h-4" style={{ color: "#555555" }} />
+                  <Phone
+                    className="absolute left-3 top-2.5 w-4 h-4"
+                    style={{ color: "#555555" }}
+                  />
                   <input
                     type="text"
                     value={appointmentContact}
@@ -297,7 +336,7 @@ const DoctorSchedulePage: React.FC = () => {
               className="text-base font-semibold mb-4 flex items-center gap-2"
               style={{ color: "#1a3c6e" }}
             >
-              <Clock className="w-5 h-5" style={{ color: "#f47920" }} />
+              <Clock className="w-5 h-5" style={{ color: "#36454F" }} />
               Working Days &amp; Hours
             </h2>
             <div className="space-y-2.5">
@@ -311,7 +350,9 @@ const DoctorSchedulePage: React.FC = () => {
                     key={idx}
                     className="rounded-lg transition-colors"
                     style={{
-                      border: isActive ? "1px solid #2e5fa3" : "1px solid #d0dff0",
+                      border: isActive
+                        ? "1px solid #2e5fa3"
+                        : "1px solid #d0dff0",
                       backgroundColor: isActive ? "#f0f5fc" : "#f9fbfd",
                     }}
                   >
@@ -326,8 +367,14 @@ const DoctorSchedulePage: React.FC = () => {
                           className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors"
                           style={
                             isActive
-                              ? { borderColor: "#1a3c6e", backgroundColor: "#1a3c6e" }
-                              : { borderColor: "#d0dff0", backgroundColor: "#ffffff" }
+                              ? {
+                                  borderColor: "#1a3c6e",
+                                  backgroundColor: "#1a3c6e",
+                                }
+                              : {
+                                  borderColor: "#d0dff0",
+                                  backgroundColor: "#ffffff",
+                                }
                           }
                         >
                           {isActive && (
@@ -354,7 +401,10 @@ const DoctorSchedulePage: React.FC = () => {
                       {isActive && slots > 0 && (
                         <span
                           className="text-xs font-semibold px-2 py-1 rounded-full"
-                          style={{ backgroundColor: "#e8f0f7", color: "#1a3c6e" }}
+                          style={{
+                            backgroundColor: "#e8f0f7",
+                            color: "#1a3c6e",
+                          }}
                         >
                           {slots} slots
                         </span>
@@ -364,23 +414,42 @@ const DoctorSchedulePage: React.FC = () => {
                     {/* Time inputs (shown when day is active) */}
                     {isActive && (
                       <div className="px-4 pb-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        {(["arrival", "leaving", "lunch_start", "lunch_end"] as const).map((field) => (
+                        {(
+                          [
+                            "arrival",
+                            "leaving",
+                            "lunch_start",
+                            "lunch_end",
+                          ] as const
+                        ).map((field) => (
                           <div key={field}>
-                            <label className="block text-xs mb-1 capitalize" style={{ color: "#555555" }}>
+                            <label
+                              className="block text-xs mb-1 capitalize"
+                              style={{ color: "#555555" }}
+                            >
                               {field.replace("_", " ")}
                             </label>
                             <input
                               type="time"
                               value={wd[field] || ""}
-                              onChange={(e) => handleTimeChange(idx, field, e.target.value)}
+                              onChange={(e) =>
+                                handleTimeChange(idx, field, e.target.value)
+                              }
                               className="w-full px-2 py-1.5 text-sm rounded-lg outline-none transition-shadow"
-                              style={{ border: "1px solid #d0dff0", backgroundColor: "#ffffff", color: "#1a3c6e" }}
+                              style={{
+                                border: "1px solid #d0dff0",
+                                backgroundColor: "#ffffff",
+                                color: "#1a3c6e",
+                              }}
                               onFocus={(e) => {
-                                e.currentTarget.style.border = "1px solid #f47920";
-                                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(244,121,32,0.12)";
+                                e.currentTarget.style.border =
+                                  "1px solid #36454F";
+                                e.currentTarget.style.boxShadow =
+                                  "0 0 0 3px rgba(244,121,32,0.12)";
                               }}
                               onBlur={(e) => {
-                                e.currentTarget.style.border = "1px solid #d0dff0";
+                                e.currentTarget.style.border =
+                                  "1px solid #d0dff0";
                                 e.currentTarget.style.boxShadow = "none";
                               }}
                             />
@@ -404,14 +473,24 @@ const DoctorSchedulePage: React.FC = () => {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium mb-1 text-sm" style={{ color: "rgba(255,255,255,0.75)" }}>
+                <p
+                  className="font-medium mb-1 text-sm"
+                  style={{ color: "rgba(255,255,255,0.75)" }}
+                >
                   Estimated Weekly Capacity
                 </p>
-                <h3 className="text-3xl font-bold text-white">{totalWeeklySlots} Slots</h3>
-                <p className="text-xs mt-2" style={{ color: "rgba(255,255,255,0.6)" }}>
+                <h3 className="text-3xl font-bold text-white">
+                  {totalWeeklySlots} Slots
+                </h3>
+                <p
+                  className="text-xs mt-2"
+                  style={{ color: "rgba(255,255,255,0.6)" }}
+                >
                   Across {activeDays.filter(Boolean).length} working day
                   {activeDays.filter(Boolean).length !== 1 ? "s" : ""}
-                  {consultationDuration ? ` · ${consultationDuration} min/consultation` : ""}
+                  {consultationDuration
+                    ? ` · ${consultationDuration} min/consultation`
+                    : ""}
                 </p>
               </div>
               <div
@@ -435,10 +514,14 @@ const DoctorSchedulePage: React.FC = () => {
                 boxShadow: saving ? "none" : "0 4px 12px rgba(26,60,110,0.2)",
               }}
               onMouseEnter={(e) => {
-                if (!saving) (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#2e5fa3";
+                if (!saving)
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                    "#2e5fa3";
               }}
               onMouseLeave={(e) => {
-                if (!saving) (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#1a3c6e";
+                if (!saving)
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                    "#1a3c6e";
               }}
             >
               {saving ? (

@@ -42,22 +42,30 @@ function groupByModule(permissions: Permission[]): ModuleGroup[] {
   }));
 }
 
-const MODULE_COLORS: Record<string, { bg: string; text: string; border: string; }> = {
-  patient:     { bg: "#e8f0f7", text: "#1a3c6e", border: "#b0ccee"},
-  doctor:      { bg: "#fff7ed", text: "#c2410c", border: "#fed7aa"},
-  lab:         { bg: "#f3e8ff", text: "#7e22ce", border: "#d8b4fe"},
-  appointment: { bg: "#fefce8", text: "#92400e", border: "#fde68a"},
-  settings:    { bg: "#fce7f3", text: "#9d174d", border: "#fbcfe8"},
+const MODULE_COLORS: Record<
+  string,
+  { bg: string; text: string; border: string }
+> = {
+  patient: { bg: "#e8f0f7", text: "#1a3c6e", border: "#b0ccee" },
+  doctor: { bg: "#fff7ed", text: "#c2410c", border: "#fed7aa" },
+  lab: { bg: "#f3e8ff", text: "#7e22ce", border: "#d8b4fe" },
+  appointment: { bg: "#fefce8", text: "#92400e", border: "#fde68a" },
+  settings: { bg: "#fce7f3", text: "#9d174d", border: "#fbcfe8" },
 };
 
-const DEFAULT_MODULE = { bg: "#e8f0f7", text: "#555555", border: "#d0dff0", icon: "🔑" };
+const DEFAULT_MODULE = {
+  bg: "#e8f0f7",
+  text: "#555555",
+  border: "#d0dff0",
+  icon: "🔑",
+};
 
 const ROLE_BADGE: Record<string, string> = {
-  SUPERADMIN:     "#f47920",
-  ADMIN:          "#1a3c6e",
-  STAFF:          "#2e5fa3",
-  DOCTOR:         "#0e7490",
-  PATIENT:        "#0369a1",
+  SUPERADMIN: "#36454F",
+  ADMIN: "#1a3c6e",
+  STAFF: "#2e5fa3",
+  DOCTOR: "#0e7490",
+  PATIENT: "#0369a1",
   LAB_TECHNICIAN: "#7e22ce",
 };
 
@@ -75,7 +83,9 @@ const RolePermissionsPage: React.FC = () => {
   const [roleLoading, setRoleLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const [pendingChanges, setPendingChanges] = useState<Map<number, boolean>>(new Map());
+  const [pendingChanges, setPendingChanges] = useState<Map<number, boolean>>(
+    new Map(),
+  );
   const hasPending = pendingChanges.size > 0;
 
   // ── Load all roles and permissions on mount ──────────────────────────────
@@ -96,18 +106,21 @@ const RolePermissionsPage: React.FC = () => {
   }, []);
 
   // ── Load permissions for the selected role ───────────────────────────────
-  const loadRolePerms = useCallback(async (role: Role) => {
-    try {
-      setRoleLoading(true);
-      setPendingChanges(new Map());
-      const perms = await getRolePermissions(role.role_id);
-      setGrantedIds(new Set(perms.map((p) => p.permission_id)));
-    } catch (e) {
-      toast.error(handleApiError(e));
-    } finally {
-      setRoleLoading(false);
-    }
-  }, [toast]);
+  const loadRolePerms = useCallback(
+    async (role: Role) => {
+      try {
+        setRoleLoading(true);
+        setPendingChanges(new Map());
+        const perms = await getRolePermissions(role.role_id);
+        setGrantedIds(new Set(perms.map((p) => p.permission_id)));
+      } catch (e) {
+        toast.error(handleApiError(e));
+      } finally {
+        setRoleLoading(false);
+      }
+    },
+    [toast],
+  );
 
   const handleSelectRole = (role: Role) => {
     if (hasPending) {
@@ -150,7 +163,9 @@ const RolePermissionsPage: React.FC = () => {
       await syncPermissions(selectedRole.role_id, Array.from(finalIds));
       setGrantedIds(finalIds);
       setPendingChanges(new Map());
-      toast.success(`Permissions for ${selectedRole.role} updated successfully!`);
+      toast.success(
+        `Permissions for ${selectedRole.role} updated successfully!`,
+      );
     } catch (e) {
       toast.error(handleApiError(e));
     } finally {
@@ -198,14 +213,14 @@ const RolePermissionsPage: React.FC = () => {
         }
         .perm-chip.granted        { background: #e8f0f7; border-color: #2e5fa3; color: #1a3c6e; }
         .perm-chip.revoked        { background: #f8fafc; border-color: #d0dff0; color: #888888; }
-        .perm-chip.pending-grant  { background: #fff7ed; border-color: #f47920; border-style: dashed; color: #c2410c; opacity: 0.85; }
+        .perm-chip.pending-grant  { background: #fff7ed; border-color: #36454F; border-style: dashed; color: #c2410c; opacity: 0.85; }
         .perm-chip.pending-revoke { background: #fef2f2; border-color: #f87171; border-style: dashed; color: #991b1b; opacity: 0.85; }
         .perm-chip:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(26,60,110,0.08); }
 
         .save-bar {
           position: sticky; bottom: 1.5rem; z-index: 10;
           padding: 0.875rem 1.25rem; border-radius: 10px;
-          background: #ffffff; border: 1px solid #f47920;
+          background: #ffffff; border: 1px solid #36454F;
           display: flex; align-items: center; justify-content: flex-end; gap: 0.5rem;
           box-shadow: 0 4px 16px rgba(244,121,32,0.12);
           animation: slideUp 0.2s ease;
@@ -240,7 +255,10 @@ const RolePermissionsPage: React.FC = () => {
         <div className="mb-6 flex items-center gap-3">
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ backgroundColor: "#1a3c6e", boxShadow: "0 4px 12px rgba(26,60,110,0.2)" }}
+            style={{
+              backgroundColor: "#1a3c6e",
+              boxShadow: "0 4px 12px rgba(26,60,110,0.2)",
+            }}
           >
             <Shield className="w-5 h-5 text-white" />
           </div>
@@ -254,8 +272,13 @@ const RolePermissionsPage: React.FC = () => {
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
-              <RefreshCw className="w-7 h-7 spinner mx-auto mb-3" style={{ color: "#f47920" }} />
-              <p className="text-sm" style={{ color: "#555555" }}>Loading roles & permissions…</p>
+              <RefreshCw
+                className="w-7 h-7 spinner mx-auto mb-3"
+                style={{ color: "#36454F" }}
+              />
+              <p className="text-sm" style={{ color: "#555555" }}>
+                Loading roles & permissions…
+              </p>
             </div>
           </div>
         ) : (
@@ -267,7 +290,7 @@ const RolePermissionsPage: React.FC = () => {
                   className="text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2"
                   style={{ color: "#555555" }}
                 >
-                  <Users className="w-3.5 h-3.5" style={{ color: "#f47920" }} />
+                  <Users className="w-3.5 h-3.5" style={{ color: "#36454F" }} />
                   Roles
                 </p>
                 <div className="space-y-1.5">
@@ -280,14 +303,19 @@ const RolePermissionsPage: React.FC = () => {
                         className={`role-card ${isSelected ? "active" : ""}`}
                       >
                         <div className="flex items-center gap-2.5">
-                          
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-sm truncate" style={{ color: "#1a3c6e" }}>
+                            <p
+                              className="font-semibold text-sm truncate"
+                              style={{ color: "#1a3c6e" }}
+                            >
                               {role.role}
                             </p>
                           </div>
                           {isSelected && (
-                            <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: "#f47920" }} />
+                            <ChevronRight
+                              className="w-4 h-4 flex-shrink-0"
+                              style={{ color: "#36454F" }}
+                            />
                           )}
                         </div>
                       </button>
@@ -307,7 +335,10 @@ const RolePermissionsPage: React.FC = () => {
                   >
                     <Shield className="w-7 h-7" style={{ color: "#2e5fa3" }} />
                   </div>
-                  <h3 className="text-base font-semibold mb-1" style={{ color: "#1a3c6e" }}>
+                  <h3
+                    className="text-base font-semibold mb-1"
+                    style={{ color: "#1a3c6e" }}
+                  >
                     Select a Role
                   </h3>
                 </div>
@@ -315,7 +346,10 @@ const RolePermissionsPage: React.FC = () => {
                 <>
                   <div className="shalby-card p-4 mb-4 flex items-center gap-3">
                     <div>
-                      <p className="font-bold text-sm" style={{ color: "#1a3c6e" }}>
+                      <p
+                        className="font-bold text-sm"
+                        style={{ color: "#1a3c6e" }}
+                      >
                         {selectedRole.role}
                       </p>
                     </div>
@@ -324,8 +358,13 @@ const RolePermissionsPage: React.FC = () => {
                   {/* Permission modules */}
                   {roleLoading ? (
                     <div className="shalby-card p-12 flex items-center justify-center">
-                      <RefreshCw className="w-5 h-5 spinner mr-3" style={{ color: "#f47920" }} />
-                      <span className="text-sm" style={{ color: "#555555" }}>Loading permissions…</span>
+                      <RefreshCw
+                        className="w-5 h-5 spinner mr-3"
+                        style={{ color: "#36454F" }}
+                      />
+                      <span className="text-sm" style={{ color: "#555555" }}>
+                        Loading permissions…
+                      </span>
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -346,27 +385,42 @@ const RolePermissionsPage: React.FC = () => {
 
                             <div className="flex flex-wrap gap-2">
                               {permissions.map((perm) => {
-                                const effective = isEffectivelyGranted(perm.permission_id);
-                                const hasPendingChange = pendingChanges.has(perm.permission_id);
+                                const effective = isEffectivelyGranted(
+                                  perm.permission_id,
+                                );
+                                const hasPendingChange = pendingChanges.has(
+                                  perm.permission_id,
+                                );
                                 let chipClass = "perm-chip ";
                                 if (hasPendingChange) {
-                                  chipClass += effective ? "pending-grant" : "pending-revoke";
+                                  chipClass += effective
+                                    ? "pending-grant"
+                                    : "pending-revoke";
                                 } else {
-                                  chipClass += effective ? "granted" : "revoked";
+                                  chipClass += effective
+                                    ? "granted"
+                                    : "revoked";
                                 }
                                 return (
                                   <button
                                     key={perm.permission_id}
-                                    onClick={() => togglePermission(perm.permission_id)}
+                                    onClick={() =>
+                                      togglePermission(perm.permission_id)
+                                    }
                                     className={chipClass}
-                                    title={perm.description ?? `${perm.module}:${perm.action}`}
+                                    title={
+                                      perm.description ??
+                                      `${perm.module}:${perm.action}`
+                                    }
                                   >
                                     {effective ? (
                                       <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
                                     ) : (
                                       <XCircle className="w-3.5 h-3.5 flex-shrink-0" />
                                     )}
-                                    <span>{perm.action.replace(/_/g, " ")}</span>
+                                    <span>
+                                      {perm.action.replace(/_/g, " ")}
+                                    </span>
                                     {hasPendingChange && (
                                       <span className="text-xs opacity-60 ml-0.5">
                                         {effective ? "(+)" : "(-)"}
@@ -388,8 +442,16 @@ const RolePermissionsPage: React.FC = () => {
                       <button onClick={discardChanges} className="btn-ghost">
                         <XCircle className="w-4 h-4" /> Discard
                       </button>
-                      <button onClick={saveChanges} disabled={saving} className="btn-primary">
-                        {saving ? <RefreshCw className="w-4 h-4 spinner" /> : <Save className="w-4 h-4" />}
+                      <button
+                        onClick={saveChanges}
+                        disabled={saving}
+                        className="btn-primary"
+                      >
+                        {saving ? (
+                          <RefreshCw className="w-4 h-4 spinner" />
+                        ) : (
+                          <Save className="w-4 h-4" />
+                        )}
                         {saving ? "Saving…" : "Save Changes"}
                       </button>
                     </div>

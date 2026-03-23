@@ -82,7 +82,10 @@ const AdminLabsPage: React.FC = () => {
     }
   };
 
-  const handleVerifyRequest = (lab: LabList, status: "VERIFIED" | "REJECTED") => {
+  const handleVerifyRequest = (
+    lab: LabList,
+    status: "VERIFIED" | "REJECTED",
+  ) => {
     setActionData({ type: status, target: lab });
     setActionModalOpen(true);
   };
@@ -205,8 +208,21 @@ const AdminLabsPage: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr style={{ backgroundColor: "#e8f0f7", borderBottom: "1px solid #d0dff0" }}>
-                  {["Name", "Email", "City", "Phone", "Verification", "Status", "Actions"].map((h) => (
+                <tr
+                  style={{
+                    backgroundColor: "#e8f0f7",
+                    borderBottom: "1px solid #d0dff0",
+                  }}
+                >
+                  {[
+                    "Name",
+                    "Email",
+                    "City",
+                    "Phone",
+                    "Verification",
+                    "Status",
+                    "Actions",
+                  ].map((h) => (
                     <th
                       key={h}
                       className="text-left py-3 px-4 font-semibold"
@@ -222,10 +238,17 @@ const AdminLabsPage: React.FC = () => {
                   <tr
                     key={lab.lab_id || (lab as any).user?.user_id}
                     style={{ borderBottom: "1px solid #e8f0f7" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f5f8fc")}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor = "#f5f8fc")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.backgroundColor = "transparent")
+                    }
                   >
-                    <td className="py-3 px-4 font-medium" style={{ color: "#1a3c6e" }}>
+                    <td
+                      className="py-3 px-4 font-medium"
+                      style={{ color: "#1a3c6e" }}
+                    >
                       {lab.lab_name}
                     </td>
                     <td className="py-3 px-4" style={{ color: "#555555" }}>
@@ -240,7 +263,10 @@ const AdminLabsPage: React.FC = () => {
                     <td className="py-3 px-4">
                       <StatusBadge
                         status={lab.verification_status}
-                        label={lab.verification_status_display || lab.verification_status}
+                        label={
+                          lab.verification_status_display ||
+                          lab.verification_status
+                        }
                       />
                     </td>
                     <td className="py-3 px-4">
@@ -250,11 +276,21 @@ const AdminLabsPage: React.FC = () => {
                       <div className="flex items-center gap-1.5">
                         {/* View */}
                         <button
-                          onClick={() => { setSelectedLab(lab); setIsDetailOpen(true); }}
+                          onClick={() => {
+                            setSelectedLab(lab);
+                            setIsDetailOpen(true);
+                          }}
                           className="p-1.5 rounded-lg transition-colors"
-                          style={{ backgroundColor: "#e8f0f7", color: "#1a3c6e" }}
-                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#d0dff0")}
-                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#e8f0f7")}
+                          style={{
+                            backgroundColor: "#e8f0f7",
+                            color: "#1a3c6e",
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.backgroundColor = "#d0dff0")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.backgroundColor = "#e8f0f7")
+                          }
                           title="View"
                         >
                           <Eye className="w-4 h-4" />
@@ -268,55 +304,101 @@ const AdminLabsPage: React.FC = () => {
                             className="p-1.5 rounded-lg transition-colors disabled:opacity-50"
                             style={
                               lab.is_active
-                                ? { backgroundColor: "#fef2f2", color: "#dc2626" }
-                                : { backgroundColor: "#f0fdf4", color: "#16a34a" }
+                                ? {
+                                    backgroundColor: "#fef2f2",
+                                    color: "#dc2626",
+                                  }
+                                : {
+                                    backgroundColor: "#f0fdf4",
+                                    color: "#16a34a",
+                                  }
                             }
                             onMouseEnter={(e) => {
-                              (e.currentTarget as HTMLButtonElement).style.backgroundColor = lab.is_active ? "#fee2e2" : "#dcfce7";
+                              (
+                                e.currentTarget as HTMLButtonElement
+                              ).style.backgroundColor = lab.is_active
+                                ? "#fee2e2"
+                                : "#dcfce7";
                             }}
                             onMouseLeave={(e) => {
-                              (e.currentTarget as HTMLButtonElement).style.backgroundColor = lab.is_active ? "#fef2f2" : "#f0fdf4";
+                              (
+                                e.currentTarget as HTMLButtonElement
+                              ).style.backgroundColor = lab.is_active
+                                ? "#fef2f2"
+                                : "#f0fdf4";
                             }}
                             title={lab.is_active ? "Deactivate" : "Activate"}
                           >
-                            {lab.is_active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+                            {lab.is_active ? (
+                              <UserX className="w-4 h-4" />
+                            ) : (
+                              <UserCheck className="w-4 h-4" />
+                            )}
                           </button>
                         )}
 
                         {/* Approve / Reject */}
-                        {canVerify && lab.verification_status?.toUpperCase() === "PENDING" && (
-                          <>
-                            <button
-                              onClick={() => handleVerifyRequest(lab, "VERIFIED")}
-                              disabled={actionLoading}
-                              className="p-1.5 rounded-lg transition-colors disabled:opacity-50"
-                              style={{ backgroundColor: "#f0fdf4", color: "#16a34a" }}
-                              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#dcfce7")}
-                              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#f0fdf4")}
-                              title="Approve"
-                            >
-                              <Check className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleVerifyRequest(lab, "REJECTED")}
-                              disabled={actionLoading}
-                              className="p-1.5 rounded-lg transition-colors disabled:opacity-50"
-                              style={{ backgroundColor: "#fef2f2", color: "#dc2626" }}
-                              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#fee2e2")}
-                              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#fef2f2")}
-                              title="Reject"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </>
-                        )}
+                        {canVerify &&
+                          lab.verification_status?.toUpperCase() ===
+                            "PENDING" && (
+                            <>
+                              <button
+                                onClick={() =>
+                                  handleVerifyRequest(lab, "VERIFIED")
+                                }
+                                disabled={actionLoading}
+                                className="p-1.5 rounded-lg transition-colors disabled:opacity-50"
+                                style={{
+                                  backgroundColor: "#f0fdf4",
+                                  color: "#16a34a",
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.currentTarget.style.backgroundColor =
+                                    "#dcfce7")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.currentTarget.style.backgroundColor =
+                                    "#f0fdf4")
+                                }
+                                title="Approve"
+                              >
+                                <Check className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleVerifyRequest(lab, "REJECTED")
+                                }
+                                disabled={actionLoading}
+                                className="p-1.5 rounded-lg transition-colors disabled:opacity-50"
+                                style={{
+                                  backgroundColor: "#fef2f2",
+                                  color: "#dc2626",
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.currentTarget.style.backgroundColor =
+                                    "#fee2e2")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.currentTarget.style.backgroundColor =
+                                    "#fef2f2")
+                                }
+                                title="Reject"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
                       </div>
                     </td>
                   </tr>
                 ))}
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="py-10 text-center" style={{ color: "#555555" }}>
+                    <td
+                      colSpan={7}
+                      className="py-10 text-center"
+                      style={{ color: "#555555" }}
+                    >
                       No labs found.
                     </td>
                   </tr>
@@ -330,7 +412,10 @@ const AdminLabsPage: React.FC = () => {
       {/* Detail Modal */}
       <Modal
         isOpen={isDetailOpen && !!selectedLab}
-        onClose={() => { setIsDetailOpen(false); setSelectedLab(null); }}
+        onClose={() => {
+          setIsDetailOpen(false);
+          setSelectedLab(null);
+        }}
         title="Lab Details"
         size="lg"
       >
@@ -348,7 +433,10 @@ const AdminLabsPage: React.FC = () => {
                 {selectedLab.lab_name[0]}
               </div>
               <div className="flex-1">
-                <h4 className="text-base font-bold" style={{ color: "#1a3c6e" }}>
+                <h4
+                  className="text-base font-bold"
+                  style={{ color: "#1a3c6e" }}
+                >
                   {selectedLab.lab_name}
                 </h4>
                 <p className="text-sm" style={{ color: "#555555" }}>
@@ -373,12 +461,35 @@ const AdminLabsPage: React.FC = () => {
 
             {/* Info */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <InfoRow icon={Building2} label="Lab Name"       value={selectedLab.lab_name} />
-              <InfoRow icon={FileText}  label="License Number" value={selectedLab.license_number} />
-              <InfoRow icon={Phone}     label="Phone"          value={selectedLab.phone_number} />
-              <InfoRow icon={Shield}    label="Verification"   value={selectedLab.verification_status_display || selectedLab.verification_status} />
+              <InfoRow
+                icon={Building2}
+                label="Lab Name"
+                value={selectedLab.lab_name}
+              />
+              <InfoRow
+                icon={FileText}
+                label="License Number"
+                value={selectedLab.license_number}
+              />
+              <InfoRow
+                icon={Phone}
+                label="Phone"
+                value={selectedLab.phone_number}
+              />
+              <InfoRow
+                icon={Shield}
+                label="Verification"
+                value={
+                  selectedLab.verification_status_display ||
+                  selectedLab.verification_status
+                }
+              />
               {selectedLab.verified_at && (
-                <InfoRow icon={Calendar} label="Verified At" value={new Date(selectedLab.verified_at).toLocaleString()} />
+                <InfoRow
+                  icon={Calendar}
+                  label="Verified At"
+                  value={new Date(selectedLab.verified_at).toLocaleString()}
+                />
               )}
             </div>
 
@@ -388,32 +499,42 @@ const AdminLabsPage: React.FC = () => {
                 className="text-sm font-semibold mb-2 flex items-center gap-1.5"
                 style={{ color: "#1a3c6e" }}
               >
-                <MapPin className="w-4 h-4" style={{ color: "#f47920" }} />
+                <MapPin className="w-4 h-4" style={{ color: "#36454F" }} />
                 Address
               </h5>
               <div
                 className="rounded-lg p-3 text-sm"
                 style={{ backgroundColor: "#e8f0f7", color: "#555555" }}
               >
-                {(selectedLab as any).address || selectedLab.address_line || selectedLab.city ? (
+                {(selectedLab as any).address ||
+                selectedLab.address_line ||
+                selectedLab.city ? (
                   <>
-                    {(selectedLab.address_line || (selectedLab as any).address?.address_line) && (
-                      <p>{selectedLab.address_line || (selectedLab as any).address?.address_line}</p>
+                    {(selectedLab.address_line ||
+                      (selectedLab as any).address?.address_line) && (
+                      <p>
+                        {selectedLab.address_line ||
+                          (selectedLab as any).address?.address_line}
+                      </p>
                     )}
                     <p>
                       {[
                         selectedLab.city || (selectedLab as any).address?.city,
-                        selectedLab.state || (selectedLab as any).address?.state,
+                        selectedLab.state ||
+                          (selectedLab as any).address?.state,
                       ]
                         .filter(Boolean)
                         .join(", ")}
-                      {selectedLab.pincode || (selectedLab as any).address?.pincode
+                      {selectedLab.pincode ||
+                      (selectedLab as any).address?.pincode
                         ? ` – ${selectedLab.pincode || (selectedLab as any).address?.pincode}`
                         : ""}
                     </p>
                   </>
                 ) : (
-                  <p style={{ color: "#888888", fontStyle: "italic" }}>No address on file</p>
+                  <p style={{ color: "#888888", fontStyle: "italic" }}>
+                    No address on file
+                  </p>
                 )}
               </div>
             </div>
@@ -434,12 +555,26 @@ const AdminLabsPage: React.FC = () => {
                       className="p-2 rounded-lg text-xs flex justify-between"
                       style={
                         oh.is_closed
-                          ? { backgroundColor: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626" }
-                          : { backgroundColor: "#e8f0f7", border: "1px solid #d0dff0", color: "#1a3c6e" }
+                          ? {
+                              backgroundColor: "#fef2f2",
+                              border: "1px solid #fecaca",
+                              color: "#dc2626",
+                            }
+                          : {
+                              backgroundColor: "#e8f0f7",
+                              border: "1px solid #d0dff0",
+                              color: "#1a3c6e",
+                            }
                       }
                     >
-                      <span className="font-medium">{DAY_NAMES[oh.day_of_week]}</span>
-                      <span>{oh.is_closed ? "Closed" : `${oh.open_time} – ${oh.close_time}`}</span>
+                      <span className="font-medium">
+                        {DAY_NAMES[oh.day_of_week]}
+                      </span>
+                      <span>
+                        {oh.is_closed
+                          ? "Closed"
+                          : `${oh.open_time} – ${oh.close_time}`}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -447,7 +582,11 @@ const AdminLabsPage: React.FC = () => {
             )}
 
             {selectedLab.verification_notes && (
-              <InfoRow icon={FileText} label="Verification Notes" value={selectedLab.verification_notes} />
+              <InfoRow
+                icon={FileText}
+                label="Verification Notes"
+                value={selectedLab.verification_notes}
+              />
             )}
           </div>
         )}
@@ -459,8 +598,12 @@ const AdminLabsPage: React.FC = () => {
         onConfirm={handleModalConfirm}
         title={
           actionData.type === "TOGGLE"
-            ? actionData.target?.is_active ? "Deactivate Lab" : "Activate Lab"
-            : actionData.type === "VERIFIED" ? "Verify Lab" : "Reject Lab"
+            ? actionData.target?.is_active
+              ? "Deactivate Lab"
+              : "Activate Lab"
+            : actionData.type === "VERIFIED"
+              ? "Verify Lab"
+              : "Reject Lab"
         }
         message={
           actionData.type === "TOGGLE"
@@ -473,12 +616,18 @@ const AdminLabsPage: React.FC = () => {
         }
         requireReason={true}
         reasonLabel={
-          actionData.type === "TOGGLE" ? "Reason for status change" : "Verification Notes"
+          actionData.type === "TOGGLE"
+            ? "Reason for status change"
+            : "Verification Notes"
         }
         confirmLabel={
           actionData.type === "TOGGLE"
-            ? actionData.target?.is_active ? "Deactivate" : "Activate"
-            : actionData.type === "VERIFIED" ? "Verify" : "Reject"
+            ? actionData.target?.is_active
+              ? "Deactivate"
+              : "Activate"
+            : actionData.type === "VERIFIED"
+              ? "Verify"
+              : "Reject"
         }
         loading={actionLoading}
       />

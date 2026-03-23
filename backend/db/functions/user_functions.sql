@@ -35,7 +35,7 @@ SELECT
     u.created_at,
     u.updated_at,
     u.last_login_at,
-    u.role_id
+    u.role_id,
     r.role
 FROM users u
 JOIN user_roles r

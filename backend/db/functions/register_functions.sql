@@ -6,7 +6,6 @@ CREATE OR REPLACE FUNCTION register_patient_user(
     u_emergency_contact_name varchar,
     u_emergency_contact_phone varchar,
     u_profile_image varchar,
-    u_address_id int,
     u_blood_group_id int,
     u_gender_id int,
     u_password varchar DEFAULT NULL,
@@ -92,7 +91,6 @@ INSERT INTO patients (
     emergency_contact_name,
     emergency_contact_phone,
     profile_image,
-    address_id,
     blood_group_id,
     gender_id,
     created_at,
@@ -106,7 +104,6 @@ VALUES (
     u_emergency_contact_name,
     u_emergency_contact_phone,
     u_profile_image,
-    u_address_id,
     u_blood_group_id,
     u_gender_id,
     NOW(),
@@ -129,7 +126,6 @@ CREATE OR REPLACE FUNCTION register_doctor_user(
     u_consultation_fee numeric,
     u_registration_number varchar,
     u_profile_image varchar,
-    u_address_id int,
     u_gender_id int,
     u_password varchar DEFAULT NULL,
     u_oauth_provider varchar DEFAULT NULL,
@@ -192,12 +188,12 @@ VALUES (
 
 INSERT INTO doctors (
     doctor_id, full_name, experience_years, phone_number, consultation_fee,
-    registration_number, profile_image, address_id, gender_id,
+    registration_number, profile_image, gender_id,
     verification_status, created_at, updated_at
 )
 VALUES (
     v_user_id, u_full_name, u_experience_years, u_phone_number, u_consultation_fee,
-    u_registration_number, u_profile_image, u_address_id, u_gender_id,
+    u_registration_number, u_profile_image, u_gender_id,
     'PENDING', NOW(), NOW()
 );
 
@@ -216,7 +212,6 @@ CREATE OR REPLACE FUNCTION register_lab_user(
     u_license_number varchar,
     u_phone_number varchar,
     u_lab_logo varchar,
-    u_address_id int,
     u_password varchar DEFAULT NULL,
     u_oauth_provider varchar DEFAULT NULL,
     u_oauth_provider_id varchar DEFAULT NULL
@@ -290,7 +285,6 @@ INSERT INTO labs (
     license_number,
     phone_number,
     lab_logo,
-    address_id,
     verification_status,
     created_at,
     updated_at
@@ -301,7 +295,6 @@ VALUES (
     u_license_number,
     u_phone_number,
     u_lab_logo,
-    u_address_id,
     'pending',
     NOW(),
     NOW()

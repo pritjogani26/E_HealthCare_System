@@ -51,13 +51,16 @@ SET
     updated_at = NOW()
 WHERE user_id = p_user_id;
 
+PERFORM a_auth_audit_fn(p_user_id, 'USER_LOGIN', 'SUCCESS');
+
 END;
 $$;
 
 
 
 CREATE OR REPLACE FUNCTION auth_login_failed(
-    p_user_id uuid
+    p_user_id uuid,
+    p_failure_reason text
 )
 RETURNS int
 LANGUAGE plpgsql
@@ -77,6 +80,9 @@ SET
     updated_at = NOW()
 WHERE user_id = p_user_id
 RETURNING failed_login_attempts INTO v_attempts;
+
+PERFORM a_auth_audit_fn(p_user_id, 'USER_LOGIN', 'FAILURE', p_failure_reason);
+
 
 RETURN v_attempts;
 
@@ -323,10 +329,12 @@ AND v_type_id <> p_verification_type_id THEN
 END IF;
 
 IF v_used THEN
+    PERFORM a_auth_audit_fn(v_user_id, 'EMAIL_VERIFICATION', 'FAILURE', 'Token already used.'); 
     RAISE EXCEPTION 'TOKEN_ALREADY_USED';
 END IF;
 
 IF v_expiry < NOW() THEN
+    PERFORM a_auth_audit_fn(v_user_id, 'EMAIL_VERIFICATION', 'FAILURE', 'Token expired.');
     RAISE EXCEPTION 'TOKEN_EXPIRED';
 END IF;
 
@@ -346,6 +354,8 @@ IF v_type_id = v_email_type_id THEN
     WHERE user_id = v_user_id
     AND email_verified = FALSE;
 END IF;
+
+PERFORM a_auth_audit_fn(v_user_id, 'EMAIL_VERIFICATION', 'SUCCESS', 'Email verification successful.');
 
 RETURN v_user_id;
 

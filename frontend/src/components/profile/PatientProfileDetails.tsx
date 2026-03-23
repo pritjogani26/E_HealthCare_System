@@ -26,10 +26,10 @@ export const PatientProfileDetails: React.FC<PatientProfileDetailsProps> = ({
   const [showEditModal, setShowEditModal] = useState(false);
 
   const addr = profile.address || {
-    address_line: (profile as any).address_line,
-    city: (profile as any).city,
-    state: (profile as any).state,
-    pincode: (profile as any).pincode
+    address_line: (profile as any).user?.address_line || (profile as any).address_line,
+    city: (profile as any).user?.city || (profile as any).city,
+    state: (profile as any).user?.state || (profile as any).state,
+    pincode: (profile as any).user?.pincode || (profile as any).pincode
   };
   const hasAddr = addr.address_line || addr.city || addr.state || addr.pincode;
 
@@ -71,12 +71,12 @@ export const PatientProfileDetails: React.FC<PatientProfileDetailsProps> = ({
           <InfoRow
             icon={User}
             label="Gender"
-            value={profile.gender_details?.gender_value || (profile as any).gender}
+            value={profile.gender_details?.gender_value || (profile as any).user?.gender || (profile as any).gender}
           />
           <InfoRow
             icon={Droplets}
             label="Blood Group"
-            value={profile.blood_group_details?.blood_group_value || (profile as any).blood_group}
+            value={profile.blood_group_details?.blood_group_value || (profile as any).user?.blood_group || (profile as any).blood_group}
           />
         </div>
 

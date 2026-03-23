@@ -5,6 +5,7 @@ from db.connection import (
     fetchscalar,
     execute,
 )
+from .change_data_query import generate_difference
 
 
 def get_patient_by_id(patient_id: str) -> dict | None:
@@ -23,21 +24,8 @@ def toggle_patient_is_active(patient_id, reason: str) -> dict:
     return fn_fetchone("p_get_full_patient_profile", [str(patient_id)])
 
 
-def mobile_exists(mobile: str, exclude_patient_id: str = None) -> bool:
-    if exclude_patient_id:
-        return (
-            fetchscalar(
-                "SELECT COUNT(*) FROM patients WHERE mobile=%s AND patient_id!=%s",
-                [mobile, str(exclude_patient_id)],
-            )
-            > 0
-        )
-    return (
-        fetchscalar("SELECT COUNT(*) FROM patients WHERE mobile=%s", [mobile]) > 0
-    )
-
-
 def update_patient(patient_id: str, **fields) -> dict:
+    old_patient_data = get_patient_by_id(patient_id)
     if not fields:
         return get_patient_by_id(patient_id)
     fn_scalar(
@@ -55,4 +43,6 @@ def update_patient(patient_id: str, **fields) -> dict:
             fields.get("blood_group_id"),
         ],
     )
-    return get_patient_by_id(patient_id)
+    new_patient_data = get_patient_by_id(patient_id)
+    generate_difference(old_patient_data, new_patient_data)
+    return new_patient_data

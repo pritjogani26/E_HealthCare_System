@@ -27,12 +27,13 @@ from .helpers import (
 )
 from .permissions import IsAdminOrStaff
 from .services import download_audit_service
-from .jwt_auth import rotate_refresh_token, UserWrapper
+from .jwt_auth import decode_refresh_token, rotate_refresh_token, UserWrapper
 from .serializers import (
     AuditLogsDownload,
     LoginSerializer,
     GenderSerializer,
     BloodGroupSerializer,
+    LogoutSerializer,
     UserSerializer,
     QualificationSerializer,
     ReAuthVerifySerializer,
@@ -95,9 +96,16 @@ class LoginView(generics.GenericAPIView):
 
 class LogoutView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = LogoutSerializer
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request: HttpRequest, *args, **kwargs):
         response = Response({"success": True, "message": "Logged out successfully."})
+        raw_token = request.COOKIES.get("refresh_token")
+        if not raw_token:
+            return response
+        payload = decode_refresh_token(raw_token)
+        print(f"\nPayload : {payload}")
+        aq.insert_auth_audit(payload["user_id"], "LOGOUT", "SUCCESS")
         response.delete_cookie("refresh_token")
         return response
 
@@ -138,8 +146,6 @@ class GoogleAuthView(generics.GenericAPIView):
             raise ValidationException("Google token is required.")
 
         idinfo = OAuthService.verify_google_token(token)
-        # if error:
-        #     raise AuthenticationException("Google token verification failed.")
 
         email = idinfo.get("email")
         if not email:
@@ -170,12 +176,13 @@ class GoogleAuthView(generics.GenericAPIView):
             uq.update_oauth_provider(user["user_id"], "google", idinfo.get("sub"))
             user = uq.get_user_by_id(user["user_id"])
 
-
-        AuthService.handle_successful_login(user["user_id"], )
+        AuthService.handle_successful_login(
+            user["user_id"],
+        )
         user_permission = uq.get_user_permission_by_id(user["role_id"])
 
         response_dict, rt = set_auth_response_with_tokens(
-            user, "Google login successful.", user_permission 
+            user, "Google login successful.", user_permission
         )
         response = Response(response_dict, status=status.HTTP_200_OK)
         set_refresh_token_cookie(response, rt)
@@ -302,9 +309,13 @@ class AdminTogglePatientStatusView(generics.GenericAPIView):
             raise NotFoundException("Patient not found.")
 
         reason = request.data.get("reason", "")
+        print(request.data)
         patient, action = AdminService.toggle_patient_status(
             patient_id=str(user_id),
             reason=reason,
+        )
+        aq.insert_patient_audit(
+            request.user.user_id, f"USER_{action.upper()}", "SUCCESS", user_id
         )
         serializer = self.get_serializer(data=patient)
         serializer.is_valid(raise_exception=True)
@@ -343,9 +354,7 @@ class AdminToggleLabStatusView(generics.GenericAPIView):
             raise NotFoundException("Lab not found.")
 
         reason = request.data.get("reason", "")
-        lab, action = AdminService.toggle_lab_status(
-            lab_user_id=user_id, reason=reason
-        )
+        lab, action = AdminService.toggle_lab_status(lab_user_id=user_id, reason=reason)
         uid = str(lab["lab_id"])
         lab["operating_hours"] = lq.get_lab_operating_hours(uid)
         lab["services"] = lq.get_lab_services(uid)
@@ -443,13 +452,14 @@ class RecentActivityView(generics.GenericAPIView):
         ]
         print(f"\n\nLength of Audit Logs : {len(rows)}")
         return _ok(data)
-    
+
     def post(self, request):
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         status = serializer.validated_data["status"]
         file_type = serializer.validated_data["type"]
-        
+
         print(f"\n\nStatus : {status} \nType : {file_type}")
 
         rows = aq.get_recent_activity(limit=100)
@@ -458,7 +468,7 @@ class RecentActivityView(generics.GenericAPIView):
         #     print("Status of Row is ", end="  ")
         #     print(r.get("status"), end="\n")
 
-        rows = [r for r in rows if r.get("status")==status or status == "ALL" ]
+        rows = [r for r in rows if r.get("status") == status or status == "ALL"]
         # print(rows)
 
         data = [
@@ -481,7 +491,9 @@ class RecentActivityView(generics.GenericAPIView):
         ]
         print(f"\n\nLength of Audit Logs : {len(rows)}")
 
-        filename = f"audit_logs_{status.lower()}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        filename = (
+            f"audit_logs_{status.lower()}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        )
 
         if file_type == "CSV":
             return download_audit_service.generate_csv(data, filename)

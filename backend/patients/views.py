@@ -53,7 +53,7 @@ class PatientRegistrationView(generics.GenericAPIView):
             },
             status=status.HTTP_201_CREATED,
         )
-    
+
 
 class PatientProfileView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
@@ -78,11 +78,13 @@ class PatientProfileView(generics.GenericAPIView):
 
     def _update(self, request, partial=False):
         patient = self._get_patient(request)
-
+        print(f"\nPatient for Update : {request.data}")
+        address = request.data["address"]
+        print(f"\nAddress : {address}")
+        
         serializer = PatientProfileUpdateSerializer(
             data=request.data,
             partial=partial,
-            context={"patient_id": patient["patient_id"]},
         )
         serializer.is_valid(raise_exception=True)
 

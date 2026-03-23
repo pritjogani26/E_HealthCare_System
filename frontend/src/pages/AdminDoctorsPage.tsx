@@ -225,8 +225,21 @@ const AdminDoctorsPage: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr style={{ backgroundColor: "#e8f0f7", borderBottom: "1px solid #d0dff0" }}>
-                  {["No.", "Name", "Email", "Phone", "Verification", "Status", "Actions"].map((h) => (
+                <tr
+                  style={{
+                    backgroundColor: "#e8f0f7",
+                    borderBottom: "1px solid #d0dff0",
+                  }}
+                >
+                  {[
+                    "No.",
+                    "Name",
+                    "Email",
+                    "Phone",
+                    "Verification",
+                    "Status",
+                    "Actions",
+                  ].map((h) => (
                     <th
                       key={h}
                       className="text-left py-3 px-4 font-semibold"
@@ -242,19 +255,33 @@ const AdminDoctorsPage: React.FC = () => {
                   <tr
                     key={doc.doctor_id}
                     style={{ borderBottom: "1px solid #e8f0f7" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f5f8fc")}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor = "#f5f8fc")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.backgroundColor = "transparent")
+                    }
                   >
                     <td className="py-3 px-4" style={{ color: "#555555" }}>
                       {indexOfFirst + idx + 1}
                     </td>
-                    <td className="py-3 px-4 font-medium" style={{ color: "#1a3c6e" }}>
+                    <td
+                      className="py-3 px-4 font-medium"
+                      style={{ color: "#1a3c6e" }}
+                    >
                       {doc.full_name}
                     </td>
-                    <td className="py-3 px-4" style={{ color: "#555555" }}>{doc.email}</td>
-                    <td className="py-3 px-4" style={{ color: "#555555" }}>{doc.phone_number}</td>
+                    <td className="py-3 px-4" style={{ color: "#555555" }}>
+                      {doc.email}
+                    </td>
+                    <td className="py-3 px-4" style={{ color: "#555555" }}>
+                      {doc.phone_number}
+                    </td>
                     <td className="py-3 px-4">
-                      <StatusBadge status={doc.verification_status} label={doc.verification_status} />
+                      <StatusBadge
+                        status={doc.verification_status}
+                        label={doc.verification_status}
+                      />
                     </td>
                     <td className="py-3 px-4">
                       <StatusBadge type="active" status={doc.is_active} />
@@ -263,43 +290,77 @@ const AdminDoctorsPage: React.FC = () => {
                       <div className="flex items-center gap-1.5">
                         {/* View */}
                         <button
-                          onClick={() => { setSelectedDoctor(doc); setIsDetailOpen(true); }}
+                          onClick={() => {
+                            setSelectedDoctor(doc);
+                            setIsDetailOpen(true);
+                          }}
                           className="p-1.5 rounded-lg transition-colors"
-                          style={{ backgroundColor: "#e8f0f7", color: "#1a3c6e" }}
-                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#d0dff0")}
-                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#e8f0f7")}
+                          style={{
+                            backgroundColor: "#e8f0f7",
+                            color: "#1a3c6e",
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.backgroundColor = "#d0dff0")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.backgroundColor = "#e8f0f7")
+                          }
                           title="View"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
 
                         {/* Approve / Reject */}
-                        {canVerify && doc.verification_status?.toUpperCase() === "PENDING" && (
-                          <>
-                            <button
-                              onClick={() => handleVerifyRequest(doc, "VERIFIED")}
-                              disabled={actionLoading}
-                              className="p-1.5 rounded-lg transition-colors disabled:opacity-50"
-                              style={{ backgroundColor: "#f0fdf4", color: "#16a34a" }}
-                              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#dcfce7")}
-                              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#f0fdf4")}
-                              title="Approve"
-                            >
-                              <Check className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleVerifyRequest(doc, "REJECTED")}
-                              disabled={actionLoading}
-                              className="p-1.5 rounded-lg transition-colors disabled:opacity-50"
-                              style={{ backgroundColor: "#fef2f2", color: "#dc2626" }}
-                              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#fee2e2")}
-                              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#fef2f2")}
-                              title="Reject"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </>
-                        )}
+                        {canVerify &&
+                          doc.verification_status?.toUpperCase() ===
+                            "PENDING" && (
+                            <>
+                              <button
+                                onClick={() =>
+                                  handleVerifyRequest(doc, "VERIFIED")
+                                }
+                                disabled={actionLoading}
+                                className="p-1.5 rounded-lg transition-colors disabled:opacity-50"
+                                style={{
+                                  backgroundColor: "#f0fdf4",
+                                  color: "#16a34a",
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.currentTarget.style.backgroundColor =
+                                    "#dcfce7")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.currentTarget.style.backgroundColor =
+                                    "#f0fdf4")
+                                }
+                                title="Approve"
+                              >
+                                <Check className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleVerifyRequest(doc, "REJECTED")
+                                }
+                                disabled={actionLoading}
+                                className="p-1.5 rounded-lg transition-colors disabled:opacity-50"
+                                style={{
+                                  backgroundColor: "#fef2f2",
+                                  color: "#dc2626",
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.currentTarget.style.backgroundColor =
+                                    "#fee2e2")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.currentTarget.style.backgroundColor =
+                                    "#fef2f2")
+                                }
+                                title="Reject"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
 
                         {/* Toggle */}
                         {canToggle && (
@@ -309,18 +370,36 @@ const AdminDoctorsPage: React.FC = () => {
                             className="p-1.5 rounded-lg transition-colors disabled:opacity-50"
                             style={
                               doc.is_active
-                                ? { backgroundColor: "#fef2f2", color: "#dc2626" }
-                                : { backgroundColor: "#f0fdf4", color: "#16a34a" }
+                                ? {
+                                    backgroundColor: "#fef2f2",
+                                    color: "#dc2626",
+                                  }
+                                : {
+                                    backgroundColor: "#f0fdf4",
+                                    color: "#16a34a",
+                                  }
                             }
                             onMouseEnter={(e) => {
-                              (e.currentTarget as HTMLButtonElement).style.backgroundColor = doc.is_active ? "#fee2e2" : "#dcfce7";
+                              (
+                                e.currentTarget as HTMLButtonElement
+                              ).style.backgroundColor = doc.is_active
+                                ? "#fee2e2"
+                                : "#dcfce7";
                             }}
                             onMouseLeave={(e) => {
-                              (e.currentTarget as HTMLButtonElement).style.backgroundColor = doc.is_active ? "#fef2f2" : "#f0fdf4";
+                              (
+                                e.currentTarget as HTMLButtonElement
+                              ).style.backgroundColor = doc.is_active
+                                ? "#fef2f2"
+                                : "#f0fdf4";
                             }}
                             title={doc.is_active ? "Deactivate" : "Activate"}
                           >
-                            {doc.is_active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+                            {doc.is_active ? (
+                              <UserX className="w-4 h-4" />
+                            ) : (
+                              <UserCheck className="w-4 h-4" />
+                            )}
                           </button>
                         )}
                       </div>
@@ -329,7 +408,11 @@ const AdminDoctorsPage: React.FC = () => {
                 ))}
                 {current.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="py-10 text-center" style={{ color: "#555555" }}>
+                    <td
+                      colSpan={7}
+                      className="py-10 text-center"
+                      style={{ color: "#555555" }}
+                    >
                       No doctors found.
                     </td>
                   </tr>
@@ -352,7 +435,10 @@ const AdminDoctorsPage: React.FC = () => {
       {/* Detail Modal */}
       <Modal
         isOpen={isDetailOpen && !!selectedDoctor}
-        onClose={() => { setIsDetailOpen(false); setSelectedDoctor(null); }}
+        onClose={() => {
+          setIsDetailOpen(false);
+          setSelectedDoctor(null);
+        }}
         title="Doctor Details"
       >
         {selectedDoctor && (
@@ -369,7 +455,10 @@ const AdminDoctorsPage: React.FC = () => {
                 {selectedDoctor.full_name[0]}
               </div>
               <div className="flex-1">
-                <h4 className="text-base font-bold" style={{ color: "#1a3c6e" }}>
+                <h4
+                  className="text-base font-bold"
+                  style={{ color: "#1a3c6e" }}
+                >
                   {selectedDoctor.full_name}
                 </h4>
                 <p className="text-sm" style={{ color: "#555555" }}>
@@ -398,26 +487,72 @@ const AdminDoctorsPage: React.FC = () => {
                 className="text-sm font-semibold mb-3 flex items-center gap-1.5"
                 style={{ color: "#1a3c6e" }}
               >
-                <Stethoscope className="w-4 h-4" style={{ color: "#f47920" }} />
+                <Stethoscope className="w-4 h-4" style={{ color: "#36454F" }} />
                 Doctor Information
               </h5>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <InfoRow icon={UserIcon}  label="Full Name"   value={selectedDoctor.full_name} />
-                <InfoRow icon={Mail}      label="Email"       value={selectedDoctor.email} />
-                <InfoRow icon={Phone}     label="Phone"       value={selectedDoctor.phone_number} />
-                <InfoRow icon={UserIcon}  label="Gender"      value={selectedDoctor.gender} />
-                <InfoRow icon={FileText}  label="Reg. Number" value={selectedDoctor.registration_number} />
-                <InfoRow icon={Award}     label="Experience"  value={`${selectedDoctor.experience_years} years`} />
-                <InfoRow icon={Activity}  label="Fee"         value={selectedDoctor.consultation_fee ? `₹${selectedDoctor.consultation_fee}` : null} />
-                <InfoRow icon={Shield}    label="Verification" value={selectedDoctor.verification_status} />
+                <InfoRow
+                  icon={UserIcon}
+                  label="Full Name"
+                  value={selectedDoctor.full_name}
+                />
+                <InfoRow
+                  icon={Mail}
+                  label="Email"
+                  value={selectedDoctor.email}
+                />
+                <InfoRow
+                  icon={Phone}
+                  label="Phone"
+                  value={selectedDoctor.phone_number}
+                />
+                <InfoRow
+                  icon={UserIcon}
+                  label="Gender"
+                  value={selectedDoctor.gender}
+                />
+                <InfoRow
+                  icon={FileText}
+                  label="Reg. Number"
+                  value={selectedDoctor.registration_number}
+                />
+                <InfoRow
+                  icon={Award}
+                  label="Experience"
+                  value={`${selectedDoctor.experience_years} years`}
+                />
+                <InfoRow
+                  icon={Activity}
+                  label="Fee"
+                  value={
+                    selectedDoctor.consultation_fee
+                      ? `₹${selectedDoctor.consultation_fee}`
+                      : null
+                  }
+                />
+                <InfoRow
+                  icon={Shield}
+                  label="Verification"
+                  value={selectedDoctor.verification_status}
+                />
                 {selectedDoctor.verified_at && (
-                  <InfoRow icon={Calendar} label="Verified At" value={new Date(selectedDoctor.verified_at).toLocaleString()} />
+                  <InfoRow
+                    icon={Calendar}
+                    label="Verified At"
+                    value={new Date(
+                      selectedDoctor.verified_at,
+                    ).toLocaleString()}
+                  />
                 )}
               </div>
             </div>
 
             {selectedDoctor.verification_notes && (
-              <InfoRow icon={FileText} label="Verification Notes" value={selectedDoctor.verification_notes} />
+              <InfoRow
+                icon={FileText}
+                label="Verification Notes"
+                value={selectedDoctor.verification_notes}
+              />
             )}
           </div>
         )}
@@ -429,8 +564,12 @@ const AdminDoctorsPage: React.FC = () => {
         onConfirm={handleModalConfirm}
         title={
           actionData.type === "TOGGLE"
-            ? actionData.target?.is_active ? "Deactivate Doctor" : "Activate Doctor"
-            : actionData.type === "VERIFIED" ? "Verify Doctor" : "Reject Doctor"
+            ? actionData.target?.is_active
+              ? "Deactivate Doctor"
+              : "Activate Doctor"
+            : actionData.type === "VERIFIED"
+              ? "Verify Doctor"
+              : "Reject Doctor"
         }
         message={
           actionData.type === "TOGGLE"
@@ -443,12 +582,18 @@ const AdminDoctorsPage: React.FC = () => {
         }
         requireReason={true}
         reasonLabel={
-          actionData.type === "TOGGLE" ? "Reason for status change" : "Verification Notes"
+          actionData.type === "TOGGLE"
+            ? "Reason for status change"
+            : "Verification Notes"
         }
         confirmLabel={
           actionData.type === "TOGGLE"
-            ? actionData.target?.is_active ? "Deactivate" : "Activate"
-            : actionData.type === "VERIFIED" ? "Verify" : "Reject"
+            ? actionData.target?.is_active
+              ? "Deactivate"
+              : "Activate"
+            : actionData.type === "VERIFIED"
+              ? "Verify"
+              : "Reject"
         }
         loading={actionLoading}
       />

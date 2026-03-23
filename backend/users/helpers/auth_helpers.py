@@ -15,7 +15,7 @@ def set_auth_response_with_tokens(user, message, permissions_list):
             "token_type": tokens["token_type"],
             "expires_in": tokens["expires_in"],
         },
-        "permissions": permissions_list
+        "permissions": permissions_list,
     }
     return response_dict, tokens["refresh_token"]
 
@@ -23,7 +23,7 @@ def set_auth_response_with_tokens(user, message, permissions_list):
 def set_refresh_token_cookie(
     response: HttpResponse, refresh_token: str
 ) -> HttpResponse:
-    print("\nResponse token is generating.")
+    print("\nNew Refresh token is generating.")
     refresh_days = getattr(settings, "JWT_REFRESH_EXPIRE_DAYS", 7)
     response.set_cookie(
         key="refresh_token",

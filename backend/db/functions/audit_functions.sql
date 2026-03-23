@@ -65,3 +65,38 @@ ORDER BY a.created_at DESC
 LIMIT a_limit;
 END;
 $$;
+
+
+create or replace function a_auth_audit_fn(
+    u_user_id uuid,
+    u_action varchar,
+    u_status varchar,
+    u_failure_reason text default null
+)
+returns VOID
+LANGUAGE plpgsql
+as $$
+BEGIN   
+    insert into audit_auth (user_id, action, status, failure_reason)
+    values (u_user_id, u_action, u_status, u_failure_reason);
+end;
+$$;
+
+create or replace function a_patient_audit_insert_fn(
+    u_user_id uuid,
+    u_action varchar,
+    u_status varchar,
+
+    u_targeted_user_id uuid default null,
+    u_old_data JSONB default null,
+    u_new_data JSONB default null,
+    u_failure_reason text default null
+)
+returns void
+LANGUAGE plpgsql
+as $$
+BEGIN
+    insert into audit_patients (user_id, targeted_user_id, action, status, old_data, new_data, failure_reason)
+    values (u_user_id, u_targeted_user_id, u_action, u_status, u_old_data, u_new_data, u_failure_reason);
+end;
+$$;
