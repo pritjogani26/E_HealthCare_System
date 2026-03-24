@@ -31,13 +31,14 @@ class ProfileService(BaseProfileService):
         user_id = str(doctor_dict.get("doctor_id") or doctor_dict.get("doctor_user_id"))
         data = serializer.validated_data
 
-        address_id = doctor_dict.get("address_id")
-        address_fields = {k: data.get(k) for k in ("address_line", "city", "state", "pincode")}
+        addr = data.get("address") or {}
+        address_fields = {k: addr.get(k) if k in addr else data.get(k) for k in ("address_line", "city", "state", "pincode")}
         if any(v is not None for v in address_fields.values()):
-            if address_id:
-                uq.update_address(address_id, **{k: v for k, v in address_fields.items() if v is not None})
+            if doctor_dict.get("address_line"):
+                uq.update_address_by_user_id(user_id, **{k: v for k, v in address_fields.items() if v is not None})
             else:
-                address_id = uq.create_address(
+                uq.create_address(
+                    user_id=user_id,
                     address_line=address_fields.get("address_line", ""),
                     city=address_fields.get("city", ""),
                     state=address_fields.get("state", ""),
@@ -50,8 +51,7 @@ class ProfileService(BaseProfileService):
                       "consultation_fee", "registration_number", "profile_image", "gender_id")
             if k in data
         }
-        if address_id and address_id != doctor_dict.get("address_id"):
-            profile_fields["address_id"] = address_id
+        pass
         if profile_fields:
             dq.update_doctor(user_id, **profile_fields)
 

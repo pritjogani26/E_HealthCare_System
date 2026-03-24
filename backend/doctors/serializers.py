@@ -23,7 +23,6 @@ class _UserOut(serializers.Serializer):
 
 
 class _AddressOut(serializers.Serializer):
-    address_id = serializers.IntegerField()
     address_line = serializers.CharField()
     city = serializers.CharField()
     state = serializers.CharField()
@@ -157,11 +156,10 @@ class DoctorProfileSerializer(serializers.Serializer):
 
     def get_address(self, obj):
         d = self._d(obj)
-        if not d.get("address_id"):
+        if not d.get("address_line"):
             return None
         return _AddressOut(
             {
-                "address_id": d["address_id"],
                 "address_line": d.get("address_line", ""),
                 "city": d.get("city", ""),
                 "state": d.get("state", ""),
@@ -294,22 +292,11 @@ class DoctorProfileUpdateSerializer(serializers.Serializer):
     pincode = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, max_length=10
     )
+    address = serializers.JSONField(required=False, allow_null=True)
     qualifications = _QualWriteSerializer(many=True, required=False)
     specializations = _SpecWriteSerializer(many=True, required=False)
     schedule = DoctorScheduleWriteSerializer(required=False)
 
-    def validate_phone_number(self, value):
-        doctor_id = self.context.get("doctor_id")
-        if dq.phone_exists(value, exclude_doctor_id=doctor_id):
-            raise serializers.ValidationError(
-                "A doctor with this phone number already exists."
-            )
-        return value
-
-    def validate_gender_id(self, value):
-        if value and not uq.gender_exists(value):
-            raise serializers.ValidationError("Invalid gender ID.")
-        return value
 
 
 class AppointmentSlotSerializer(serializers.Serializer):

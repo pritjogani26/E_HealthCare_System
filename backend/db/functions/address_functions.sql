@@ -3,7 +3,7 @@ CREATE OR REPLACE FUNCTION public.o_insert_address(
     p_city         VARCHAR,
     p_state        VARCHAR,
     p_pincode      VARCHAR,
-    u_user_id uuid
+    p_user_id      UUID
 )
 RETURNS INTEGER
 LANGUAGE plpgsql
@@ -12,10 +12,10 @@ DECLARE
     v_address_id INTEGER;
 BEGIN
     IF TRIM(p_address_line) = '' OR TRIM(p_city) = '' OR 
-    TRIM(p_state) = '' OR TRIM(p_pincode) = '' THEN
+       TRIM(p_state) = '' OR TRIM(p_pincode) = '' THEN
         RAISE EXCEPTION 'INVALID_INPUT: Address fields cannot be empty';
     END IF;
-    
+
     INSERT INTO public.addresses (
         address_line,
         city,
@@ -32,7 +32,7 @@ BEGIN
         p_pincode,
         NOW(),
         NOW(),
-        u_user_id
+        p_user_id
     )
     RETURNING address_id INTO v_address_id;
 

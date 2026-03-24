@@ -8,18 +8,11 @@ CREATE TABLE IF NOT EXISTS public.patients
     profile_image character varying(255) COLLATE pg_catalog."default" NOT NULL,
     created_at timestamp with time zone NOT NULL DEFAULT now(),
     updated_at timestamp with time zone NOT NULL DEFAULT now(),
-    address_id integer,
     blood_group_id integer,
     gender_id integer,
     patient_id uuid NOT NULL,
     CONSTRAINT patients_pkey PRIMARY KEY (patient_id),
-    CONSTRAINT patients_address_id_key UNIQUE (address_id),
     CONSTRAINT patients_user_id_key UNIQUE (patient_id),
-    CONSTRAINT patients_address_id_309cdd3b_fk_addresses_address_id FOREIGN KEY (address_id)
-        REFERENCES public.addresses (address_id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
-        DEFERRABLE INITIALLY DEFERRED,
     CONSTRAINT patients_blood_group_id_81adc630_fk_blood_groups_blood_group_id FOREIGN KEY (blood_group_id)
         REFERENCES public.blood_groups (blood_group_id) MATCH SIMPLE
         ON UPDATE NO ACTION
@@ -35,4 +28,4 @@ CREATE TABLE IF NOT EXISTS public.patients
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
         DEFERRABLE INITIALLY DEFERRED
-)
+);

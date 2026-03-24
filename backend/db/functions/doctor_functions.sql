@@ -1,36 +1,35 @@
 CREATE OR REPLACE FUNCTION d_get_full_doctor_profile(p_doctor_id uuid)
 RETURNS TABLE(
-    doctor_id          uuid,
-    email              varchar,
-    email_verified     boolean,
-    is_active          boolean,
-    two_factor_enabled boolean,
-    last_login_at      timestamptz,
-    role               varchar,
+    doctor_id           uuid,
+    email               varchar,
+    email_verified      boolean,
+    is_active           boolean,
+    two_factor_enabled  boolean,
+    last_login_at       timestamptz,
+    role                varchar,
 
-    full_name          varchar,
-    experience_years   numeric,
-    phone_number       varchar,
-    consultation_fee   numeric,
+    full_name           varchar,
+    experience_years    numeric,
+    phone_number        varchar,
+    consultation_fee    numeric,
     registration_number varchar,
-    profile_image      varchar,
+    profile_image       varchar,
 
-    address_id         int,
-    address_line       text,
-    city               varchar,
-    state              varchar,
-    pincode            varchar,
+    address_line        text,
+    city                varchar,
+    state               varchar,
+    pincode             varchar,
 
-    gender_id          int,
-    gender_value       varchar,
+    gender_id           int,
+    gender_value        varchar,
 
     verification_status varchar,
     verification_notes  text,
     verified_at         timestamptz,
     verified_by_id      uuid,
 
-    created_at         timestamptz,
-    updated_at         timestamptz
+    created_at          timestamptz,
+    updated_at          timestamptz
 )
 LANGUAGE plpgsql AS $$
 BEGIN
@@ -51,7 +50,6 @@ BEGIN
         d.registration_number,
         d.profile_image,
 
-        d.address_id,
         a.address_line,
         a.city,
         a.state,
@@ -70,12 +68,11 @@ BEGIN
     FROM doctors d
     JOIN users u ON u.user_id = d.doctor_id
     JOIN user_roles r ON r.role_id = u.role_id
-    LEFT JOIN addresses a ON a.address_id = d.address_id
+    LEFT JOIN addresses a ON a.user_id = d.doctor_id
     LEFT JOIN genders g ON g.gender_id = d.gender_id
     WHERE d.doctor_id = p_doctor_id;
 END;
 $$;
-
 
 CREATE OR REPLACE FUNCTION d_list_doctors()
 RETURNS TABLE(
@@ -123,15 +120,14 @@ $$;
 
 
 CREATE OR REPLACE FUNCTION d_update_doctor_profile(
-    p_doctor_id          uuid,
-    p_full_name          varchar  DEFAULT NULL,
-    p_experience_years   numeric  DEFAULT NULL,
-    p_phone_number       varchar  DEFAULT NULL,
-    p_consultation_fee   numeric  DEFAULT NULL,
-    p_registration_number varchar DEFAULT NULL,
-    p_profile_image      varchar  DEFAULT NULL,
-    p_address_id         int      DEFAULT NULL,
-    p_gender_id          int      DEFAULT NULL
+    p_doctor_id           uuid,
+    p_full_name           varchar  DEFAULT NULL,
+    p_experience_years    numeric  DEFAULT NULL,
+    p_phone_number        varchar  DEFAULT NULL,
+    p_consultation_fee    numeric  DEFAULT NULL,
+    p_registration_number varchar  DEFAULT NULL,
+    p_profile_image       varchar  DEFAULT NULL,
+    p_gender_id           int      DEFAULT NULL
 )
 RETURNS boolean
 LANGUAGE plpgsql AS $$
@@ -148,7 +144,6 @@ BEGIN
         consultation_fee    = COALESCE(p_consultation_fee, consultation_fee),
         registration_number = COALESCE(p_registration_number, registration_number),
         profile_image       = COALESCE(p_profile_image, profile_image),
-        address_id          = COALESCE(p_address_id, address_id),
         gender_id           = COALESCE(p_gender_id, gender_id),
         updated_at          = NOW()
     WHERE doctor_id = p_doctor_id;

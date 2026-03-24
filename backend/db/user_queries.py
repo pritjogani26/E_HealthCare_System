@@ -109,34 +109,22 @@ def blood_group_exists(blood_group_id: int) -> bool:
     )
 
 
-def create_address(
-    address_line="", city="", state="", pincode="", latitude=None, longitude=None
-) -> int:
-    row = fetchone(
-        """
-        INSERT INTO addresses (address_line, city, state, pincode, created_at, updated_at)
-        VALUES (%s, %s, %s, %s, NOW(), NOW())
-        RETURNING address_id
-        """,
-        [address_line, city, state, pincode],
-    )
-    return row["address_id"]
-
-
-def update_address(address_id: int, **fields):
-    if not fields:
-        return
-    fn_scalar(
-        "o_update_address",
-        [
-            address_id,
-            fields.get("address_line"),
-            fields.get("city"),
-            fields.get("state"),
-            fields.get("pincode"),
-        ],
-    )
-
-
 def get_address(address_id: int) -> dict | None:
     return fetchone("SELECT * FROM addresses WHERE address_id=%s", [address_id])
+
+
+def create_address(user_id: str, address_line: str = "", city: str = "", state: str = "", pincode: str = "") -> int:
+    from db.connection import fn_fetchone
+    res = fn_fetchone("o_insert_address", [address_line, city, state, pincode, str(user_id)])
+    return list(res.values())[0]
+
+
+def update_address_by_user_id(user_id: str, address_line: str = None, city: str = None, state: str = None, pincode: str = None) -> bool:
+    from db.connection import fn_scalar
+    return fn_scalar("o_update_address_by_user_id", [
+        str(user_id),
+        address_line,
+        city,
+        state,
+        pincode
+    ])

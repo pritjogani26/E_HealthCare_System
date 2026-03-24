@@ -17,22 +17,25 @@ class ProfileService(BaseProfileService):
         patient_id = str(patient_dict.get("patient_id") or patient_dict.get("user_id"))
         data = serializer.validated_data
         print(f"\nPatient data : {data}")
-        address_id = patient_dict.get("address_id")
+        addr = data.get("address") or {}
         address_fields = {
-            k: data.get(k) for k in ("address_line", "city", "state", "pincode")
+            k: addr.get(k) if k in addr else data.get(k)
+            for k in ("address_line", "city", "state", "pincode")
         }
         print(f"\n\nAddress Fields : {address_fields}")
 
         if any(v is not None for v in address_fields.values()):
-            if address_id:
-                print("\nYes Address Id is available.")
-                uq.update_address(
-                    address_id,
+            if patient_dict.get("address_line"):
+                print("\nYes Address is available. Updating.")
+                uq.update_address_by_user_id(
+                    patient_id,
                     **{k: v for k, v in address_fields.items() if v is not None},
                 )
                 print("\nUpdate Successful.")
             else:
-                address_id = uq.create_address(
+                print("\nCreating new address.")
+                uq.create_address(
+                    user_id=patient_id,
                     address_line=address_fields.get("address_line", ""),
                     city=address_fields.get("city", ""),
                     state=address_fields.get("state", ""),
@@ -53,8 +56,6 @@ class ProfileService(BaseProfileService):
             )
             if k in data
         }
-        if address_id and address_id != patient_dict.get("address_id"):
-            profile_fields["address_id"] = address_id
-
+        # Removed profile_fields["address_id"] = address_id
         updated = pq.update_patient(patient_id, **profile_fields)
         return PatientProfileSerializer(updated).data

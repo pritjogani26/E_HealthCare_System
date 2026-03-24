@@ -20,7 +20,9 @@ class RegistrationService:
         state = data.get("state") or ""
         pincode = data.get("pincode") or ""
 
-        res = fn_fetchone("o_insert_address", [address_line, city, state, pincode, user_id])
+        res = fn_fetchone(
+            "o_insert_address", [address_line, city, state, pincode, user_id]
+        )
         address_id = list(res.values())[0]
         return address_id
 
@@ -114,6 +116,7 @@ class RegistrationService:
 
         address_id = RegistrationService.register_address(data, lab_id)
         print(f"Lab Added Successfully, ID : {lab_id}")
+        print(f"Address Added Successfully, ID : {address_id}")
 
         for op in data.get("operating_hours"):
             res = fn_fetchone(

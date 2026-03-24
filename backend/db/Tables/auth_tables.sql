@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS public.users
     status_change_reason character varying(255) COLLATE pg_catalog."default",
     CONSTRAINT users_pkey PRIMARY KEY (user_id),
     CONSTRAINT users_email_key UNIQUE (email)
-)
+);
 
 
 
@@ -63,3 +63,5 @@ CREATE TABLE IF NOT EXISTS public.user_refresh_tokens
         ON UPDATE NO ACTION
         ON DELETE CASCADE
 );
+
+

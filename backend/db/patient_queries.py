@@ -38,7 +38,6 @@ def update_patient(patient_id: str, **fields) -> dict:
             fields.get("emergency_contact_name"),
             fields.get("emergency_contact_phone"),
             fields.get("profile_image"),
-            fields.get("address_id"),
             fields.get("gender_id"),
             fields.get("blood_group_id"),
         ],

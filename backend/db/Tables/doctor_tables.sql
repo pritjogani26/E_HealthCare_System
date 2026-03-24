@@ -9,19 +9,12 @@ CREATE TABLE IF NOT EXISTS public.doctors
     profile_image character varying(255) COLLATE pg_catalog."default" NOT NULL,
     created_at timestamp with time zone NOT NULL DEFAULT now(),
     updated_at timestamp with time zone NOT NULL DEFAULT now(),
-    address_id integer,
     gender_id integer,
     verification_status character varying(20) COLLATE pg_catalog."default" NOT NULL,
     verification_notes text COLLATE pg_catalog."default",
     verified_at timestamp with time zone,
     verified_by_id uuid,
     CONSTRAINT doctors_pkey PRIMARY KEY (doctor_id),
-    CONSTRAINT doctors_address_id_key UNIQUE (address_id),
-    CONSTRAINT doctors_address_id_52247b9c_fk_addresses_address_id FOREIGN KEY (address_id)
-        REFERENCES public.addresses (address_id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
-        DEFERRABLE INITIALLY DEFERRED,
     CONSTRAINT doctors_gender_id_9b833a22_fk_genders_gender_id FOREIGN KEY (gender_id)
         REFERENCES public.genders (gender_id) MATCH SIMPLE
         ON UPDATE NO ACTION
@@ -38,6 +31,7 @@ CREATE TABLE IF NOT EXISTS public.doctors
         ON DELETE NO ACTION
         DEFERRABLE INITIALLY DEFERRED
 );
+
 
 CREATE TABLE IF NOT EXISTS public.appointment_slots
 (

@@ -1,23 +1,22 @@
 CREATE OR REPLACE FUNCTION l_get_full_lab_profile(p_lab_id uuid)
 RETURNS TABLE(
-    lab_id             uuid,
-    email              varchar,
-    email_verified     boolean,
-    is_active          boolean,
-    two_factor_enabled boolean,
-    last_login_at      timestamptz,
-    role               varchar,
+    lab_id              uuid,
+    email               varchar,
+    email_verified      boolean,
+    is_active           boolean,
+    two_factor_enabled  boolean,
+    last_login_at       timestamptz,
+    role                varchar,
 
-    lab_name           varchar,
-    license_number     varchar,
-    phone_number       varchar,
-    lab_logo           varchar,
+    lab_name            varchar,
+    license_number      varchar,
+    phone_number        varchar,
+    lab_logo            varchar,
 
-    address_id         int,
-    address_line       text,
-    city               varchar,
-    state              varchar,
-    pincode            varchar,
+    address_line        text,
+    city                varchar,
+    state               varchar,
+    pincode             varchar,
 
     verification_status varchar,
     verification_notes  text,
@@ -25,8 +24,8 @@ RETURNS TABLE(
     verified_by_id      uuid,
     verified_by_email   varchar,
 
-    created_at         timestamptz,
-    updated_at         timestamptz
+    created_at          timestamptz,
+    updated_at          timestamptz
 )
 LANGUAGE plpgsql AS $$
 BEGIN
@@ -45,7 +44,6 @@ BEGIN
         l.phone_number,
         l.lab_logo,
 
-        l.address_id,
         a.address_line,
         a.city,
         a.state,
@@ -62,32 +60,30 @@ BEGIN
     FROM labs l
     JOIN users u ON u.user_id = l.lab_id
     JOIN user_roles r ON r.role_id = u.role_id
-    LEFT JOIN addresses a ON a.address_id = l.address_id
+    LEFT JOIN addresses a ON a.user_id = l.lab_id
     LEFT JOIN users v ON v.user_id = l.verified_by_id
     WHERE l.lab_id = p_lab_id;
 END;
 $$;
 
-
 CREATE OR REPLACE FUNCTION l_list_labs()
 RETURNS TABLE(
-    lab_id             uuid,
-    email              varchar,
-    email_verified     boolean,
-    is_active          boolean,
-    last_login_at      timestamptz,
-    role               varchar,
+    lab_id              uuid,
+    email               varchar,
+    email_verified      boolean,
+    is_active           boolean,
+    last_login_at       timestamptz,
+    role                varchar,
 
-    lab_name           varchar,
-    license_number     varchar,
-    phone_number       varchar,
-    lab_logo           varchar,
+    lab_name            varchar,
+    license_number      varchar,
+    phone_number        varchar,
+    lab_logo            varchar,
 
-    address_id         int,
-    address_line       text,
-    city               varchar,
-    state              varchar,
-    pincode            varchar,
+    address_line        text,
+    city                varchar,
+    state               varchar,
+    pincode             varchar,
 
     verification_status varchar,
     verification_notes  text,
@@ -95,8 +91,8 @@ RETURNS TABLE(
     verified_by_id      uuid,
     verified_by_email   varchar,
 
-    created_at         timestamptz,
-    updated_at         timestamptz
+    created_at          timestamptz,
+    updated_at          timestamptz
 )
 LANGUAGE plpgsql AS $$
 BEGIN
@@ -114,7 +110,6 @@ BEGIN
         l.phone_number,
         l.lab_logo,
 
-        l.address_id,
         a.address_line,
         a.city,
         a.state,
@@ -131,23 +126,21 @@ BEGIN
     FROM labs l
     JOIN users u ON u.user_id = l.lab_id
     JOIN user_roles r ON r.role_id = u.role_id
-    LEFT JOIN addresses a ON a.address_id = l.address_id
+    LEFT JOIN addresses a ON a.user_id = l.lab_id
     LEFT JOIN users v ON v.user_id = l.verified_by_id
     ORDER BY l.created_at DESC;
 END;
 $$;
 
 
-
 CREATE OR REPLACE FUNCTION l_update_lab_profile(
-    p_lab_id            uuid,
-    p_lab_name          varchar DEFAULT NULL,
-    p_license_number    varchar DEFAULT NULL,
-    p_phone_number      varchar DEFAULT NULL,
-    p_lab_logo          varchar DEFAULT NULL,
-    p_address_id        int     DEFAULT NULL,
+    p_lab_id              uuid,
+    p_lab_name            varchar DEFAULT NULL,
+    p_license_number      varchar DEFAULT NULL,
+    p_phone_number        varchar DEFAULT NULL,
+    p_lab_logo            varchar DEFAULT NULL,
     p_verification_status varchar DEFAULT NULL,
-    p_verification_notes  text  DEFAULT NULL
+    p_verification_notes  text    DEFAULT NULL
 )
 RETURNS boolean
 LANGUAGE plpgsql AS $$
@@ -162,7 +155,6 @@ BEGIN
         license_number      = COALESCE(p_license_number, license_number),
         phone_number        = COALESCE(p_phone_number, phone_number),
         lab_logo            = COALESCE(p_lab_logo, lab_logo),
-        address_id          = COALESCE(p_address_id, address_id),
         verification_status = COALESCE(p_verification_status, verification_status),
         verification_notes  = COALESCE(p_verification_notes, verification_notes),
         updated_at          = NOW()

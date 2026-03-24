@@ -17,7 +17,6 @@ class _UserOut(serializers.Serializer):
 
 
 class _AddressOut(serializers.Serializer):
-    address_id = serializers.IntegerField()
     address_line = serializers.CharField()
     city = serializers.CharField()
     state = serializers.CharField()
@@ -105,7 +104,6 @@ class LabListSerializer(serializers.Serializer):
     phone_number = serializers.CharField(allow_null=True)
     lab_logo = serializers.CharField(allow_null=True, allow_blank=True)
 
-    address_id = serializers.IntegerField(allow_null=True)
     address_line = serializers.CharField(allow_null=True, allow_blank=True)
     city = serializers.CharField(allow_null=True, allow_blank=True)
     state = serializers.CharField(allow_null=True, allow_blank=True)
@@ -175,5 +173,6 @@ class LabProfileUpdateSerializer(serializers.Serializer):
     pincode = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, max_length=10
     )
+    address = serializers.JSONField(required=False, allow_null=True)
     operating_hours = LabOperatingHourSerializer(many=True, required=False)
     services = LabServiceSerializer(many=True, required=False)

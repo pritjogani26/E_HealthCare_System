@@ -29,7 +29,6 @@ class _BloodGroupOut(serializers.Serializer):
 
 
 class _AddressOut(serializers.Serializer):
-    address_id = serializers.IntegerField()
     address_line = serializers.CharField()
     city = serializers.CharField()
     state = serializers.CharField()
@@ -85,11 +84,10 @@ class PatientProfileSerializer(serializers.Serializer):
 
     def get_address(self, obj):
         d = self._src(obj)
-        if not d.get("address_id"):
+        if not d.get("address_line"):
             return None
         return _AddressOut(
             {
-                "address_id": d["address_id"],
                 "address_line": d.get("address_line", ""),
                 "city": d.get("city", ""),
                 "state": d.get("state", ""),
@@ -192,3 +190,4 @@ class PatientProfileUpdateSerializer(serializers.Serializer):
     pincode = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, max_length=10
     )
+    address = serializers.JSONField(required=False, allow_null=True)

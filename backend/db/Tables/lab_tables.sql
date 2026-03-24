@@ -7,19 +7,12 @@ CREATE TABLE IF NOT EXISTS public.labs
     lab_logo character varying(255) COLLATE pg_catalog."default" NOT NULL,
     created_at timestamp with time zone NOT NULL DEFAULT now(),
     updated_at timestamp with time zone NOT NULL DEFAULT now(),
-    address_id integer,
     verification_notes text COLLATE pg_catalog."default",
     verification_status character varying(20) COLLATE pg_catalog."default" NOT NULL,
     verified_at timestamp with time zone,
     verified_by_id uuid,
     CONSTRAINT labs_pkey PRIMARY KEY (lab_id),
-    CONSTRAINT labs_address_id_key UNIQUE (address_id),
     CONSTRAINT labs_license_number_key UNIQUE (license_number),
-    CONSTRAINT labs_address_id_ec0b9bf5_fk_addresses_address_id FOREIGN KEY (address_id)
-        REFERENCES public.addresses (address_id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
-        DEFERRABLE INITIALLY DEFERRED,
     CONSTRAINT labs_user_id_354de3c5_fk_users_user_id FOREIGN KEY (lab_id)
         REFERENCES public.users (user_id) MATCH SIMPLE
         ON UPDATE NO ACTION
@@ -30,7 +23,8 @@ CREATE TABLE IF NOT EXISTS public.labs
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
         DEFERRABLE INITIALLY DEFERRED
-)
+);
+
 
 
 

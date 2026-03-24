@@ -47,25 +47,6 @@ def license_exists(license_number: str, exclude_lab_id: str = None) -> bool:
     )
 
 
-def create_lab(
-    user_id: str,
-    lab_name: str,
-    license_number: str = None,
-    address_id: int = None,
-    phone_number: str = None,
-    lab_logo: str = "/media/defaults/lab.png",
-) -> dict:
-    execute(
-        """
-        INSERT INTO labs
-            (lab_id, lab_name, license_number, address_id, phone_number, lab_logo,
-             is_active, verification_status, created_at, updated_at)
-        VALUES (%s, %s, %s, %s, %s, %s, TRUE, 'pending', NOW(), NOW())
-        """,
-        [str(user_id), lab_name, license_number, address_id, phone_number, lab_logo],
-    )
-    return get_lab_by_user_id(user_id)
-
 
 def update_lab(user_id: str, **fields) -> dict:
     if not fields:
@@ -77,8 +58,7 @@ def update_lab(user_id: str, **fields) -> dict:
             fields.get("lab_name"),
             fields.get("license_number"),
             fields.get("phone_number"),
-            fields.get("lab_logo"),
-            fields.get("address_id"),
+            fields.get("lab_logo")
         ],
     )
     return get_lab_by_user_id(user_id)

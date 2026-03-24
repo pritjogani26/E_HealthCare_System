@@ -41,7 +41,6 @@ def update_doctor(user_id: str, **fields) -> dict:
             fields.get("consultation_fee"),
             fields.get("registration_number"),
             fields.get("profile_image"),
-            fields.get("address_id"),
             fields.get("gender_id"),
         ],
     )
