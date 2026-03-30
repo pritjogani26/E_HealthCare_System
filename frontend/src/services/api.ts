@@ -11,7 +11,7 @@ import {
   ReAuthError,
 } from "../types";
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
 
 let isRefreshing = false;
 let failedQueue: Array<{
@@ -258,3 +258,19 @@ export const getFieldErrors = (error: unknown): Record<string, string> => {
   }
   return result;
 };
+
+
+export async function requestPasswordReset(email: string): Promise<any> {
+  const res = await api.post("/users/auth/forgot-password/", { email });
+  return res.data;
+}
+
+export async function verifyPasswordResetToken(token: string): Promise<any> {
+  const res = await api.get(`/users/auth/verify-reset-token/?token=${token}`);
+  return res.data;
+}
+
+export async function resetPassword(token: string, new_password: string): Promise<any> {
+  const res = await api.post("/users/auth/reset-password/", { token, new_password });
+  return res.data;
+}

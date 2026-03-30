@@ -1,3 +1,5 @@
+# backend\users\services\registration_service.py
+
 from .email_service import EmailService
 from db.connection import fn_fetchone
 import db.lab_queries as lq
@@ -118,7 +120,7 @@ class RegistrationService:
         print(f"Lab Added Successfully, ID : {lab_id}")
         print(f"Address Added Successfully, ID : {address_id}")
 
-        for op in data.get("operating_hours"):
+        for op in data.get("operating_hours") or []:
             res = fn_fetchone(
                 "l_upsert_operating_hours",
                 [

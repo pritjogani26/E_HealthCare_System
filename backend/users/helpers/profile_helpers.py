@@ -1,4 +1,4 @@
-# backend/users/helpers.py
+# backend\users\helpers\profile_helpers.py
 
 import logging
 
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 def get_profile_data_by_role(user):
 
     user_id = str(getattr(user, "user_id", None) or user.get("user_id", ""))
-    role    = getattr(user, "role", None) or user.get("role")
+    role = getattr(user, "role", None) or user.get("role")
 
     if role == UserRole.PATIENT:
         return _patient_profile(user_id)
@@ -27,12 +27,14 @@ def get_profile_data_by_role(user):
     if role in (UserRole.ADMIN, UserRole.STAFF, UserRole.SUPERADMIN):
         return _admin_profile(user_id)
 
-    logger.warning("get_profile_data_by_role: unrecognised role=%s for user_id=%s", role, user_id)
+    logger.warning(
+        "get_profile_data_by_role: unrecognised role=%s for user_id=%s", role, user_id
+    )
     return _base_user(user_id)
 
 
 def _patient_profile(user_id: str) -> dict:
-    from patients.serializers import PatientProfileSerializer
+    from ..serializers.patient_serializers import PatientProfileSerializer
 
     patient = pq.get_patient_by_id(user_id)
     if patient:
@@ -43,7 +45,7 @@ def _patient_profile(user_id: str) -> dict:
 
 
 def _doctor_profile(user_id: str) -> dict:
-    from doctors.serializers import DoctorProfileSerializer
+    from ..serializers.doctor_serializers import DoctorProfileSerializer
 
     doctor = dq.get_doctor_by_user_id(user_id)
     if doctor:
@@ -61,7 +63,7 @@ def _doctor_profile(user_id: str) -> dict:
 
 
 def _lab_profile(user_id: str) -> dict:
-    from labs.serializers import LabProfileSerializer
+    from ..serializers.lab_serializers import LabProfileSerializer
 
     lab = lq.get_lab_by_user_id(user_id)
     if lab:
@@ -75,7 +77,7 @@ def _lab_profile(user_id: str) -> dict:
 
 
 def _admin_profile(user_id: str) -> dict:
-    from users.serializers import UserSerializer
+    from users.serializers.user_serializers import UserSerializer
     from db.user_queries import get_user_by_id
 
     user = get_user_by_id(user_id)
@@ -87,7 +89,7 @@ def _admin_profile(user_id: str) -> dict:
 
 
 def _base_user(user_id: str) -> dict:
-    from users.serializers import UserSerializer
+    from users.serializers.user_serializers import UserSerializer
     from db.user_queries import get_user_by_id
 
     user = get_user_by_id(user_id) or {}

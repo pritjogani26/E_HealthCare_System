@@ -1,4 +1,4 @@
-# backend/users/jwt_auth.py
+# backend\users\services\jwt_auth.py
 
 import uuid
 import logging
@@ -10,7 +10,7 @@ from django.utils import timezone
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 
-from common.exceptions import (
+from users.middleware.exceptions import (
     TokenExpiredException,
     AuthenticationException,
     PermissionException,

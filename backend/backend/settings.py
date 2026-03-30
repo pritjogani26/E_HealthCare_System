@@ -17,14 +17,11 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     "users",
-    "doctors",
-    "patients",
-    "labs",
     "db",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "common.middleware.exception_middleware.ExceptionMiddleware",
+    # "common.middleware.exception_middleware.ExceptionMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -53,9 +50,9 @@ WSGI_APPLICATION = "backend.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": os.environ.get("DB_ENGINE", "django.db.backends.postgresql"),
-        "NAME": os.environ.get("DB_NAME", "ehealthcare_db"),
+        "NAME": os.environ.get("DB_NAME", "project2"),
         "USER": os.environ.get("DB_USER", "postgres"),
-        "PASSWORD": os.environ.get("DB_PASSWORD", ""),
+        "PASSWORD": os.environ.get("DB_PASSWORD", "admin"),
         "HOST": os.environ.get("DB_HOST", "localhost"),
         "PORT": os.environ.get("DB_PORT", "5432"),
         "OPTIONS": {
@@ -85,7 +82,7 @@ REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
     ],
-    "EXCEPTION_HANDLER": "common.exceptions.custom_exception_handler",
+    # "EXCEPTION_HANDLER": "common.exceptions.custom_exception_handler",
 }
 JWT_ACCESS_EXPIRE_MINUTES = int(os.environ.get("JWT_ACCESS_EXPIRE_MINUTES", 15))
 JWT_REFRESH_EXPIRE_DAYS = int(os.environ.get("JWT_REFRESH_EXPIRE_DAYS", 7))

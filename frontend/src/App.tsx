@@ -30,6 +30,7 @@ import DoctorAppointmentsPage from "./pages/DoctorAppointmentsPage";
 import SettingsPage from "./pages/SettingsPage";
 import AccessDeniedPage from "./pages/AccessDeniedPage";
 import RolePermissionsPage from "./pages/RolePermissionsPage";
+import Password_Reset from "./components/Password_Reset";
 
 // Components
 import Dashboard from "./components/Dashboard";
@@ -101,6 +102,9 @@ function App() {
                 <Route path="/verify-email" element={<VerifyEmailPage />} />
                 <Route path="/check-email" element={<CheckEmailPage />} />
                 <Route path="/role-selection" element={<RoleSelectionPage />} />
+                {/* <Route path="/password-reset" element={<Password_Reset />} /> */}
+                <Route path="/reset-password" element={<Password_Reset />} />
+                <Route path="/forgot-password" element={<Password_Reset />} />
 
                 <Route
                   path="/dashboard"

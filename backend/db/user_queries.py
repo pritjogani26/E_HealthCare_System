@@ -1,5 +1,5 @@
 # backend\db\user_queries.py
-from django.contrib.auth.hashers import make_password
+from users.services.password_service import hash_password
 from django.utils import timezone
 import uuid
 from db.connection import fn_fetchone, fn_fetchall, fn_scalar, fetchone, fetchscalar
@@ -35,7 +35,7 @@ def create_user(
     oauth_provider_id: str = None,
 ) -> dict:
     user_id = str(uuid.uuid4())
-    hashed = make_password(password)
+    hashed = hash_password(password)
     role_id = fetchscalar(
         "SELECT role_id FROM user_roles WHERE LOWER(role) = LOWER(%s)", [role]
     )

@@ -1,3 +1,4 @@
+# backend\users\helpers\auth_helpers.py
 from django.conf import settings
 from django.http import HttpResponse
 from users.jwt_auth import generate_tokens

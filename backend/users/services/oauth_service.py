@@ -1,4 +1,4 @@
-# backend/users/services/oauth_service.py
+# backend\users\services\oauth_service.py
 
 import logging
 
@@ -7,7 +7,10 @@ from django.conf import settings
 from google.oauth2 import id_token as google_id_token
 from google.auth.transport import requests as google_requests
 
-from common.exceptions import AuthenticationException, ServiceUnavailableException
+from users.middleware.exceptions import (
+    AuthenticationException,
+    ServiceUnavailableException,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +45,9 @@ class OAuthService:
                 OAuthService.GOOGLE_CLIENT_ID,
             )
         except Exception:
-            logger.warning("Google library token verification failed — trying tokeninfo fallback.")
+            logger.warning(
+                "Google library token verification failed — trying tokeninfo fallback."
+            )
             return None
 
     @staticmethod
@@ -55,7 +60,9 @@ class OAuthService:
             )
         except requests.RequestException:
             logger.exception("tokeninfo endpoint unreachable.")
-            raise ServiceUnavailableException("Google authentication service is currently unavailable.")
+            raise ServiceUnavailableException(
+                "Google authentication service is currently unavailable."
+            )
 
         if response.status_code != 200:
             logger.warning("tokeninfo returned status=%s", response.status_code)
@@ -63,7 +70,10 @@ class OAuthService:
 
         data = response.json()
 
-        if OAuthService.GOOGLE_CLIENT_ID and data.get("aud") != OAuthService.GOOGLE_CLIENT_ID:
+        if (
+            OAuthService.GOOGLE_CLIENT_ID
+            and data.get("aud") != OAuthService.GOOGLE_CLIENT_ID
+        ):
             raise AuthenticationException("Google token client ID mismatch.")
 
         if data.get("iss") not in _VALID_ISSUERS:

@@ -1,39 +1,46 @@
 # backend/users/urls.py
 
 from django.urls import path
-from .views import (
-    LoginView,
-    GoogleAuthView,
-    LogoutView,
-    RefreshTokenView,
-    VerifyEmailView,
-    ResendVerificationEmailView,
-    AdminStaffProfileView,
-    CurrentUserProfileView,
-    BloodGroupListView,
-    GenderListView,
-    QualificationListView,
+from .views.admin_dashboard_views import PendingApprovalsCountView
+from .views.admin_user_views import (
     AdminPatientListView,
     AdminDoctorListView,
     AdminLabListView,
     AdminTogglePatientStatusView,
     AdminToggleDoctorStatusView,
     AdminToggleLabStatusView,
+)
+from .views.admin_verification_views import (
     AdminVerifyDoctorView,
     AdminVerifyLabView,
-    PendingApprovalsCountView,
+)
+from .views.audit_views import (
     RecentActivityView,
+    # DownloadAuditLogsView,
+)
+
+from .views.auth_views import (
+    LoginView,
+    GoogleAuthView,
+    LogoutView,
+    RefreshTokenView,
+    VerifyEmailView,
+    ResendVerificationEmailView,
     ReAuthVerifyView,
+    ForgotPasswordView,
+    VerifyResetTokenView,
+    ResetPasswordView,
 )
-from .settings_views import (
-    SettingsBloodGroupsView,
-    SettingsGendersView,
-    SettingsSpecializationsView,
-    SettingsQualificationsView,
-    SettingsVerificationTypesView,
-    SettingsUserRolesView,
+from .views.master_data_views import (
+    BloodGroupListView,
+    GenderListView,
+    QualificationListView,
 )
-from .role_permission_views import (
+from .views.profile_views import (
+    AdminStaffProfileView,
+    CurrentUserProfileView,
+)
+from .views.role_permission_views import (
     RoleListView,
     PermissionListView,
     RolePermissionsView,
@@ -41,92 +48,226 @@ from .role_permission_views import (
     RevokePermissionView,
     SyncRolePermissionsView,
 )
+from .views.settings_views import (
+    SettingsBloodGroupsView,
+    SettingsGendersView,
+    SettingsSpecializationsView,
+    SettingsQualificationsView,
+    SettingsVerificationTypesView,
+    SettingsUserRolesView,
+)
+from .views.patients_view import PatientRegistrationView, PatientProfileView
+from .views.lab_view import LabRegistrationView, LabProfileView
+from .views.doctor_view import (
+    DoctorRegistrationView,
+    DoctorProfileView,
+    DoctorListView,
+    DoctorDetailView,
+    AvailableSlotsView,
+    GenerateSlotsView,
+    BookAppointmentView,
+    MyAppointmentsView,
+    CancelAppointmentView,
+)
+
 
 app_name = "users"
 
 urlpatterns = [
-    path("auth/login/", LoginView.as_view(), name="login"),
-    path("auth/google/", GoogleAuthView.as_view(), name="google-auth"),
-    path("auth/logout/", LogoutView.as_view(), name="logout"),
-    path("auth/refresh/", RefreshTokenView.as_view(), name="refresh-token"),
-    path("auth/verify-email/", VerifyEmailView.as_view(), name="verify-email"),
+    # ── Auth ─────────────────────────────────────────────────────────────────
+    path("users/auth/login/", LoginView.as_view(), name="auth-login"),
+    path("users/auth/google/", GoogleAuthView.as_view(), name="auth-google"),
+    path("users/auth/logout/", LogoutView.as_view(), name="auth-logout"),
+    path("users/auth/refresh/", RefreshTokenView.as_view(), name="auth-refresh"),
     path(
-        "auth/resend-verification/",
+        "users/auth/verify-email/", VerifyEmailView.as_view(), name="auth-verify-email"
+    ),
+    path(
+        "users/auth/resend-verification/",
         ResendVerificationEmailView.as_view(),
-        name="resend-verification",
+        name="auth-resend-verification",
     ),
-
     path(
-        "auth/reauth-verify/",
+        "users/auth/reauth-verify/",
         ReAuthVerifyView.as_view(),
-        name="reauth-verify",
+        name="auth-reauth-verify",
     ),
-    path("profile/me/", CurrentUserProfileView.as_view(), name="current-profile"),
     path(
-        "profile/admin-staff/",
+        "users/auth/forgot-password/",
+        ForgotPasswordView.as_view(),
+        name="auth-forgot-password",
+    ),
+    path(
+        "users/auth/verify-reset-token/",
+        VerifyResetTokenView.as_view(),
+        name="auth-verify-reset-token",
+    ),
+    path(
+        "users/auth/reset-password/",
+        ResetPasswordView.as_view(),
+        name="auth-reset-password",
+    ),
+    # ── Profile ───────────────────────────────────────────────────────────────
+    path("users/profile/me/", CurrentUserProfileView.as_view(), name="profile-me"),
+    path(
+        "users/profile/admin-staff/",
         AdminStaffProfileView.as_view(),
-        name="admin-staff-profile",
+        name="profile-admin-staff",
     ),
-    path("blood-groups/", BloodGroupListView.as_view(), name="blood-groups"),
-    path("genders/", GenderListView.as_view(), name="genders"),
-    path("qualifications/", QualificationListView.as_view(), name="qualifications"),
-    path("admin/patients/", AdminPatientListView.as_view(), name="admin-patients"),
-    path("admin/doctors/", AdminDoctorListView.as_view(), name="admin-doctors"),
-    path("admin/labs/", AdminLabListView.as_view(), name="admin-labs"),
+    # ── Master data ───────────────────────────────────────────────────────────
+    path("users/blood-groups/", BloodGroupListView.as_view(), name="blood-groups"),
+    path("users/genders/", GenderListView.as_view(), name="genders"),
     path(
-        "admin/patients/<uuid:user_id>/toggle-status/",
+        "users/qualifications/", QualificationListView.as_view(), name="qualifications"
+    ),
+    # ── Admin — user lists ────────────────────────────────────────────────────
+    path(
+        "users/admin/patients/",
+        AdminPatientListView.as_view(),
+        name="admin-patient-list",
+    ),
+    path(
+        "users/admin/doctors/", AdminDoctorListView.as_view(), name="admin-doctor-list"
+    ),
+    path("users/admin/labs/", AdminLabListView.as_view(), name="admin-lab-list"),
+    # ── Admin — status toggles ────────────────────────────────────────────────
+    # ② All three converters are now <uuid:user_id> for consistency and automatic validation
+    path(
+        "users/admin/patients/<uuid:user_id>/toggle-status/",
         AdminTogglePatientStatusView.as_view(),
-        name="admin-toggle-patient-status",
+        name="admin-patient-toggle-status",
     ),
     path(
-        "admin/doctors/<str:user_id>/toggle-status/",
+        "users/admin/doctors/<uuid:user_id>/toggle-status/",
         AdminToggleDoctorStatusView.as_view(),
-        name="admin-toggle-doctor-status",
+        name="admin-doctor-toggle-status",
     ),
     path(
-        "admin/labs/<str:user_id>/toggle-status/",
+        "users/admin/labs/<uuid:user_id>/toggle-status/",
         AdminToggleLabStatusView.as_view(),
-        name="admin-toggle-lab-status",
+        name="admin-lab-toggle-status",
     ),
+    # ── Admin — verification ──────────────────────────────────────────────────
     path(
-        "admin/doctors/<str:user_id>/verify/",
+        "users/admin/doctors/<uuid:user_id>/verify/",
         AdminVerifyDoctorView.as_view(),
-        name="admin-verify-doctor",
+        name="admin-doctor-verify",
     ),
     path(
-        "admin/labs/<str:user_id>/verify/",
+        "users/admin/labs/<uuid:user_id>/verify/",
         AdminVerifyLabView.as_view(),
-        name="admin-verify-lab",
+        name="admin-lab-verify",
     ),
+    # ── Admin — dashboard & audit ─────────────────────────────────────────────
     path(
-        "admin/pending-approvals/count/",
+        "users/admin/pending-approvals/count/",
         PendingApprovalsCountView.as_view(),
-        name="pending-approvals-count",
+        name="admin-pending-approvals-count",
     ),
     path(
-        "admin/recent-activity/",
+        "users/admin/recent-activity/",
         RecentActivityView.as_view(),
-        name="recent-activity",
+        name="admin-recent-activity",
+    ),
+    # path(
+    #     "users/admin/download-audit-logs/",
+    #     DownloadAuditLogsView.as_view(),
+    #     name="admin-download-audit-logs",
+    # ),
+    # ── Settings ──────────────────────────────────────────────────────────────
+    path(
+        "users/settings/blood-groups/",
+        SettingsBloodGroupsView.as_view(),
+        name="settings-blood-groups",
     ),
     path(
-        "admin/download-audit-logs/",
-        RecentActivityView.as_view(),
-        name="recent-activity",
+        "users/settings/genders/",
+        SettingsGendersView.as_view(),
+        name="settings-genders",
     ),
-    
-
-    path("settings/blood-groups/", SettingsBloodGroupsView.as_view(), name="settings-blood-groups"),
-    path("settings/genders/", SettingsGendersView.as_view(), name="settings-genders"),
-    path("settings/specializations/", SettingsSpecializationsView.as_view(), name="settings-specializations"),
-    path("settings/qualifications/", SettingsQualificationsView.as_view(), name="settings-qualifications"),
-    path("settings/verification-types/", SettingsVerificationTypesView.as_view(), name="settings-verification-types"),
-    path("settings/user-roles/", SettingsUserRolesView.as_view(), name="settings-user-roles"),
-
-    # ── RBAC (SUPERADMIN only) ────────────────────────────────────────────────
-    path("rbac/roles/",                                     RoleListView.as_view(),           name="rbac-roles"),
-    path("rbac/permissions/",                               PermissionListView.as_view(),      name="rbac-permissions"),
-    path("rbac/roles/<int:role_id>/permissions/",           RolePermissionsView.as_view(),     name="rbac-role-permissions"),
-    path("rbac/roles/<int:role_id>/permissions/grant/",     GrantPermissionView.as_view(),     name="rbac-grant"),
-    path("rbac/roles/<int:role_id>/permissions/revoke/",    RevokePermissionView.as_view(),    name="rbac-revoke"),
-    path("rbac/roles/<int:role_id>/permissions/sync/",      SyncRolePermissionsView.as_view(), name="rbac-sync"),
+    path(
+        "users/settings/specializations/",
+        SettingsSpecializationsView.as_view(),
+        name="settings-specializations",
+    ),
+    path(
+        "users/settings/qualifications/",
+        SettingsQualificationsView.as_view(),
+        name="settings-qualifications",
+    ),
+    path(
+        "users/settings/verification-types/",
+        SettingsVerificationTypesView.as_view(),
+        name="settings-verification-types",
+    ),
+    path(
+        "users/settings/user-roles/",
+        SettingsUserRolesView.as_view(),
+        name="settings-user-roles",
+    ),
+    # ── RBAC (superadmin only) ────────────────────────────────────────────────
+    path("users/rbac/roles/", RoleListView.as_view(), name="rbac-roles"),
+    path(
+        "users/rbac/permissions/", PermissionListView.as_view(), name="rbac-permissions"
+    ),
+    path(
+        "users/rbac/roles/<int:role_id>/permissions/",
+        RolePermissionsView.as_view(),
+        name="rbac-role-permissions",
+    ),
+    path(
+        "users/rbac/roles/<int:role_id>/permissions/grant/",
+        GrantPermissionView.as_view(),
+        name="rbac-role-permissions-grant",
+    ),
+    path(
+        "users/rbac/roles/<int:role_id>/permissions/revoke/",
+        RevokePermissionView.as_view(),
+        name="rbac-role-permissions-revoke",
+    ),
+    path(
+        "users/rbac/roles/<int:role_id>/permissions/sync/",
+        SyncRolePermissionsView.as_view(),
+        name="rbac-role-permissions-sync",
+    ),
+    # ── Patients ──────────────────────────────────────────────────────────────
+    path(
+        "patients/register/", PatientRegistrationView.as_view(), name="patient-register"
+    ),
+    path("patients/profile/", PatientProfileView.as_view(), name="patient-profile"),
+    # ── Labs ──────────────────────────────────────────────────────────────────
+    path("labs/register/", LabRegistrationView.as_view(), name="lab-register"),
+    path("labs/profile/", LabProfileView.as_view(), name="lab-profile"),
+    # ── Doctors — static paths first (before dynamic <uuid> patterns) ─────────
+    # ④ Reordered: static paths before <uuid:user_id> to keep intent explicit
+    path("doctors/register/", DoctorRegistrationView.as_view(), name="doctor-register"),
+    path("doctors/profile/", DoctorProfileView.as_view(), name="doctor-profile"),
+    path("doctors/list/", DoctorListView.as_view(), name="doctor-list"),
+    path(
+        "doctors/slots/generate/",
+        GenerateSlotsView.as_view(),
+        name="doctor-slots-generate",
+    ),
+    path(
+        "doctors/appointments/book/",
+        BookAppointmentView.as_view(),
+        name="doctor-appointment-book",
+    ),
+    path(
+        "doctors/appointments/my/",
+        MyAppointmentsView.as_view(),
+        name="doctor-appointment-list",
+    ),
+    path(
+        "doctors/appointments/<int:appointment_id>/cancel/",
+        CancelAppointmentView.as_view(),
+        name="doctor-appointment-cancel",
+    ),
+    # ── Doctors — dynamic paths ───────────────────────────────────────────────
+    path("doctors/<uuid:user_id>/", DoctorDetailView.as_view(), name="doctor-detail"),
+    path(
+        "doctors/<uuid:user_id>/slots/",
+        AvailableSlotsView.as_view(),
+        name="doctor-slots",
+    ),
 ]
