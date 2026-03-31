@@ -62,6 +62,7 @@ class AdminService:
     def verify_lab(
         lab_user_id: str, status: str, notes: str, verified_by, request=None
     ):
+        print(f"{lab_user_id}\n{status}\n{notes}\n{verified_by}")
         lab = lq.update_lab_verification(
             user_id=lab_user_id,
             status=status,

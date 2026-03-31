@@ -174,7 +174,7 @@ CREATE OR REPLACE FUNCTION a_verify_lab(
 RETURNS boolean
 LANGUAGE plpgsql AS $$
 BEGIN
-    IF p_verification_status NOT IN ('approved', 'rejected') THEN
+    IF p_verification_status NOT IN ('REJECTED', 'VERIFIED') THEN
         RAISE EXCEPTION 'INVALID_VERIFICATION_STATUS';
     END IF;
 
@@ -249,7 +249,6 @@ BEGIN
     ORDER BY loh.day_of_week;
 END;
 $$;
-
 
 
 CREATE OR REPLACE FUNCTION l_add_service(
