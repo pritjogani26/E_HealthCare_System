@@ -256,10 +256,6 @@ class DoctorRegistrationSerializer(serializers.Serializer):
             return f"Dr. {name.strip().title()}"
         return f"Dr. {value.title()}"
 
-    def validate_gender_id(self, value):
-        if not uq.gender_exists(value):
-            raise serializers.ValidationError("Invalid gender ID.")
-        return value
 
     def validate(self, attrs):
         password_confirm = attrs.pop("password_confirm", None)

@@ -228,16 +228,16 @@ def mark_slot_booked(slot_id: int, booked: bool):
     )
 
 
-def get_slot(slot_id: int) -> dict | None:
-    return fetchone(
-        """
-        SELECT s.*, ds.doctor_id
-        FROM appointment_slots s
-        JOIN doctor_schedules ds ON ds.schedule_id = s.schedule_id
-        WHERE s.slot_id=%s
-        """,
-        [slot_id],
-    )
+# def get_slot(slot_id: int) -> dict | None:
+#     return fetchone(
+#         """
+#         SELECT s.*, ds.doctor_id
+#         FROM appointment_slots s
+#         JOIN doctor_schedules ds ON ds.schedule_id = s.schedule_id
+#         WHERE s.slot_id=%s
+#         """,
+#         [slot_id],
+#     )
 
 
 def slot_exists(slot_id: int) -> bool:

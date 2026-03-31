@@ -15,13 +15,7 @@ from ..serializers.patient_serializers import (
     PatientProfileUpdateSerializer,
 )
 from ..services.profile_service import PatientProfileService
-
-
-def _ok(data=None, message="Success", http_status=status.HTTP_200_OK):
-    body = {"success": True, "message": message}
-    if data is not None:
-        body["data"] = data
-    return Response(body, status=http_status)
+from ..services.success_response import send_success_msg
 
 
 class PatientRegistrationView(generics.GenericAPIView):
@@ -69,7 +63,7 @@ class PatientProfileView(generics.GenericAPIView):
 
     def get(self, request):
         patient = self._get_patient(request)
-        return _ok(PatientProfileSerializer(patient).data)
+        return send_success_msg(PatientProfileSerializer(patient).data)
 
     def put(self, request):
         return self._update(request, partial=False)
@@ -96,4 +90,4 @@ class PatientProfileView(generics.GenericAPIView):
         updated_data = PatientProfileService.update_patient_profile(
             patient, serializer, request=request
         )
-        return _ok(updated_data, message="Profile updated successfully.")
+        return send_success_msg(updated_data, message="Profile updated successfully.")

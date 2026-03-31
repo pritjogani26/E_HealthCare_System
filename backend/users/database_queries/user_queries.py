@@ -29,40 +29,6 @@ def get_user_permission_by_id(role_id) -> dict | None:
     return permissions_list
 
 
-def email_exists(email: str) -> bool:
-    return fetchscalar("SELECT COUNT(*) FROM users WHERE email = %s", [email]) > 0
-
-
-def create_user(
-    email: str,
-    password: str,
-    role: str = "patient",
-    oauth_provider: str = None,
-    oauth_provider_id: str = None,
-) -> dict:
-    user_id = str(uuid.uuid4())
-    hashed = hash_password(password)
-    role_id = fetchscalar(
-        "SELECT role_id FROM user_roles WHERE LOWER(role) = LOWER(%s)", [role]
-    )
-    if role_id is None:
-        raise ValueError(f"Unknown role: '{role}'")
-
-    from users.database_queries.connection import execute
-
-    execute(
-        """
-        INSERT INTO users
-            (user_id, email, password, role_id, oauth_provider, oauth_provider_id,
-             email_verified, is_active, two_factor_enabled,
-             failed_login_attempts, created_at, updated_at)
-        VALUES (%s, %s, %s, %s, %s, %s, FALSE, TRUE, FALSE, 0, NOW(), NOW())
-        """,
-        [user_id, email.lower(), hashed, role_id, oauth_provider, oauth_provider_id],
-    )
-    return get_user_by_id(user_id)
-
-
 def handle_failed_login(
     user: dict,
     max_attempts: int = 5,
@@ -103,22 +69,6 @@ def get_all_blood_groups() -> list:
 
 def get_all_qualifications() -> list:
     return fn_fetchall("o_get_qualifications", [])
-
-
-def gender_exists(gender_id: int) -> bool:
-    return (
-        fetchscalar("SELECT COUNT(*) FROM genders WHERE gender_id=%s", [gender_id]) > 0
-    )
-
-
-def blood_group_exists(blood_group_id: int) -> bool:
-    return (
-        fetchscalar(
-            "SELECT COUNT(*) FROM blood_groups WHERE blood_group_id=%s",
-            [blood_group_id],
-        )
-        > 0
-    )
 
 
 def get_address(address_id: int) -> dict | None:

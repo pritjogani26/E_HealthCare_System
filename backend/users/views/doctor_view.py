@@ -24,13 +24,7 @@ from ..serializers.doctor_serializers import (
 from ..services.profile_service import DoctorProfileService
 from ..services.appointment_service import AppointmentService
 from ..database_queries import doctor_queries as dq
-
-
-def _ok(data=None, message="Success", http_status=status.HTTP_200_OK):
-    body = {"success": True, "message": message}
-    if data is not None:
-        body["data"] = data
-    return Response(body, status=http_status)
+from ..services.success_response import send_success_msg
 
 
 class DoctorRegistrationView(generics.GenericAPIView):
@@ -83,7 +77,7 @@ class DoctorProfileView(generics.GenericAPIView):
 
     def get(self, request):
         doctor = self._get_doctor(request)
-        return _ok(doctor)
+        return send_success_msg(doctor)
 
     def put(self, request):
         return self._update(request, partial=False)
@@ -110,7 +104,7 @@ class DoctorProfileView(generics.GenericAPIView):
         updated_data = DoctorProfileService.update_doctor_profile(
             doctor, serializer, request=request
         )
-        return _ok(updated_data, message="Profile updated successfully.")
+        return send_success_msg(updated_data, message="Profile updated successfully.")
 
 
 class DoctorListView(generics.GenericAPIView):
@@ -128,7 +122,7 @@ class DoctorListView(generics.GenericAPIView):
         # print(doctors)
         serializer = self.get_serializer(data=doctors, many=True)
         serializer.is_valid(raise_exception=True)
-        return _ok(serializer.validated_data)
+        return send_success_msg(serializer.validated_data)
         # return doctors
 
 
@@ -150,7 +144,7 @@ class DoctorDetailView(generics.GenericAPIView):
             schedule["working_days"] = dq.get_working_days(schedule["schedule_id"])
         doctor["schedule"] = schedule
 
-        return _ok(DoctorProfileSerializer(doctor).data)
+        return send_success_msg(DoctorProfileSerializer(doctor).data)
 
 
 class AvailableSlotsView(generics.GenericAPIView):
@@ -168,7 +162,7 @@ class AvailableSlotsView(generics.GenericAPIView):
                 raise ValidationException("Invalid date format. Use YYYY-MM-DD.")
 
         slots = AppointmentService.get_available_slots(user_id, target_date)
-        return _ok(AppointmentSlotSerializer(slots, many=True).data)
+        return send_success_msg(AppointmentSlotSerializer(slots, many=True).data)
 
 
 class GenerateSlotsView(generics.GenericAPIView):
@@ -182,7 +176,7 @@ class GenerateSlotsView(generics.GenericAPIView):
         count = AppointmentService.generate_slots_for_doctor(
             str(request.user.user_id), days=days
         )
-        return _ok({"slots_created": count})
+        return send_success_msg({"slots_created": count})
 
 
 class BookAppointmentView(generics.GenericAPIView):
@@ -204,7 +198,7 @@ class BookAppointmentView(generics.GenericAPIView):
                 "appointment_type", "in_person"
             ),
         )
-        return _ok(
+        return send_success_msg(
             DoctorAppointmentSerializer(appointment).data,
             message="Appointment booked successfully.",
             http_status=status.HTTP_201_CREATED,
@@ -220,7 +214,7 @@ class CancelAppointmentView(generics.GenericAPIView):
             cancelled_by_user_id=str(request.user.user_id),
             reason=request.data.get("reason", ""),
         )
-        return _ok(
+        return send_success_msg(
             DoctorAppointmentSerializer(appointment).data,
             message="Appointment cancelled successfully.",
         )
@@ -240,4 +234,4 @@ class MyAppointmentsView(generics.GenericAPIView):
         else:
             raise PermissionException("Access denied.")
 
-        return _ok(DoctorAppointmentSerializer(appointments, many=True).data)
+        return send_success_msg(DoctorAppointmentSerializer(appointments, many=True).data)

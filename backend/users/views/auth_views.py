@@ -265,7 +265,7 @@ class ResetPasswordView(generics.GenericAPIView):
 
         EmailService.check_password_reset_token(token)
 
-        import userse_queries.email_queries as eq
+        from users.database_queries import email_queries as eq
 
         hashed_password = password_service.hash_password(new_password)
         try:

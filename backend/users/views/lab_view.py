@@ -20,13 +20,7 @@ from ..serializers.lab_serializers import (
 )
 
 from ..services.profile_service import LabProfileService
-
-
-def _ok(data=None, message="Success", http_status=status.HTTP_200_OK):
-    body = {"success": True, "message": message}
-    if data is not None:
-        body["data"] = data
-    return Response(body, status=http_status)
+from ..services.success_response import send_success_msg
 
 
 class LabRegistrationView(generics.GenericAPIView):
@@ -86,7 +80,7 @@ class LabProfileView(generics.GenericAPIView):
 
     def get(self, request):
         lab = self._get_lab(request)
-        return _ok(LabProfileSerializer(lab).data)
+        return send_success_msg(LabProfileSerializer(lab).data)
 
     def put(self, request):
         return self._update(request, partial=False)
@@ -113,4 +107,4 @@ class LabProfileView(generics.GenericAPIView):
         updated_data = LabProfileService.update_lab_profile(
             lab, serializer, request=request
         )
-        return _ok(updated_data, message="Profile updated successfully.")
+        return send_success_msg(updated_data, message="Profile updated successfully.")

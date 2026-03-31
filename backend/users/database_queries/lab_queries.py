@@ -34,25 +34,6 @@ def get_all_labs() -> list:
     return rows
 
 
-def license_exists(license_number: str, exclude_lab_id: str = None) -> bool:
-    if not license_number:
-        return False
-    if exclude_lab_id:
-        return (
-            fetchscalar(
-                "SELECT COUNT(*) FROM labs WHERE license_number=%s AND lab_id!=%s",
-                [license_number, str(exclude_lab_id)],
-            )
-            > 0
-        )
-    return (
-        fetchscalar(
-            "SELECT COUNT(*) FROM labs WHERE license_number=%s", [license_number]
-        )
-        > 0
-    )
-
-
 def update_lab(user_id: str, **fields) -> dict:
     if not fields:
         return get_lab_by_user_id(user_id)
