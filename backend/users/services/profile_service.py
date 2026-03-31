@@ -1,15 +1,15 @@
 # backend\users\services\profile_service.py
-import db.patient_queries as pq
-import db.user_queries as uq
+import users.database_queries.patient_queries as pq
+import users.database_queries.user_queries as uq
 from ..serializers.patient_serializers import PatientProfileSerializer
 from users.services.base_profile_service import BaseProfileService
 
-import db.lab_queries as lq
+import users.database_queries.lab_queries as lq
 from ..serializers.lab_serializers import LabProfileSerializer
 from users.services.base_profile_service import BaseProfileService
 
 import logging
-import db.doctor_queries as dq
+import users.database_queries.doctor_queries as dq
 from users.services.base_profile_service import BaseProfileService
 
 logger = logging.getLogger(__name__)

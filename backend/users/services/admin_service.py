@@ -1,27 +1,23 @@
 # backend\users\services\admin_service.py
 
-from db.connection import fn_fetchone, fn_scalar
-import db.patient_queries as pq
-import db.doctor_queries as dq
-import db.lab_queries as lq
+from users.database_queries.connection import fn_fetchone, fn_scalar
+import users.database_queries.patient_queries as pq
+import users.database_queries.doctor_queries as dq
+import users.database_queries.lab_queries as lq
 
 
 class AdminService:
     @staticmethod
-    def toggle_patient_status(
-        patient_id: int, reason: str = None
-    ):
+    def toggle_patient_status(patient_id: int, reason: str = None):
         patient = pq.toggle_patient_is_active(patient_id, reason)
         action = "activated" if patient["is_active"] else "deactivated"
         return patient, action
 
     @staticmethod
-    def toggle_doctor_status(
-        doctor_user_id: str, reason: str = None
-    ):
+    def toggle_doctor_status(doctor_user_id: str, reason: str = None):
         doctor = dq.toggle_doctor_is_active(doctor_user_id, reason)
         action = "activated" if doctor["is_active"] else "deactivated"
-        
+
         return doctor, action
 
     def toggle_doctor_is_active(user_id: str, reason: str) -> dict:
@@ -33,9 +29,7 @@ class AdminService:
         return fn_fetchone("d_get_full_doctor_profile", [str(user_id)])
 
     @staticmethod
-    def toggle_lab_status(
-        lab_user_id: str, reason: str = None
-    ):
+    def toggle_lab_status(lab_user_id: str, reason: str = None):
         lab = lq.toggle_lab_is_active(lab_user_id, reason)
         action = "activated" if lab["is_active"] else "deactivated"
         return lab, action

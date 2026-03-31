@@ -1,9 +1,8 @@
-
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from datetime import date
-import db.user_queries as uq
-import db.patient_queries as pq
+import users.database_queries.user_queries as uq
+import users.database_queries.patient_queries as pq
 
 
 class _UserOut(serializers.Serializer):

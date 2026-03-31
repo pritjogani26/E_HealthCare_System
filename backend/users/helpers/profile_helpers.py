@@ -3,9 +3,9 @@
 import logging
 
 from users.models import UserRole
-import db.patient_queries as pq
-import db.doctor_queries as dq
-import db.lab_queries as lq
+import users.database_queries.patient_queries as pq
+import users.database_queries.doctor_queries as dq
+import users.database_queries.lab_queries as lq
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +78,7 @@ def _lab_profile(user_id: str) -> dict:
 
 def _admin_profile(user_id: str) -> dict:
     from users.serializers.user_serializers import UserSerializer
-    from db.user_queries import get_user_by_id
+    from users.database_queries.user_queries import get_user_by_id
 
     user = get_user_by_id(user_id)
     if user:
@@ -90,7 +90,7 @@ def _admin_profile(user_id: str) -> dict:
 
 def _base_user(user_id: str) -> dict:
     from users.serializers.user_serializers import UserSerializer
-    from db.user_queries import get_user_by_id
+    from users.database_queries.user_queries import get_user_by_id
 
     user = get_user_by_id(user_id) or {}
     return UserSerializer(user).data

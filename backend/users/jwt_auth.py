@@ -15,7 +15,7 @@ from users.middleware.exceptions import (
     AuthenticationException,
     PermissionException,
 )
-from db import user_queries
+from users.database_queries import user_queries
 
 logger = logging.getLogger(__name__)
 

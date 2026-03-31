@@ -22,8 +22,8 @@ from ..serializers.user_serializers import (
     LogoutSerializer,
     ReAuthVerifySerializer,
 )
-import db.user_queries as uq
-import db.audit_queries as aq
+from ..database_queries import user_queries as uq
+from ..database_queries import audit_queries as aq
 from ..services.success_response import send_success_msg
 
 
@@ -230,10 +230,14 @@ class ForgotPasswordView(generics.GenericAPIView):
             raise ValidationException("Email is required.")
         user = uq.get_user_by_email(email)
         if not user:
-            return send_success_msg(message="If the email exists, a password reset link has been sent.")
-        
+            return send_success_msg(
+                message="If the email exists, a password reset link has been sent."
+            )
+
         EmailService.send_password_reset_email(user)
-        return send_success_msg(message="If the email exists, a password reset link has been sent.")
+        return send_success_msg(
+            message="If the email exists, a password reset link has been sent."
+        )
 
 
 class VerifyResetTokenView(generics.GenericAPIView):
@@ -244,7 +248,7 @@ class VerifyResetTokenView(generics.GenericAPIView):
         token = request.query_params.get("token")
         if not token:
             raise ValidationException("Verification token is required.")
-        
+
         EmailService.check_password_reset_token(token)
         return send_success_msg(message="Token is valid.")
 
@@ -258,17 +262,20 @@ class ResetPasswordView(generics.GenericAPIView):
         new_password = request.data.get("new_password")
         if not token or not new_password:
             raise ValidationException("Token and new_password are required.")
-        
+
         EmailService.check_password_reset_token(token)
-        
-        import db.email_queries as eq
+
+        import userse_queries.email_queries as eq
+
         hashed_password = password_service.hash_password(new_password)
         try:
             success = eq.execute_password_reset(token, hashed_password)
             if success:
                 return send_success_msg(message="Password updated successfully.")
             else:
-                raise ValidationException("Could not reset password. Invalid or expired link.")
+                raise ValidationException(
+                    "Could not reset password. Invalid or expired link."
+                )
         except Exception as e:
             if str(e) == "INVALID_TOKEN":
                 raise ValidationException("Invalid or expired password reset token.")

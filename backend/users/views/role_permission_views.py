@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from ..permissions import IsSuperAdmin
 from users.middleware.exceptions import ValidationException, NotFoundException
-import db.role_permission_queries as rpq
+import users.database_queries.role_permission_queries as rpq
 from ..services.success_response import send_success_msg
 
 

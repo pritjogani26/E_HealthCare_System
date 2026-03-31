@@ -10,7 +10,7 @@ from ..services import download_audit_service
 from ..serializers.user_serializers import (
     AuditLogsDownload,
 )
-import db.audit_queries as aq
+import users.database_queries.audit_queries as aq
 from ..services.success_response import send_success_msg
 
 

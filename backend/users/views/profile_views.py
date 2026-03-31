@@ -14,7 +14,7 @@ from ..helpers import (
 from ..serializers.user_serializers import (
     UserSerializer,
 )
-import db.user_queries as uq
+import users.database_queries.user_queries as uq
 from ..services.success_response import send_success_msg
 
 

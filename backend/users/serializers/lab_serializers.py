@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
-import db.user_queries as uq
-import db.lab_queries as lq
+import users.database_queries.user_queries as uq
+import users.database_queries.lab_queries as lq
 
 
 class _UserOut(serializers.Serializer):
@@ -92,6 +92,7 @@ class LabProfileSerializer(serializers.Serializer):
     created_at = serializers.DateTimeField()
     updated_at = serializers.DateTimeField(allow_null=True)
 
+
 class LabListSerializer(serializers.Serializer):
     lab_id = serializers.UUIDField()
     email = serializers.EmailField()
@@ -117,6 +118,7 @@ class LabListSerializer(serializers.Serializer):
 
     created_at = serializers.DateTimeField()
     updated_at = serializers.DateTimeField(allow_null=True)
+
 
 class LabRegistrationSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)

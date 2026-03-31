@@ -1,8 +1,8 @@
 # backend\users\services\auth_service.py
 from django.utils import timezone
-from db.audit_queries import insert_auth_audit
-from db.connection import fn_scalar
-import db.user_queries as uq
+from users.database_queries.audit_queries import insert_auth_audit
+from users.database_queries.connection import fn_scalar
+import users.database_queries.user_queries as uq
 
 MAX_FAILED_ATTEMPTS = 5
 LOCKOUT_MINUTES = 15

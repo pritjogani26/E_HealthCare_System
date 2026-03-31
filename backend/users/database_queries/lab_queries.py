@@ -1,4 +1,10 @@
-from db.connection import fn_fetchone, fn_fetchall, fn_scalar, fetchscalar, execute
+from users.database_queries.connection import (
+    fn_fetchone,
+    fn_fetchall,
+    fn_scalar,
+    fetchscalar,
+    execute,
+)
 
 
 def _normalize_lab(row: dict) -> dict:
@@ -47,7 +53,6 @@ def license_exists(license_number: str, exclude_lab_id: str = None) -> bool:
     )
 
 
-
 def update_lab(user_id: str, **fields) -> dict:
     if not fields:
         return get_lab_by_user_id(user_id)
@@ -58,7 +63,7 @@ def update_lab(user_id: str, **fields) -> dict:
             fields.get("lab_name"),
             fields.get("license_number"),
             fields.get("phone_number"),
-            fields.get("lab_logo")
+            fields.get("lab_logo"),
         ],
     )
     return get_lab_by_user_id(user_id)

@@ -3,7 +3,7 @@
 import uuid
 import logging
 
-from db.connection import execute, fetchscalar, fn_fetchone, fn_scalar
+from users.database_queries.connection import execute, fetchscalar, fn_fetchone, fn_scalar
 
 
 def _get_verification_type_id(name: str) -> int:

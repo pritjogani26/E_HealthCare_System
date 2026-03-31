@@ -16,10 +16,10 @@ from ..serializers.patient_serializers import (
 )
 from ..serializers.lab_serializers import LabListSerializer, LabProfileSerializer
 from ..services import AdminService
-import db.audit_queries as aq
-import db.doctor_queries as dq
-import db.lab_queries as lq
-import db.patient_queries as pq
+import users.database_queries.audit_queries as aq
+import users.database_queries.doctor_queries as dq
+import users.database_queries.lab_queries as lq
+import users.database_queries.patient_queries as pq
 from ..services.success_response import send_success_msg
 
 

@@ -5,14 +5,14 @@ import logging
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 
-from db.audit_queries import insert_auth_audit
+from users.database_queries.audit_queries import insert_auth_audit
 from users.middleware.exceptions import (
     ValidationException,
     NotFoundException,
     ServiceUnavailableException,
 )
-import db.email_queries as eq
-import db.user_queries as uq
+import users.database_queries.email_queries as eq
+import users.database_queries.user_queries as uq
 
 logger = logging.getLogger(__name__)
 

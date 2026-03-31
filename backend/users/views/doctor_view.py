@@ -23,7 +23,7 @@ from ..serializers.doctor_serializers import (
 )
 from ..services.profile_service import DoctorProfileService
 from ..services.appointment_service import AppointmentService
-import db.doctor_queries as dq
+from ..database_queries import doctor_queries as dq
 
 
 def _ok(data=None, message="Success", http_status=status.HTTP_200_OK):

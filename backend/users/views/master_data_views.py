@@ -12,7 +12,7 @@ from ..serializers.user_serializers import (
     BloodGroupSerializer,
     QualificationSerializer,
 )
-import db.user_queries as uq
+import users.database_queries.user_queries as uq
 
 
 class BloodGroupListView(generics.GenericAPIView):

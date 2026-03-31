@@ -1,8 +1,8 @@
 # backend\users\services\registration_service.py
 
 from .email_service import EmailService
-from db.connection import fn_fetchone
-import db.lab_queries as lq
+from users.database_queries.connection import fn_fetchone
+import users.database_queries.lab_queries as lq
 
 
 class RegistrationService:

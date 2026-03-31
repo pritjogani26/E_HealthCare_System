@@ -1,8 +1,9 @@
 # backend/db/role_permission_queries.py
-from db.connection import fn_fetchall, fn_fetchone, fn_scalar
+from users.database_queries.connection import fn_fetchall, fn_fetchone, fn_scalar
 
 
 # ── Roles ─────────────────────────────────────────────────────────────────────
+
 
 def get_all_roles():
     return fn_fetchall("r_get_all_roles", [])
@@ -14,11 +15,13 @@ def get_role_by_id(role_id: int):
 
 # ── Permissions ───────────────────────────────────────────────────────────────
 
+
 def get_all_permissions(module: str = None):
     return fn_fetchall("r_get_permissions", [module])
 
 
 # ── Role ↔ Permission ─────────────────────────────────────────────────────────
+
 
 def get_permissions_by_role(role_id: int):
     return fn_fetchall("r_get_permissions_by_role", [role_id])

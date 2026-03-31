@@ -9,8 +9,8 @@ from users.middleware.exceptions import (
 )
 from ..models import VerificationStatus
 from ..services import AdminService
-import db.doctor_queries as dq
-import db.lab_queries as lq
+import users.database_queries.doctor_queries as dq
+import users.database_queries.lab_queries as lq
 from ..services.success_response import send_success_msg
 
 

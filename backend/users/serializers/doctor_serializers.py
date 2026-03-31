@@ -5,8 +5,8 @@ from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
 from decimal import Decimal
-import db.user_queries as uq
-import db.doctor_queries as dq
+import users.database_queries.user_queries as uq
+import users.database_queries.doctor_queries as dq
 from users.models import AppointmentType
 
 
@@ -298,7 +298,6 @@ class DoctorProfileUpdateSerializer(serializers.Serializer):
     schedule = DoctorScheduleWriteSerializer(required=False)
 
 
-
 class AppointmentSlotSerializer(serializers.Serializer):
     slot_id = serializers.IntegerField()
     slot_date = serializers.DateField()
@@ -370,4 +369,3 @@ class DoctorListSerializer(serializers.Serializer):
     verified_by_email = serializers.EmailField(
         required=False, allow_blank=True, allow_null=True
     )
-

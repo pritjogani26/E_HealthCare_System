@@ -1,7 +1,7 @@
 # backend\users\services\appointment_service.py
 from datetime import datetime, timedelta, time as dt_time
 from django.utils import timezone
-import db.doctor_queries as dq
+import users.database_queries.doctor_queries as dq
 from users.models import AppointmentStatus
 
 

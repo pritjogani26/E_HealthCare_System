@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from users.permissions import IsAdminOrStaff
 from users.middleware.exceptions import ValidationException
-import db.settings_queries as sq
+import users.database_queries.settings_queries as sq
 from ..services.success_response import send_success_msg
 
 

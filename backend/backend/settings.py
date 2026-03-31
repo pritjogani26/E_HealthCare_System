@@ -16,8 +16,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "corsheaders",
-    "users",
-    "db",
+    "users"
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
