@@ -291,7 +291,7 @@ BEGIN
     END IF;
 
     IF v_row.order_status = 'COMPLETED' THEN
-        RAISE EXCEPTION 'Cannot cancel a completed order', p_order_id
+        RAISE EXCEPTION 'Cannot cancel a completed order %', p_order_id
             USING ERRCODE = 'invalid_parameter_value';
     END IF;
 

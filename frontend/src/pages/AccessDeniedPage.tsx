@@ -2,17 +2,17 @@
 
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { ShieldOff, ArrowLeft, Home, Lock } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
+import { ShieldOff, ArrowLeft, Home } from "lucide-react";
 
 interface AccessDeniedPageProps {
   /** If true, means the route doesn't exist at all (404). Otherwise it's a permissions issue (403). */
   notFound?: boolean;
 }
 
-const AccessDeniedPage: React.FC<AccessDeniedPageProps> = ({ notFound = false }) => {
+const AccessDeniedPage: React.FC<AccessDeniedPageProps> = ({
+  notFound = false,
+}) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   const code = notFound ? "404" : "403";
   const title = notFound ? "Page Not Found" : "Access Denied";
@@ -63,7 +63,9 @@ const AccessDeniedPage: React.FC<AccessDeniedPageProps> = ({ notFound = false })
           {notFound ? (
             <Home style={{ width: "2rem", height: "2rem", color: "#1a3c6e" }} />
           ) : (
-            <ShieldOff style={{ width: "2rem", height: "2rem", color: "#dc2626" }} />
+            <ShieldOff
+              style={{ width: "2rem", height: "2rem", color: "#dc2626" }}
+            />
           )}
         </div>
 
@@ -104,9 +106,10 @@ const AccessDeniedPage: React.FC<AccessDeniedPageProps> = ({ notFound = false })
           {subtitle}
         </p>
 
-
         {/* Buttons */}
-        <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center" }}>
+        <div
+          style={{ display: "flex", gap: "0.75rem", justifyContent: "center" }}
+        >
           <button
             onClick={() => navigate(-1)}
             style={{
@@ -124,13 +127,17 @@ const AccessDeniedPage: React.FC<AccessDeniedPageProps> = ({ notFound = false })
               transition: "all 0.18s ease",
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#e8f0f7";
-              (e.currentTarget as HTMLButtonElement).style.borderColor = "#2e5fa3";
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                "#e8f0f7";
+              (e.currentTarget as HTMLButtonElement).style.borderColor =
+                "#2e5fa3";
               (e.currentTarget as HTMLButtonElement).style.color = "#1a3c6e";
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#ffffff";
-              (e.currentTarget as HTMLButtonElement).style.borderColor = "#d0dff0";
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                "#ffffff";
+              (e.currentTarget as HTMLButtonElement).style.borderColor =
+                "#d0dff0";
               (e.currentTarget as HTMLButtonElement).style.color = "#555555";
             }}
           >
@@ -156,12 +163,16 @@ const AccessDeniedPage: React.FC<AccessDeniedPageProps> = ({ notFound = false })
               boxShadow: "0 4px 12px rgba(26,60,110,0.2)",
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#2e5fa3";
-              (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)";
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                "#2e5fa3";
+              (e.currentTarget as HTMLButtonElement).style.transform =
+                "translateY(-1px)";
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#1a3c6e";
-              (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)";
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                "#1a3c6e";
+              (e.currentTarget as HTMLButtonElement).style.transform =
+                "translateY(0)";
             }}
           >
             <Home style={{ width: "1rem", height: "1rem" }} />

@@ -97,13 +97,30 @@ class PatientProfileSerializer(serializers.Serializer):
 
 class PatientListSerializer(serializers.Serializer):
     patient_id = serializers.UUIDField()
-    full_name = serializers.CharField()
     email = serializers.EmailField()
-    mobile = serializers.CharField()
-    blood_group = serializers.CharField()
-    gender = serializers.CharField()
+    email_verified = serializers.BooleanField()
     is_active = serializers.BooleanField()
+
+    full_name = serializers.CharField()
+    date_of_birth = serializers.DateField(allow_null = True)
+    mobile = serializers.CharField(allow_null = True)
+    emergency_contact_name = serializers.CharField(allow_null = True)
+    emergency_contact_phone = serializers.CharField(allow_null = True)
+    profile_image = serializers.CharField(allow_null = True)
+
+    address_line = serializers.CharField(allow_null = True)
+    city = serializers.CharField(allow_null = True)
+    state = serializers.CharField(allow_null = True)
+    pincode = serializers.IntegerField(allow_null = True)
+
+    blood_group_id = serializers.IntegerField()
+    blood_group = serializers.CharField()
+    gender_id = serializers.IntegerField()
+    gender = serializers.CharField()
+
     created_at = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField(allow_null = True)
+    last_login_at = serializers.DateTimeField(allow_null = True)
 
 
 class PatientRegistrationSerializer(serializers.Serializer):

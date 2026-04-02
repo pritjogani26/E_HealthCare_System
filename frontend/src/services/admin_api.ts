@@ -3,7 +3,6 @@ import {
   PatientList,
   DoctorList,
   LabList,
-  DoctorProfile,
   LabProfile,
   AuditLog,
   ApiResponse,
@@ -14,21 +13,21 @@ export async function getAllPatients(): Promise<PatientList[]> {
   const d = res.data;
   if (Array.isArray(d)) return d;
   return d.data ?? d.results ?? [];
-}
+};
 
 export async function getAllDoctors(): Promise<DoctorList[]> {
   const res = await api.get("/users/admin/doctors/");
   const d = res.data;
   if (Array.isArray(d)) return d;
   return d.data ?? d.results ?? [];
-}
+};
 
 export async function getAllLabs(): Promise<LabList[]> {
   const res = await api.get("/users/admin/labs/");
   const d = res.data;
   if (Array.isArray(d)) return d;
   return d.data ?? d.results ?? [];
-}
+};
 
 export async function togglePatientStatus(
   patientId: string,
@@ -39,7 +38,7 @@ export async function togglePatientStatus(
     { reason },
   );
   return unwrap(res.data);
-}
+};
 
 export async function toggleDoctorStatus(
   userId: string,
@@ -50,7 +49,7 @@ export async function toggleDoctorStatus(
     { reason },
   );
   return unwrap(res.data);
-}
+};
 
 export async function toggleLabStatus(
   userId: string,
@@ -61,7 +60,7 @@ export async function toggleLabStatus(
     { reason },
   );
   return unwrap(res.data);
-}
+};
 
 export async function verifyDoctor(
   userId: string,
@@ -73,7 +72,7 @@ export async function verifyDoctor(
     { status, notes },
   );
   return unwrap(res.data);
-}
+};
 
 export async function verifyLab(
   userId: string,
@@ -85,7 +84,7 @@ export async function verifyLab(
     { status, notes },
   );
   return unwrap(res.data);
-}
+};
 
 export async function getPendingApprovalsCount(): Promise<{
   doctors: number;
@@ -94,14 +93,14 @@ export async function getPendingApprovalsCount(): Promise<{
 }> {
   const res = await api.get("/users/admin/pending-approvals/count/");
   return unwrap(res.data);
-}
+};
 
 export async function getRecentActivity(): Promise<AuditLog[]> {
   const res = await api.get<ApiResponse<AuditLog[]>>(
     "/users/admin/recent-activity/",
   );
   return unwrap(res.data) ?? [];
-}
+};
 
 export async function downloadAuditLogs(
   status: "ALL" | "SUCCESS" | "FAILURE",
@@ -128,4 +127,4 @@ export async function downloadAuditLogs(
   a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
-}
+};

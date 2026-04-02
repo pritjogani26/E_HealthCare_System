@@ -70,39 +70,76 @@ $$;
 
 
 CREATE OR REPLACE FUNCTION p_list_patients()
+    p_patient_id uuid
+)
 RETURNS TABLE(
     patient_id uuid,
-    full_name varchar,
     email varchar,
-    mobile varchar,
-    blood_group varchar,
-    gender varchar,
+    email_verified boolean,
     is_active boolean,
-    created_at timestamptz
+
+    full_name varchar,
+    date_of_birth date,
+    mobile varchar,
+    emergency_contact_name varchar,
+    emergency_contact_phone varchar,
+    profile_image varchar,
+
+    address_line text,
+    city varchar,
+    state varchar,
+    pincode varchar,
+
+    blood_group_id  int,
+    blood_group varchar,
+    gender_id int,
+    gender varchar,
+
+    created_at timestamptz,
+    updated_at timestamptz,
+    last_login_at timestamptz
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
+    RETURN QUERY
+    SELECT
+        p.patient_id,
+        u.email,
+        u.email_verified,
+        u.is_active,
 
-RETURN QUERY
-SELECT
-    p.patient_id,
-    p.full_name,
-    u.email,
-    p.mobile,
-    bg.blood_group_value,
-    g.gender_value,
-    u.is_active,
-    p.created_at
-FROM patients p
-JOIN users u
-    ON u.user_id = p.patient_id
-LEFT JOIN blood_groups bg
-    ON bg.blood_group_id = p.blood_group_id
-LEFT JOIN genders g
-    ON g.gender_id = p.gender_id
-ORDER BY p.created_at DESC;
+        p.full_name,
+        p.date_of_birth,
+        p.mobile,
+        p.emergency_contact_name,
+        p.emergency_contact_phone,
+        p.profile_image,
 
+        a.address_line,
+        a.city,
+        a.state,
+        a.pincode,
+
+        u.blood_group_id
+        bg.blood_group_value,
+        u.gender_id,
+        g.gender_value,
+
+        p.created_at,
+        u.updated_at,
+        u.last_login_at
+
+    FROM patients p
+    JOIN users u
+        ON u.user_id = p.patient_id
+    LEFT JOIN addresses a
+        ON a.user_id = p.patient_id
+    LEFT JOIN blood_groups bg
+        ON bg.blood_group_id = p.blood_group_id
+    LEFT JOIN genders g
+        ON g.gender_id = p.gender_id
+    WHERE p.patient_id = p_patient_id;
 END;
 $$;
 

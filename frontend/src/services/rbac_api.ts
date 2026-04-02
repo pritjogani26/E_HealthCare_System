@@ -7,18 +7,18 @@ export interface Role {
   role_description: string | null;
   created_at: string;
   updated_at: string;
-}
+};
 
 export interface Permission {
   permission_id: number;
   module: string;
   action: string;
   description: string | null;
-}
+};
 
 export interface RolePermission extends Permission {
   grant_at: string;
-}
+};
 
 // ── Roles ─────────────────────────────────────────────────────────────────────
 export const getAllRoles = async (): Promise<Role[]> => {

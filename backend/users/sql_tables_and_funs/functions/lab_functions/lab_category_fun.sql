@@ -16,7 +16,7 @@
 -- Raises an exception if category_name already exists.
 -- ─────────────────────────────────────────────────────────────
 
-CREATE OR REPLACE FUNCTION public.create_lab_test_category(
+CREATE OR REPLACE FUNCTION public.l_create_lab_test_category(
     p_category_name   VARCHAR(100),
     p_description     TEXT,
     p_created_by      UUID
@@ -85,7 +85,7 @@ USAGE:
 -- soft-deleted, and on a duplicate name collision.
 -- ─────────────────────────────────────────────────────────────
 
-CREATE OR REPLACE FUNCTION public.update_lab_test_category(
+CREATE OR REPLACE FUNCTION public.l_update_lab_test_category(
     p_category_id     INTEGER,
     p_updated_by      UUID,
     p_category_name   VARCHAR(100) DEFAULT NULL,
@@ -164,7 +164,7 @@ USAGE — update multiple fields:
 -- is already inactive.
 -- ─────────────────────────────────────────────────────────────
 
-CREATE OR REPLACE FUNCTION public.delete_lab_test_category(
+CREATE OR REPLACE FUNCTION public.l_delete_lab_test_category(
     p_category_id INTEGER,
     p_deleted_by  UUID
 )
@@ -227,7 +227,7 @@ USAGE:
 --   all category columns + total_count (window function)
 -- ─────────────────────────────────────────────────────────────
 
-CREATE OR REPLACE FUNCTION public.list_lab_test_categories(
+CREATE OR REPLACE FUNCTION public.l_list_lab_test_categories(
     p_search    TEXT    DEFAULT NULL,
     p_is_active BOOLEAN DEFAULT TRUE,
     p_limit     INTEGER DEFAULT 20,

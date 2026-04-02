@@ -21,7 +21,7 @@
 --   · fasting_hours provided when fasting_required = false
 -- ─────────────────────────────────────────────────────────────
 
-CREATE OR REPLACE FUNCTION public.create_lab_test(
+CREATE OR REPLACE FUNCTION public.l_create_lab_test(
     p_test_code        VARCHAR(30),
     p_test_name        VARCHAR(255),
     p_sample_type      VARCHAR(50),
@@ -172,7 +172,7 @@ USAGE — full:
 --   · fasting logic mismatch
 -- ─────────────────────────────────────────────────────────────
 
-CREATE OR REPLACE FUNCTION public.update_lab_test(
+CREATE OR REPLACE FUNCTION public.l_update_lab_test(
     p_test_id              INTEGER,
     p_test_code            VARCHAR(30)   DEFAULT NULL,
     p_test_name            VARCHAR(255)  DEFAULT NULL,
@@ -315,7 +315,7 @@ USAGE — update multiple fields:
 --   · test is already inactive
 -- ─────────────────────────────────────────────────────────────
 
-CREATE OR REPLACE FUNCTION public.delete_lab_test(
+CREATE OR REPLACE FUNCTION public.l_delete_lab_test(
     p_test_id INTEGER
 )
 RETURNS public.lab_tests
@@ -376,7 +376,7 @@ USAGE:
 -- Result includes total_count via window function for pagination.
 -- ─────────────────────────────────────────────────────────────
 
-CREATE OR REPLACE FUNCTION public.list_lab_tests(
+CREATE OR REPLACE FUNCTION public.l_list_lab_tests(
     p_search           TEXT          DEFAULT NULL,
     p_category_id      INTEGER       DEFAULT NULL,
     p_sample_type      VARCHAR(50)   DEFAULT NULL,

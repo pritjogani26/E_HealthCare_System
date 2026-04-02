@@ -11,7 +11,11 @@ import {
   ReAuthError,
 } from "../types";
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL || "http://localhost:8000/api";
+// const API_BASE_URL = process.env.REACT_APP_API_URL || "/api";
+// const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:802';
+// const API_BASE_URL = `http://${window.location.hostname}:802`;
 
 let isRefreshing = false;
 let failedQueue: Array<{
@@ -42,7 +46,7 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error: any) => Promise.reject(error)
+  (error: any) => Promise.reject(error),
 );
 
 api.interceptors.response.use(
@@ -84,7 +88,7 @@ api.interceptors.response.use(
         const res = await axios.post(
           `${API_BASE_URL}/users/auth/refresh/`,
           {},
-          { withCredentials: true }
+          { withCredentials: true },
         );
         const { access_token, user } = res.data.data;
         localStorage.setItem("access_token", access_token);
@@ -104,13 +108,13 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export function buildFormData(
   payload: Record<string, any>,
   file?: File | null,
-  fileKey = "profile_image"
+  fileKey = "profile_image",
 ): FormData {
   const fd = new FormData();
 
@@ -128,43 +132,51 @@ export function buildFormData(
 
   if (file) fd.append(fileKey, file);
   return fd;
-}
+};
 
 export { ReAuthError } from "../types";
 
 export function unwrap<T>(responseData: ApiResponse<T>): T {
   return responseData.data;
-}
+};
 
 export async function login(data: LoginData): Promise<LoginResponse> {
-  const res = await api.post<{ success: boolean; message: string; data: LoginResponse; permissions?: string[] }>("/users/auth/login/", data);
+  const res = await api.post<{
+    success: boolean;
+    message: string;
+    data: LoginResponse;
+    permissions?: string[];
+  }>("/users/auth/login/", data);
   const body = res.data;
   // Backend shape: { success, message, data: { user, access_token, ... }, permissions: [...] }
   const loginData = body.data;
   const permissions = (body as any).permissions ?? loginData.permissions ?? [];
   return { ...loginData, permissions };
-}
+};
 
 export async function logout(): Promise<void> {
   await api.post("/users/auth/logout/");
   localStorage.removeItem("access_token");
   localStorage.removeItem("user");
-}
+};
 
-export async function refreshToken(): Promise<{ access_token: string; user: any }> {
+export async function refreshToken(): Promise<{
+  access_token: string;
+  user: any;
+}> {
   const res = await axios.post(
     `${API_BASE_URL}/users/auth/refresh/`,
     {},
-    { withCredentials: true }
+    { withCredentials: true },
   );
   const { access_token, user } = res.data.data;
   return { access_token, user };
-}
+};
 
 export async function googleLogin(token: string): Promise<any> {
   const res = await api.post("/users/auth/google/", { token });
   return res.data;
-}
+};
 
 export async function verifyPasswordForReauth(password: string): Promise<void> {
   const token = localStorage.getItem("access_token");
@@ -177,55 +189,57 @@ export async function verifyPasswordForReauth(password: string): Promise<void> {
     await api.post(
       "/users/auth/reauth-verify/",
       { password },
-      { headers: { Authorization: `Bearer ${token}` } }
+      { headers: { Authorization: `Bearer ${token}` } },
     );
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const httpStatus = error.response?.status ?? 500;
-      const body = error.response?.data as { success: boolean; message?: string; code?: string } | undefined;
+      const body = error.response?.data as
+        | { success: boolean; message?: string; code?: string }
+        | undefined;
       const message = body?.message ?? "Re-authentication failed.";
       const code = body?.code as ReAuthErrorResponse["code"] | undefined;
       throw new ReAuthError(message, httpStatus, code ?? "invalid_password");
     }
     throw new ReAuthError("An unexpected error occurred.", 500);
   }
-}
+};
 
 export async function verifyEmail(token: string): Promise<any> {
   const res = await api.post("/users/auth/verify-email/", { token });
   return res.data;
-}
+};
 
 export async function resendVerification(email: string): Promise<any> {
   const res = await api.post("/users/auth/resend-verification/", { email });
   return res.data;
-}
+};
 
 export async function getCurrentUserProfile(): Promise<any> {
   const res = await api.get("/users/profile/me/");
   return unwrap(res.data);
-}
+};
 
 export async function getBloodGroups(): Promise<BloodGroup[]> {
   const res = await api.get("/users/blood-groups/");
   const d = res.data;
   if (Array.isArray(d)) return d;
   return d.data ?? d.results ?? [];
-}
+};
 
 export async function getGenders(): Promise<Gender[]> {
   const res = await api.get("/users/genders/");
   const d = res.data;
   if (Array.isArray(d)) return d;
   return d.data ?? d.results ?? [];
-}
+};
 
 export async function getQualifications(): Promise<Qualification[]> {
   const res = await api.get("/users/qualifications/");
   const d = res.data;
   if (Array.isArray(d)) return d;
   return d.data ?? d.results ?? [];
-}
+};
 
 export const handleApiError = (error: unknown): string => {
   if (axios.isAxiosError(error)) {
@@ -236,7 +250,10 @@ export const handleApiError = (error: unknown): string => {
       const messages: string[] = [];
       for (const [field, value] of Object.entries(body.errors)) {
         const msg = Array.isArray(value) ? value[0] : String(value);
-        if (msg) messages.push(field === "non_field_errors" ? msg : `${field}: ${msg}`);
+        if (msg)
+          messages.push(
+            field === "non_field_errors" ? msg : `${field}: ${msg}`,
+          );
       }
       if (messages.length > 0) return messages[0];
     }
@@ -259,18 +276,23 @@ export const getFieldErrors = (error: unknown): Record<string, string> => {
   return result;
 };
 
-
 export async function requestPasswordReset(email: string): Promise<any> {
   const res = await api.post("/users/auth/forgot-password/", { email });
   return res.data;
-}
+};
 
 export async function verifyPasswordResetToken(token: string): Promise<any> {
   const res = await api.get(`/users/auth/verify-reset-token/?token=${token}`);
   return res.data;
-}
+};
 
-export async function resetPassword(token: string, new_password: string): Promise<any> {
-  const res = await api.post("/users/auth/reset-password/", { token, new_password });
+export async function resetPassword(
+  token: string,
+  new_password: string,
+): Promise<any> {
+  const res = await api.post("/users/auth/reset-password/", {
+    token,
+    new_password,
+  });
   return res.data;
-}
+};
