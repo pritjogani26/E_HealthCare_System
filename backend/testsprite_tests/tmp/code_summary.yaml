@@ -1,0 +1,48 @@
+version: "2"
+type: backend
+tech_stack:
+  - python
+  - django
+  - postgresql
+features:
+  - name: Lab Service API
+    description: CRUD operations for lab tests, categories, and parameters
+    files:
+      - users/views/lab_service_view.py
+      - users/urls.py
+      - users/database_queries/lab_service_quries.py
+    endpoints:
+      - method: GET
+        path: /labs/tests/
+        description: List all lab tests
+        auth_required: true
+        response_schema:
+          "200": "{ success: boolean, data: array, total_count: int }"
+      - method: POST
+        path: /labs/tests/
+        description: Create a new lab test
+        auth_required: true
+        request_schema:
+          body:
+            test_code: string
+            test_name: string
+            category_id: int
+            price: float
+            sample_type: string
+        response_schema:
+          "201": "{ success: boolean, data: object, message: string }"
+      - method: PUT
+        path: /labs/tests/<int:test_id>/
+        description: Update a lab test
+        auth_required: true
+        response_schema:
+          "200": "{ success: boolean, data: object, message: string }"
+      - method: DELETE
+        path: /labs/tests/<int:test_id>/
+        description: Delete a lab test
+        auth_required: true
+        response_schema:
+          "200": "{ success: boolean, message: string }"
+    depends_on:
+      - Authentication
+known_limitations: []

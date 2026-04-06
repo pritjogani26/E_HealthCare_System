@@ -58,6 +58,16 @@ from .views.settings_views import (
 )
 from .views.patients_view import PatientRegistrationView, PatientProfileView
 from .views.lab_view import LabRegistrationView, LabProfileView
+from .views.lab_service_view import (
+    LabTestCategoryListView,
+    LabTestCategoryDetailView,
+    LabTestListView,
+    LabTestDetailView,
+)
+from .views.test_parameter_view import (
+    TestParameterListView,
+    TestParameterDetailView,
+)
 from .views.doctor_view import (
     DoctorRegistrationView,
     DoctorProfileView,
@@ -238,8 +248,16 @@ urlpatterns = [
     # ── Labs ──────────────────────────────────────────────────────────────────
     path("labs/register/", LabRegistrationView.as_view(), name="lab-register"),
     path("labs/profile/", LabProfileView.as_view(), name="lab-profile"),
-    # ── Doctors — static paths first (before dynamic <uuid> patterns) ─────────
-    # ④ Reordered: static paths before <uuid:user_id> to keep intent explicit
+    # ------------------------------------------------------------------------------------------
+    path("labs/categories/", LabTestCategoryListView.as_view(), name="lab-categories"),
+    path("labs/categories/<int:category_id>/", LabTestCategoryDetailView.as_view(), name="lab-category-detail"),
+    # ------------------------------------------------------------------------------------------
+    path("labs/tests/", LabTestListView.as_view(), name="lab-tests"),
+    path("labs/tests/<int:test_id>/", LabTestDetailView.as_view(), name="lab-test-detail"),
+    path("labs/test-parameters/", TestParameterListView.as_view(), name="lab-test-parameters"),
+    path("labs/test-parameters/<int:parameter_id>/", TestParameterDetailView.as_view(), name="lab-test-parameter-detail"),
+    # ------------------------------------------------------------------------------------------
+
     path("doctors/register/", DoctorRegistrationView.as_view(), name="doctor-register"),
     path("doctors/profile/", DoctorProfileView.as_view(), name="doctor-profile"),
     path("doctors/list/", DoctorListView.as_view(), name="doctor-list"),

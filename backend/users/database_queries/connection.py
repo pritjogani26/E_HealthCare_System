@@ -1,3 +1,4 @@
+# backend\users\database_queries\connection.py
 import logging
 from django.db import connection
 

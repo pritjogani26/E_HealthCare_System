@@ -14,18 +14,20 @@
 -- ─────────────────────────────────────────────────────────────
 
 CREATE OR REPLACE FUNCTION public.l_lab_test_orders_insert(
-    p_patient_id     UUID,
-    p_lab_id         UUID,
-    p_doctor_id      UUID    DEFAULT NULL,
-    p_appointment_id INTEGER DEFAULT NULL,
-    p_total_amount   NUMERIC(10,2) DEFAULT 0,
-    p_notes          TEXT    DEFAULT NULL
+    p_patient_id      UUID,
+    p_lab_id          UUID,
+    p_price_at_order  NUMERIC(10,2),          -- NOT NULL in table, required
+    p_doctor_id       UUID          DEFAULT NULL,
+    p_appointment_id  INTEGER       DEFAULT NULL,
+    p_discount_amount NUMERIC(10,2) DEFAULT 0,
+    p_notes           TEXT          DEFAULT NULL
 )
 RETURNS public.lab_test_orders
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    v_row public.lab_test_orders;
+    v_row         public.lab_test_orders;
+    v_total       NUMERIC(10,2);
 BEGIN
     -- Guard: patient must exist
     IF NOT EXISTS (
@@ -60,11 +62,25 @@ BEGIN
             USING ERRCODE = 'foreign_key_violation';
     END IF;
 
-    -- Guard: total_amount
-    IF p_total_amount < 0 THEN
-        RAISE EXCEPTION 'total_amount cannot be negative'
+    -- Guard: numeric values
+    IF p_price_at_order < 0 THEN
+        RAISE EXCEPTION 'price_at_order cannot be negative'
             USING ERRCODE = 'invalid_parameter_value';
     END IF;
+
+    IF p_discount_amount < 0 THEN
+        RAISE EXCEPTION 'discount_amount cannot be negative'
+            USING ERRCODE = 'invalid_parameter_value';
+    END IF;
+
+    IF p_discount_amount > p_price_at_order THEN
+        RAISE EXCEPTION 'discount_amount (%) cannot exceed price_at_order (%)',
+            p_discount_amount, p_price_at_order
+            USING ERRCODE = 'invalid_parameter_value';
+    END IF;
+
+    -- Compute total_amount from price and discount
+    v_total := p_price_at_order - p_discount_amount;
 
     INSERT INTO public.lab_test_orders (
         patient_id,
@@ -74,6 +90,8 @@ BEGIN
         order_status,
         payment_status,
         sample_collection_status,
+        price_at_order,
+        discount_amount,
         total_amount,
         notes,
         ordered_at,
@@ -87,7 +105,9 @@ BEGIN
         'PLACED',
         'PENDING',
         'PENDING',
-        p_total_amount,
+        p_price_at_order,
+        p_discount_amount,
+        v_total,
         p_notes,
         now(),
         now()
@@ -101,19 +121,22 @@ $$;
 /*
 USAGE — minimal:
     SELECT * FROM public.l_lab_test_orders_insert(
-        p_patient_id => 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'::uuid,
-        p_lab_id     => 'b1ffcd00-1d1c-5fg9-cc7e-7cc0ce491b22'::uuid
+        p_patient_id     => 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'::uuid,
+        p_lab_id         => 'b1ffcd00-1d1c-5fg9-cc7e-7cc0ce491b22'::uuid,
+        p_price_at_order => 999.00
     );
 
 USAGE — full:
     SELECT * FROM public.l_lab_test_orders_insert(
-        p_patient_id     => 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'::uuid,
-        p_lab_id         => 'b1ffcd00-1d1c-5fg9-cc7e-7cc0ce491b22'::uuid,
-        p_doctor_id      => 'c2ggde11-2e2d-6gh0-dd8f-8dd1df502c33'::uuid,
-        p_appointment_id => 5,
-        p_total_amount   => 999.00,
-        p_notes          => 'Fasting sample required'
+        p_patient_id      => 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'::uuid,
+        p_lab_id          => 'b1ffcd00-1d1c-5fg9-cc7e-7cc0ce491b22'::uuid,
+        p_price_at_order  => 999.00,
+        p_doctor_id       => 'c2ggde11-2e2d-6gh0-dd8f-8dd1df502c33'::uuid,
+        p_appointment_id  => 5,
+        p_discount_amount => 100.00,
+        p_notes           => 'Fasting sample required'
     );
+    -- total_amount will be computed as 899.00
 */
 
 
@@ -121,24 +144,25 @@ USAGE — full:
 -- 2. UPDATE
 -- ─────────────────────────────────────────────────────────────
 -- Updatable fields:
---   order_status, payment_status, sample_collection_status,
---   total_amount, notes
+--   order_status, payment_status, sample_collection_status, notes
 --
 -- Status transition rules enforced:
---   order_status            PLACED → ACCEPTED → IN_PROGRESS → COMPLETED
---                           any    → CANCELLED
---   payment_status          PENDING → PAID | FAILED
---                           PAID    → REFUNDED
+--   order_status             PLACED → ACCEPTED → IN_PROGRESS → COMPLETED
+--                            any    → CANCELLED
+--   payment_status           PENDING → PAID | FAILED
+--                            PAID    → REFUNDED
 --   sample_collection_status PENDING → COLLECTED | REJECTED
+--
+-- NOTE: price_at_order, discount_amount, total_amount are intentionally
+--       not updatable after order placement to preserve the audit trail.
 -- ─────────────────────────────────────────────────────────────
 
 CREATE OR REPLACE FUNCTION public.l_lab_test_orders_update(
     p_order_id                 UUID,
-    p_order_status             VARCHAR(20)   DEFAULT NULL,
-    p_payment_status           VARCHAR(20)   DEFAULT NULL,
-    p_sample_collection_status VARCHAR(20)   DEFAULT NULL,
-    p_total_amount             NUMERIC(10,2) DEFAULT NULL,
-    p_notes                    TEXT          DEFAULT NULL
+    p_order_status             VARCHAR(20) DEFAULT NULL,
+    p_payment_status           VARCHAR(20) DEFAULT NULL,
+    p_sample_collection_status VARCHAR(20) DEFAULT NULL,
+    p_notes                    TEXT        DEFAULT NULL
 )
 RETURNS public.lab_test_orders
 LANGUAGE plpgsql
@@ -175,9 +199,9 @@ BEGIN
         -- Enforce forward-only transitions (except → CANCELLED which is always allowed)
         IF p_order_status <> 'CANCELLED' THEN
             IF NOT (
-                (v_row.order_status = 'PLACED'       AND p_order_status = 'ACCEPTED')     OR
-                (v_row.order_status = 'ACCEPTED'     AND p_order_status = 'IN_PROGRESS')  OR
-                (v_row.order_status = 'IN_PROGRESS'  AND p_order_status = 'COMPLETED')
+                (v_row.order_status = 'PLACED'      AND p_order_status = 'ACCEPTED')    OR
+                (v_row.order_status = 'ACCEPTED'    AND p_order_status = 'IN_PROGRESS') OR
+                (v_row.order_status = 'IN_PROGRESS' AND p_order_status = 'COMPLETED')
             ) THEN
                 RAISE EXCEPTION 'Invalid order_status transition: % → %',
                     v_row.order_status, p_order_status
@@ -197,7 +221,7 @@ BEGIN
         END IF;
 
         IF NOT (
-            (v_row.payment_status = 'PENDING' AND p_payment_status IN ('PAID', 'FAILED'))  OR
+            (v_row.payment_status = 'PENDING' AND p_payment_status IN ('PAID', 'FAILED')) OR
             (v_row.payment_status = 'PAID'    AND p_payment_status = 'REFUNDED')
         ) THEN
             RAISE EXCEPTION 'Invalid payment_status transition: % → %',
@@ -226,18 +250,11 @@ BEGIN
         END IF;
     END IF;
 
-    -- ── Numeric guard ─────────────────────────────────────────
-    IF p_total_amount IS NOT NULL AND p_total_amount < 0 THEN
-        RAISE EXCEPTION 'total_amount cannot be negative'
-            USING ERRCODE = 'invalid_parameter_value';
-    END IF;
-
     UPDATE public.lab_test_orders
     SET
         order_status             = COALESCE(p_order_status,             order_status),
         payment_status           = COALESCE(p_payment_status,           payment_status),
         sample_collection_status = COALESCE(p_sample_collection_status, sample_collection_status),
-        total_amount             = COALESCE(p_total_amount,             total_amount),
         notes                    = COALESCE(p_notes,                    notes),
         updated_at               = now()
     WHERE order_id = p_order_id
@@ -333,6 +350,8 @@ RETURNS TABLE (
     order_status             VARCHAR(20),
     payment_status           VARCHAR(20),
     sample_collection_status VARCHAR(20),
+    price_at_order           NUMERIC(10,2),
+    discount_amount          NUMERIC(10,2),
     total_amount             NUMERIC(10,2),
     notes                    TEXT,
     ordered_at               TIMESTAMPTZ,
@@ -341,35 +360,40 @@ RETURNS TABLE (
 LANGUAGE plpgsql
 AS $$
 BEGIN
+    -- Guard: order must exist before running the join query
+    IF NOT EXISTS (
+        SELECT 1 FROM public.lab_test_orders WHERE order_id = p_order_id
+    ) THEN
+        RAISE EXCEPTION 'Order with id % not found', p_order_id
+            USING ERRCODE = 'no_data_found';
+    END IF;
+
     RETURN QUERY
     SELECT
         o.order_id,
         o.patient_id,
-        (p.first_name || ' ' || p.last_name)::TEXT  AS patient_name,
+        (p.first_name || ' ' || p.last_name)::TEXT      AS patient_name,
         o.lab_id,
         l.lab_name,
         o.doctor_id,
         CASE WHEN d.doctor_id IS NOT NULL
              THEN (d.first_name || ' ' || d.last_name)::TEXT
-        END                                          AS doctor_name,
+        END                                              AS doctor_name,
         o.appointment_id,
         o.order_status,
         o.payment_status,
         o.sample_collection_status,
+        o.price_at_order,
+        o.discount_amount,
         o.total_amount,
         o.notes,
         o.ordered_at,
         o.updated_at
     FROM public.lab_test_orders o
-    JOIN public.patients p ON p.patient_id = o.patient_id
-    JOIN public.labs     l ON l.lab_id     = o.lab_id
+    JOIN  public.patients p ON p.patient_id = o.patient_id
+    JOIN  public.labs     l ON l.lab_id     = o.lab_id
     LEFT JOIN public.doctors d ON d.doctor_id = o.doctor_id
     WHERE o.order_id = p_order_id;
-
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'Order with id % not found', p_order_id
-            USING ERRCODE = 'no_data_found';
-    END IF;
 END;
 $$;
 
@@ -385,7 +409,6 @@ USAGE:
 -- 5. SELECT ALL
 -- ─────────────────────────────────────────────────────────────
 -- Scoped by patient or lab (at least one must be provided).
--- Frontend handles further filtering and pagination.
 -- ─────────────────────────────────────────────────────────────
 
 CREATE OR REPLACE FUNCTION public.l_lab_test_orders_select_all(
@@ -404,6 +427,8 @@ RETURNS TABLE (
     order_status             VARCHAR(20),
     payment_status           VARCHAR(20),
     sample_collection_status VARCHAR(20),
+    price_at_order           NUMERIC(10,2),
+    discount_amount          NUMERIC(10,2),
     total_amount             NUMERIC(10,2),
     notes                    TEXT,
     ordered_at               TIMESTAMPTZ,
@@ -422,24 +447,26 @@ BEGIN
     SELECT
         o.order_id,
         o.patient_id,
-        (p.first_name || ' ' || p.last_name)::TEXT  AS patient_name,
+        (p.first_name || ' ' || p.last_name)::TEXT      AS patient_name,
         o.lab_id,
         l.lab_name,
         o.doctor_id,
         CASE WHEN d.doctor_id IS NOT NULL
              THEN (d.first_name || ' ' || d.last_name)::TEXT
-        END                                          AS doctor_name,
+        END                                              AS doctor_name,
         o.appointment_id,
         o.order_status,
         o.payment_status,
         o.sample_collection_status,
+        o.price_at_order,
+        o.discount_amount,
         o.total_amount,
         o.notes,
         o.ordered_at,
         o.updated_at
     FROM public.lab_test_orders o
-    JOIN public.patients p ON p.patient_id = o.patient_id
-    JOIN public.labs     l ON l.lab_id     = o.lab_id
+    JOIN  public.patients p ON p.patient_id = o.patient_id
+    JOIN  public.labs     l ON l.lab_id     = o.lab_id
     LEFT JOIN public.doctors d ON d.doctor_id = o.doctor_id
     WHERE
         (p_patient_id IS NULL OR o.patient_id = p_patient_id)

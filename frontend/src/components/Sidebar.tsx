@@ -105,7 +105,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       : []),
     // Lab management
     ...(can("lab : view") || admin
-      ? [{ icon: FlaskConical, label: "Laboratory", route: "/admin/labs" }]
+      ? [
+          { 
+            icon: FlaskConical, 
+            label: "Laboratory", 
+            section: "laboratory",
+            subitems: [
+              { label: "Lab List", route: "/admin/labs" },
+              { label: "Tests & Categories", route: "/lab/tests" }
+            ]
+          }
+        ]
       : []),
     // Audit Logs — ADMIN and SUPERADMIN only
     ...(isAdminOrSuper
@@ -138,6 +148,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       0,
       { icon: Stethoscope, label: "Book Appointment", route: "/book-appointment" },
       { icon: Calendar, label: "My Appointments", route: "/my-appointments" },
+    );
+  }
+
+  if (userRole === "LAB_TECHNICIAN" || userRole === "LAB") {
+    menuItems.splice(
+      1,
+      0,
+      { icon: ClipboardList, label: "Tests & Categories", route: "/lab/tests" },
     );
   }
 

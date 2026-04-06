@@ -1,0 +1,22 @@
+[
+  {
+    "id": "TC001",
+    "title": "get_labs_tests_authentication_and_response_validation",
+    "description": "Verify that GET /labs/tests/ endpoint requires valid authentication and returns a 200 status with a response containing success boolean, data array, and total_count integer on successful request."
+  },
+  {
+    "id": "TC002",
+    "title": "post_labs_tests_create_new_lab_test_with_valid_data",
+    "description": "Test POST /labs/tests/ endpoint with valid authentication and valid request body to create a new lab test, expecting a 201 response with success true, created test data object, and a confirmation message."
+  },
+  {
+    "id": "TC003",
+    "title": "put_labs_tests_update_existing_lab_test",
+    "description": "Validate PUT /labs/tests/<test_id>/ endpoint with valid authentication and valid update data, ensuring it returns 200 status with success true, updated test data, and a message."
+  },
+  {
+    "id": "TC004",
+    "title": "delete_labs_tests_delete_existing_lab_test",
+    "description": "Check DELETE /labs/tests/<test_id>/ endpoint requires authentication and successfully deletes the specified lab test, returning 200 status with success true and a confirmation message."
+  }
+]

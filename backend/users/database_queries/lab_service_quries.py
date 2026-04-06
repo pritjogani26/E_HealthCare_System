@@ -1,11 +1,144 @@
-# from users.database_queries.connection import (
-#     fn_fetchone,
-#     fn_fetchall,
-#     fn_scalar,
-#     fetchscalar,
-#     fetchone,
-#     fetchall,
-#     execute,
-# )
+# backend\users\database_queries\lab_service_quries.py
+from users.database_queries.connection import (
+    fn_fetchone,
+    fn_fetchall,
+    fn_scalar,
+)
 
-# def 
+# --- CATEGORIES ---
+
+
+def create_lab_test_category(
+    category_name: str, description: str, created_by: str
+) -> dict:
+    return fn_fetchone(
+        "l_create_lab_test_category", [category_name, description, str(created_by)]
+    )
+
+
+def update_lab_test_category(
+    category_id: int,
+    updated_by: str,
+    category_name: str = None,
+    description: str = None,
+    is_active: bool = None,
+) -> dict:
+    return fn_fetchone(
+        "l_update_lab_test_category",
+        [category_id, str(updated_by), category_name, description, is_active],
+    )
+
+
+def get_lab_test_category(category_id):
+    return fn_fetchone("l_get_lab_test_category", [category_id])
+
+
+def delete_lab_test_category(category_id: int, deleted_by: str) -> dict:
+    return fn_fetchone("l_delete_lab_test_category", [category_id, str(deleted_by)])
+
+
+def list_lab_test_categories(
+    search: str = None, is_active: bool = True, limit: int = 20, offset: int = 0
+) -> list:
+    return fn_fetchall("l_list_lab_test_categories", [search, is_active, limit, offset])
+
+
+# --- TESTS ---
+
+
+def create_lab_test(
+    category_id: int,
+    test_code: str,
+    test_name: str,
+    description: str,
+    sample_type: str,
+    fasting_required: bool,
+    fasting_hours: int,
+    price: float,
+    turnaround_hours: int,
+) -> dict:
+    return fn_fetchone(
+        "l_create_lab_test",
+        [
+            test_code,
+            test_name,
+            sample_type,
+            category_id,
+            description,
+            fasting_required,
+            fasting_hours,
+            price,
+            turnaround_hours,
+        ],
+    )
+
+
+def update_lab_test(
+    test_id: int,
+    category_id: int = None,
+    test_code: str = None,
+    test_name: str = None,
+    description: str = None,
+    sample_type: str = None,
+    fasting_required: bool = None,
+    fasting_hours: int = None,
+    price: float = None,
+    turnaround_hours: int = None,
+    is_active: bool = None,
+) -> dict:
+    return fn_fetchone(
+        "l_update_lab_test",
+        [
+            test_id,
+            test_code,
+            test_name,
+            sample_type,
+            category_id,
+            description,
+            fasting_required,
+            fasting_hours,
+            False,  # p_clear_fasting_hours
+            price,
+            turnaround_hours,
+            is_active,
+        ],
+    )
+
+
+def get_details_lab_test(test_id):
+    return fn_fetchone("l_list_lab_tests", [test_id])
+
+
+def get_parameters_of_lab_test(test_id):
+    return fn_fetchall("l_get_test_parameters", [test_id])
+
+
+def delete_lab_test(test_id: int, deleted_by: str) -> dict:
+    return fn_fetchone("l_delete_lab_test", [test_id, str(deleted_by)])
+
+
+def list_lab_tests(
+    search: str = None,
+    category_id: int = None,
+    sample_type: str = None,
+    fasting_required: bool = None,
+    is_active: bool = True,
+    price_min: int = None,
+    price_max: int = None,
+    limit: int = 20,
+    offset: int = 0,
+) -> list:
+    return fn_fetchall(
+        "l_list_lab_tests",
+        [
+            # search,
+            # category_id,
+            # sample_type,
+            # fasting_required,
+            # is_active,
+            # price_min,
+            # price_max,
+            # limit,
+            # offset,
+        ],
+    )

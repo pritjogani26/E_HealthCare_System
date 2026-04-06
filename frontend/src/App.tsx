@@ -31,6 +31,7 @@ import SettingsPage from "./pages/SettingsPage";
 import AccessDeniedPage from "./pages/AccessDeniedPage";
 import RolePermissionsPage from "./pages/RolePermissionsPage";
 import Password_Reset from "./components/Password_Reset";
+import LabTestManagementPage from "./pages/LabTestManagementPage";
 
 // Components
 import Dashboard from "./components/Dashboard";
@@ -143,6 +144,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <AdminLabsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/lab/tests"
+                  element={
+                    <ProtectedRoute>
+                      <LabTestManagementPage />
                     </ProtectedRoute>
                   }
                 />

@@ -2,10 +2,10 @@
 --  lab_tests  ·  PL/pgSQL CRUD FUNCTIONS
 -- =============================================================
 --  Functions
---    1. create_lab_test      → INSERT
---    2. update_lab_test      → UPDATE (partial, only non-NULL params)
---    3. delete_lab_test      → soft-delete (is_active = false)
---    4. list_lab_tests       → SELECT (filtered + paginated)
+--    1. l_create_lab_test      → INSERT
+--    2. l_update_lab_test      → UPDATE (partial, only non-NULL params)
+--    3. l_delete_lab_test      → soft-delete (is_active = false)
+--    4. l_list_lab_tests       → SELECT (filtered + paginated)
 -- =============================================================
 
 
@@ -14,9 +14,9 @@
 -- ─────────────────────────────────────────────────────────────
 -- Returns the full newly inserted row.
 -- Raises exceptions on:
---   · blank test_name or test_code
+--   · blank test_name, test_code, or sample_type
 --   · duplicate test_code (case-insensitive)
---   · invalid category_id
+--   · invalid / inactive category_id
 --   · negative price / turnaround_hours / fasting_hours
 --   · fasting_hours provided when fasting_required = false
 -- ─────────────────────────────────────────────────────────────
@@ -25,14 +25,12 @@ CREATE OR REPLACE FUNCTION public.l_create_lab_test(
     p_test_code        VARCHAR(30),
     p_test_name        VARCHAR(255),
     p_sample_type      VARCHAR(50),
-    p_category_id      INTEGER      DEFAULT NULL,
-    p_description      TEXT         DEFAULT NULL,
-    p_fasting_required BOOLEAN      DEFAULT FALSE,
-    p_fasting_hours    INTEGER      DEFAULT NULL,
-    p_result_unit      VARCHAR(50)  DEFAULT NULL,
-    p_normal_range     VARCHAR(100) DEFAULT NULL,
+    p_category_id      INTEGER       DEFAULT NULL,
+    p_description      TEXT          DEFAULT NULL,
+    p_fasting_required BOOLEAN       DEFAULT FALSE,
+    p_fasting_hours    INTEGER       DEFAULT NULL,
     p_price            NUMERIC(10,2) DEFAULT 0,
-    p_turnaround_hours INTEGER      DEFAULT NULL
+    p_turnaround_hours INTEGER       DEFAULT NULL
 )
 RETURNS public.lab_tests
 LANGUAGE plpgsql
@@ -104,8 +102,6 @@ BEGIN
         sample_type,
         fasting_required,
         fasting_hours,
-        result_unit,
-        normal_range,
         price,
         turnaround_hours,
         is_active,
@@ -120,8 +116,6 @@ BEGIN
         TRIM(p_sample_type),
         p_fasting_required,
         p_fasting_hours,
-        p_result_unit,
-        p_normal_range,
         p_price,
         p_turnaround_hours,
         TRUE,
@@ -136,14 +130,14 @@ $$;
 
 /*
 USAGE — minimal:
-    SELECT * FROM public.create_lab_test(
+    SELECT * FROM public.l_create_lab_test(
         p_test_code   => 'CBC-001',
         p_test_name   => 'Complete Blood Count',
         p_sample_type => 'Blood'
     );
 
 USAGE — full:
-    SELECT * FROM public.create_lab_test(
+    SELECT * FROM public.l_create_lab_test(
         p_test_code        => 'LFT-001',
         p_test_name        => 'Liver Function Test',
         p_sample_type      => 'Blood',
@@ -151,8 +145,6 @@ USAGE — full:
         p_description      => 'Comprehensive liver enzyme panel',
         p_fasting_required => TRUE,
         p_fasting_hours    => 8,
-        p_result_unit      => 'U/L',
-        p_normal_range     => '7-56',
         p_price            => 499.00,
         p_turnaround_hours => 6
     );
@@ -167,7 +159,7 @@ USAGE — full:
 -- Raises exceptions on:
 --   · test not found
 --   · duplicate test_code collision with another row
---   · invalid category_id
+--   · invalid / inactive category_id
 --   · negative numeric values
 --   · fasting logic mismatch
 -- ─────────────────────────────────────────────────────────────
@@ -182,8 +174,6 @@ CREATE OR REPLACE FUNCTION public.l_update_lab_test(
     p_fasting_required     BOOLEAN       DEFAULT NULL,
     p_fasting_hours        INTEGER       DEFAULT NULL,
     p_clear_fasting_hours  BOOLEAN       DEFAULT FALSE,  -- pass TRUE to set fasting_hours = NULL
-    p_result_unit          VARCHAR(50)   DEFAULT NULL,
-    p_normal_range         VARCHAR(100)  DEFAULT NULL,
     p_price                NUMERIC(10,2) DEFAULT NULL,
     p_turnaround_hours     INTEGER       DEFAULT NULL,
     p_is_active            BOOLEAN       DEFAULT NULL
@@ -241,35 +231,15 @@ BEGIN
             USING ERRCODE = 'invalid_parameter_value';
     END IF;
 
-    IF p_fasting_hours IS NOT NULL AND p_fasting_hours < 0 THEN
-        RAISE EXCEPTION 'fasting_hours cannot be negative'
-            USING ERRCODE = 'invalid_parameter_value';
-    END IF;
-
-    -- ── Fasting logic guard ────────────────────────────────────
-    -- Resolve what the final values will be after the update
-    v_fasting_required := COALESCE(p_fasting_required, v_row.fasting_required);
-    v_fasting_hours    := CASE
-                            WHEN p_clear_fasting_hours THEN NULL
-                            ELSE COALESCE(p_fasting_hours, v_row.fasting_hours)
-                          END;
-
-    IF v_fasting_required = FALSE AND v_fasting_hours IS NOT NULL THEN
-        RAISE EXCEPTION 'fasting_hours must be NULL when fasting_required is false. Pass p_clear_fasting_hours => TRUE to clear it.'
-            USING ERRCODE = 'invalid_parameter_value';
-    END IF;
-
     UPDATE public.lab_tests
     SET
-        test_code        = COALESCE(NULLIF(TRIM(p_test_code), ''),  test_code),
-        test_name        = COALESCE(NULLIF(TRIM(p_test_name), ''),  test_name),
-        sample_type      = COALESCE(NULLIF(TRIM(p_sample_type),''), sample_type),
+        test_code        = COALESCE(NULLIF(TRIM(p_test_code),    ''), test_code),
+        test_name        = COALESCE(NULLIF(TRIM(p_test_name),    ''), test_name),
+        sample_type      = COALESCE(NULLIF(TRIM(p_sample_type),  ''), sample_type),
         category_id      = COALESCE(p_category_id,      category_id),
         description      = COALESCE(p_description,      description),
         fasting_required = COALESCE(p_fasting_required, fasting_required),
         fasting_hours    = v_fasting_hours,
-        result_unit      = COALESCE(p_result_unit,      result_unit),
-        normal_range     = COALESCE(p_normal_range,     normal_range),
         price            = COALESCE(p_price,            price),
         turnaround_hours = COALESCE(p_turnaround_hours, turnaround_hours),
         is_active        = COALESCE(p_is_active,        is_active),
@@ -283,25 +253,24 @@ $$;
 
 /*
 USAGE — update price only:
-    SELECT * FROM public.update_lab_test(
+    SELECT * FROM public.l_update_lab_test(
         p_test_id => 1,
         p_price   => 599.00
     );
 
 USAGE — disable fasting requirement and clear fasting_hours:
-    SELECT * FROM public.update_lab_test(
+    SELECT * FROM public.l_update_lab_test(
         p_test_id             => 1,
         p_fasting_required    => FALSE,
         p_clear_fasting_hours => TRUE
     );
 
 USAGE — update multiple fields:
-    SELECT * FROM public.update_lab_test(
+    SELECT * FROM public.l_update_lab_test(
         p_test_id          => 1,
         p_test_name        => 'Complete Blood Count (CBC)',
         p_turnaround_hours => 4,
-        p_price            => 349.00,
-        p_normal_range     => '4.5-11.0 x10^9/L'
+        p_price            => 349.00
     );
 */
 
@@ -316,7 +285,8 @@ USAGE — update multiple fields:
 -- ─────────────────────────────────────────────────────────────
 
 CREATE OR REPLACE FUNCTION public.l_delete_lab_test(
-    p_test_id INTEGER
+    p_test_id INTEGER,
+    p_user_id uuid
 )
 RETURNS public.lab_tests
 LANGUAGE plpgsql
@@ -341,6 +311,7 @@ BEGIN
     UPDATE public.lab_tests
     SET
         is_active  = FALSE,
+        updated_by = p_user_id,
         updated_at = now()
     WHERE test_id = p_test_id
     RETURNING * INTO v_row;
@@ -351,21 +322,21 @@ $$;
 
 /*
 USAGE:
-    SELECT * FROM public.delete_lab_test(1);
+    SELECT * FROM public.l_delete_lab_test(1);
 */
 
 
 -- ─────────────────────────────────────────────────────────────
--- 4. LIST ALL
+-- 4. LIST
 -- ─────────────────────────────────────────────────────────────
 -- Returns a paginated, optionally filtered result set.
 --
 -- Filters
 --   p_search           ILIKE match on test_code, test_name, description
 --   p_category_id      filter by a specific category
---   p_sample_type      exact match (case-insensitive)
+--   p_sample_type      case-insensitive exact match
 --   p_fasting_required filter tests that require fasting
---   p_is_active        NULL = all rows | TRUE = active | FALSE = inactive
+--   p_is_active        NULL = all rows | TRUE = active (default) | FALSE = inactive
 --   p_price_min        minimum price (inclusive)
 --   p_price_max        maximum price (inclusive)
 --
@@ -373,7 +344,7 @@ USAGE:
 --   p_limit            page size  (default 20, max 100)
 --   p_offset           page start (default 0)
 --
--- Result includes total_count via window function for pagination.
+-- Result includes category_name (JOIN) and total_count (window function).
 -- ─────────────────────────────────────────────────────────────
 
 CREATE OR REPLACE FUNCTION public.l_list_lab_tests(
@@ -388,29 +359,28 @@ CREATE OR REPLACE FUNCTION public.l_list_lab_tests(
     p_offset           INTEGER       DEFAULT 0
 )
 RETURNS TABLE (
-    test_id            INTEGER,
-    category_id        INTEGER,
-    category_name      VARCHAR(100),
-    test_code          VARCHAR(30),
-    test_name          VARCHAR(255),
-    description        TEXT,
-    sample_type        VARCHAR(50),
-    fasting_required   BOOLEAN,
-    fasting_hours      INTEGER,
-    result_unit        VARCHAR(50),
-    normal_range       VARCHAR(100),
-    price              NUMERIC(10,2),
-    turnaround_hours   INTEGER,
-    is_active          BOOLEAN,
-    created_at         TIMESTAMPTZ,
-    updated_at         TIMESTAMPTZ,
-    total_count        BIGINT
+    test_id          INTEGER,
+    category_id      INTEGER,
+    category_name    VARCHAR(100),
+    test_code        VARCHAR(30),
+    test_name        VARCHAR(255),
+    description      TEXT,
+    sample_type      VARCHAR(50),
+    fasting_required BOOLEAN,
+    fasting_hours    INTEGER,
+    price            NUMERIC(10,2),
+    turnaround_hours INTEGER,
+    is_active        BOOLEAN,
+    created_at       TIMESTAMPTZ,
+    updated_at       TIMESTAMPTZ,
+    total_count      BIGINT
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    -- Clamp limit to prevent abuse
-    p_limit := LEAST(p_limit, 100);
+    -- Clamp limit and offset to sane values
+    p_limit  := GREATEST(1, LEAST(p_limit, 100));
+    p_offset := GREATEST(0, p_offset);
 
     -- Price range guard
     IF p_price_min IS NOT NULL AND p_price_max IS NOT NULL
@@ -431,8 +401,6 @@ BEGIN
         t.sample_type,
         t.fasting_required,
         t.fasting_hours,
-        t.result_unit,
-        t.normal_range,
         t.price,
         t.turnaround_hours,
         t.is_active,
@@ -442,16 +410,16 @@ BEGIN
     FROM public.lab_tests t
     LEFT JOIN public.lab_test_categories c USING (category_id)
     WHERE
-        (p_is_active        IS NULL OR t.is_active        = p_is_active)
-        AND (p_category_id  IS NULL OR t.category_id      = p_category_id)
+        (p_is_active        IS NULL OR t.is_active            = p_is_active)
+        AND (p_category_id  IS NULL OR t.category_id          = p_category_id)
         AND (p_fasting_required IS NULL OR t.fasting_required = p_fasting_required)
-        AND (p_sample_type  IS NULL OR LOWER(t.sample_type) = LOWER(TRIM(p_sample_type)))
-        AND (p_price_min    IS NULL OR t.price            >= p_price_min)
-        AND (p_price_max    IS NULL OR t.price            <= p_price_max)
+        AND (p_sample_type  IS NULL OR LOWER(t.sample_type)   = LOWER(TRIM(p_sample_type)))
+        AND (p_price_min    IS NULL OR t.price                >= p_price_min)
+        AND (p_price_max    IS NULL OR t.price                <= p_price_max)
         AND (
             p_search IS NULL
-            OR t.test_code  ILIKE '%' || TRIM(p_search) || '%'
-            OR t.test_name  ILIKE '%' || TRIM(p_search) || '%'
+            OR t.test_code   ILIKE '%' || TRIM(p_search) || '%'
+            OR t.test_name   ILIKE '%' || TRIM(p_search) || '%'
             OR t.description ILIKE '%' || TRIM(p_search) || '%'
         )
     ORDER BY t.created_at DESC
@@ -462,22 +430,22 @@ $$;
 
 /*
 USAGE — active tests, first page:
-    SELECT * FROM public.list_lab_tests();
+    SELECT * FROM public.l_list_lab_tests();
 
 USAGE — search by keyword across all statuses:
-    SELECT * FROM public.list_lab_tests(
+    SELECT * FROM public.l_list_lab_tests(
         p_search    => 'blood',
         p_is_active => NULL
     );
 
 USAGE — filter by category and fasting:
-    SELECT * FROM public.list_lab_tests(
+    SELECT * FROM public.l_list_lab_tests(
         p_category_id      => 2,
         p_fasting_required => TRUE
     );
 
 USAGE — price range with pagination:
-    SELECT * FROM public.list_lab_tests(
+    SELECT * FROM public.l_list_lab_tests(
         p_price_min => 100.00,
         p_price_max => 500.00,
         p_limit     => 10,
@@ -485,7 +453,30 @@ USAGE — price range with pagination:
     );
 
 USAGE — urine tests only:
-    SELECT * FROM public.list_lab_tests(
+    SELECT * FROM public.l_list_lab_tests(
         p_sample_type => 'Urine'
     );
 */
+CREATE OR REPLACE FUNCTION public.l_get_test_parameters(
+    p_test_id INTEGER DEFAULT NULL
+)
+RETURNS TABLE (
+    parameter_id   INTEGER,
+    parameter_name VARCHAR(255),
+    unit           VARCHAR(50),
+    normal_range   VARCHAR(100)
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        t.parameter_id,
+        t.parameter_name,
+        t.unit,
+        t.normal_range
+    FROM public.test_parameters t
+    WHERE t.test_id = p_test_id
+    ORDER BY t.parameter_id ASC;
+END;
+$$;
