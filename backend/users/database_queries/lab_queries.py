@@ -100,25 +100,25 @@ def insert_lab_operating_hour(
     )
 
 
-def get_lab_services(lab_user_id: str) -> list:
-    return fn_fetchall("l_get_services", [str(lab_user_id)])
+# def get_lab_services(lab_user_id: str) -> list:
+#     return fn_fetchall("l_get_services", [str(lab_user_id)])
 
 
-def delete_lab_services(lab_user_id: str):
-    execute("DELETE FROM lab_services WHERE lab_id=%s", [str(lab_user_id)])
+# def delete_lab_services(lab_user_id: str):
+#     execute("DELETE FROM lab_services WHERE lab_id=%s", [str(lab_user_id)])
 
 
-def insert_lab_service(
-    lab_user_id: str,
-    service_name: str,
-    description: str = None,
-    price=None,
-    turnaround_hours: int = None,
-):
-    """
-    Calls l_add_service — 5 params only (is_active is always TRUE in the DB function).
-    """
-    fn_scalar(
-        "l_add_service",
-        [str(lab_user_id), service_name, description, price, turnaround_hours],
-    )
+# def insert_lab_service(
+#     lab_user_id: str,
+#     service_name: str,
+#     description: str = None,
+#     price=None,
+#     turnaround_hours: int = None,
+# ):
+#     """
+#     Calls l_add_service — 5 params only (is_active is always TRUE in the DB function).
+#     """
+#     fn_scalar(
+#         "l_add_service",
+#         [str(lab_user_id), service_name, description, price, turnaround_hours],
+#     )

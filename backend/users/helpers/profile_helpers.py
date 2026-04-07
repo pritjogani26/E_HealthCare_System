@@ -69,7 +69,7 @@ def _lab_profile(user_id: str) -> dict:
     if lab:
         uid = str(lab["lab_id"])
         lab["operating_hours"] = lq.get_lab_operating_hours(uid)
-        lab["services"] = lq.get_lab_services(uid)
+        # lab["services"] = lq.get_lab_services(uid)
         return LabProfileSerializer(lab).data
 
     logger.warning("Lab profile not found for user_id=%s", user_id)

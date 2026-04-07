@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useToast } from "../hooks/useToast";
 import { useAuth } from "../context/AuthContext";
-import { Layout } from "../components/common/Layout";
+
 import { PageHeader } from "../components/common/PageHeader";
 import { LoadingState } from "../components/common/LoadingState";
 import { ErrorState } from "../components/common/ErrorState";
@@ -107,7 +107,7 @@ const AdminPatientsPage: React.FC = () => {
   const totalPages = Math.ceil(patients.length / itemsPerPage);
 
   return (
-    <Layout>
+    <>
       <PageHeader
         title="Patients Management"
         description="View and manage all registered patients."
@@ -328,7 +328,7 @@ const AdminPatientsPage: React.FC = () => {
         confirmLabel={actionData.target?.is_active ? "Deactivate" : "Activate"}
         loading={actionLoading}
       />
-    </Layout>
+    </>
   );
 };
 

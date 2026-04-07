@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useToast } from "../hooks/useToast";
 import { useAuth } from "../context/AuthContext";
-import { Layout } from "../components/common/Layout";
+
 import { PageHeader } from "../components/common/PageHeader";
 import { FilterTabs } from "../components/common/FilterTabs";
 import { LoadingState } from "../components/common/LoadingState";
@@ -175,7 +175,7 @@ const AdminLabsPage: React.FC = () => {
   );
 
   return (
-    <Layout>
+    <>
       <PageHeader
         title="Labs Management"
         description="View and manage all registered laboratories."
@@ -631,7 +631,7 @@ const AdminLabsPage: React.FC = () => {
         }
         loading={actionLoading}
       />
-    </Layout>
+    </>
   );
 };
 

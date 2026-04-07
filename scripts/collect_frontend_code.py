@@ -1,5 +1,3 @@
-
-
 import os
 import argparse
 from datetime import datetime
@@ -7,11 +5,11 @@ from datetime import datetime
 DEFAULT_EXTENSIONS = {".ts", ".tsx", ".js", ".jsx", ".css", ".json"}
 DEFAULT_EXCLUDES = {
     "node_modules",
-        "build",
-        "dist",
-        ".git",
-        "package-lock.json",
-        "yarn.lock",
+    "build",
+    "dist",
+    ".git",
+    "package-lock.json",
+    "yarn.lock",
 }
 
 
@@ -70,5 +68,5 @@ if __name__ == "__main__":
     # root_dir = r"E:\Master_Folder\Hospital_Management_System"
     # root_dir = r"E:\Master_Folder\Hospital_Management_System\backend"
     root_dir = r"E:\New_Folder\frontend"
-    output_file = "frontend_full_code.txt"
+    output_file = r"E:\New_Folder\scripts\frontend_full_code.txt"
     collect_code(root_dir, output_file)

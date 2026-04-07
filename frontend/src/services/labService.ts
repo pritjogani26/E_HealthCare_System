@@ -20,6 +20,9 @@ export interface LabTest {
   price: number;
   turnaround_hours?: number;
   is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  created_by_name?: string;
   parameters?: TestParameter[];
 }
 

@@ -9,7 +9,7 @@ import {
   ChevronRight,
   Save,
 } from "lucide-react";
-import { Layout } from "../components/common/Layout";
+
 import { useToast } from "../hooks/useToast";
 import { handleApiError } from "../services/api";
 import {
@@ -179,7 +179,7 @@ const RolePermissionsPage: React.FC = () => {
 
   // ── Render ───────────────────────────────────────────────────────────────
   return (
-    <Layout>
+    <>
       <style>{`
         .spinner { animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -462,7 +462,7 @@ const RolePermissionsPage: React.FC = () => {
           </div>
         )}
       </div>
-    </Layout>
+    </>
   );
 };
 

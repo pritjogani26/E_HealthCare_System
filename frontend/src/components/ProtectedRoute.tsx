@@ -5,6 +5,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import type { User } from "../types";
 import AccessDeniedPage from "../pages/AccessDeniedPage";
+import { Layout } from "./common/Layout";
 
 interface ProtectedRouteProps {
   children: React.ReactElement;
@@ -74,7 +75,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
   }
 
-  return children;
+  return <Layout>{children}</Layout>;
 };
 
 export default ProtectedRoute;

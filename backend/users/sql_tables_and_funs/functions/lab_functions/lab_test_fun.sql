@@ -347,16 +347,91 @@ USAGE:
 -- Result includes category_name (JOIN) and total_count (window function).
 -- ─────────────────────────────────────────────────────────────
 
+-- CREATE OR REPLACE FUNCTION public.l_list_lab_tests(
+--     p_search           TEXT          DEFAULT NULL,
+--     p_category_id      INTEGER       DEFAULT NULL,
+--     p_sample_type      VARCHAR(50)   DEFAULT NULL,
+--     p_fasting_required BOOLEAN       DEFAULT NULL,
+--     p_is_active        BOOLEAN       DEFAULT TRUE,
+--     p_price_min        NUMERIC(10,2) DEFAULT NULL,
+--     p_price_max        NUMERIC(10,2) DEFAULT NULL,
+--     p_limit            INTEGER       DEFAULT 20,
+--     p_offset           INTEGER       DEFAULT 0
+-- )
+-- RETURNS TABLE (
+--     test_id          INTEGER,
+--     category_id      INTEGER,
+--     category_name    VARCHAR(100),
+--     test_code        VARCHAR(30),
+--     test_name        VARCHAR(255),
+--     description      TEXT,
+--     sample_type      VARCHAR(50),
+--     fasting_required BOOLEAN,
+--     fasting_hours    INTEGER,
+--     price            NUMERIC(10,2),
+--     turnaround_hours INTEGER,
+--     is_active        BOOLEAN,
+--     created_at       TIMESTAMPTZ,
+--     updated_at       TIMESTAMPTZ,
+--     total_count      BIGINT
+-- )
+-- LANGUAGE plpgsql
+-- AS $$
+-- BEGIN
+--     -- Clamp limit and offset to sane values
+--     p_limit  := GREATEST(1, LEAST(p_limit, 100));
+--     p_offset := GREATEST(0, p_offset);
+
+--     -- Price range guard
+--     IF p_price_min IS NOT NULL AND p_price_max IS NOT NULL
+--        AND p_price_min > p_price_max THEN
+--         RAISE EXCEPTION 'p_price_min (%) cannot be greater than p_price_max (%)',
+--             p_price_min, p_price_max
+--             USING ERRCODE = 'invalid_parameter_value';
+--     END IF;
+
+--     RETURN QUERY
+--     SELECT
+--         t.test_id,
+--         t.category_id,
+--         c.category_name,
+--         t.test_code,
+--         t.test_name,
+--         t.description,
+--         t.sample_type,
+--         t.fasting_required,
+--         t.fasting_hours,
+--         t.price,
+--         t.turnaround_hours,
+--         t.is_active,
+--         t.created_at,
+--         t.updated_at,
+--         COUNT(*) OVER () AS total_count
+--     FROM public.lab_tests t
+--     LEFT JOIN public.lab_test_categories c USING (category_id)
+--     WHERE
+--         (p_is_active        IS NULL OR t.is_active            = p_is_active)
+--         AND (p_category_id  IS NULL OR t.category_id          = p_category_id)
+--         AND (p_fasting_required IS NULL OR t.fasting_required = p_fasting_required)
+--         AND (p_sample_type  IS NULL OR LOWER(t.sample_type)   = LOWER(TRIM(p_sample_type)))
+--         AND (p_price_min    IS NULL OR t.price                >= p_price_min)
+--         AND (p_price_max    IS NULL OR t.price                <= p_price_max)
+--         AND (
+--             p_search IS NULL
+--             OR t.test_code   ILIKE '%' || TRIM(p_search) || '%'
+--             OR t.test_name   ILIKE '%' || TRIM(p_search) || '%'
+--             OR t.description ILIKE '%' || TRIM(p_search) || '%'
+--         )
+--     ORDER BY t.created_at DESC
+--     LIMIT  p_limit
+--     OFFSET p_offset;
+-- END;
+-- $$;
+
+
+drop function l_list_lab_tests;
 CREATE OR REPLACE FUNCTION public.l_list_lab_tests(
-    p_search           TEXT          DEFAULT NULL,
-    p_category_id      INTEGER       DEFAULT NULL,
-    p_sample_type      VARCHAR(50)   DEFAULT NULL,
-    p_fasting_required BOOLEAN       DEFAULT NULL,
-    p_is_active        BOOLEAN       DEFAULT TRUE,
-    p_price_min        NUMERIC(10,2) DEFAULT NULL,
-    p_price_max        NUMERIC(10,2) DEFAULT NULL,
-    p_limit            INTEGER       DEFAULT 20,
-    p_offset           INTEGER       DEFAULT 0
+    p_created_by uuid DEFAULT NULL
 )
 RETURNS TABLE (
     test_id          INTEGER,
@@ -372,24 +447,15 @@ RETURNS TABLE (
     turnaround_hours INTEGER,
     is_active        BOOLEAN,
     created_at       TIMESTAMPTZ,
+    created_by       uuid,
+    created_by_name  VARCHAR(255),
     updated_at       TIMESTAMPTZ,
+    updated_by       uuid,
     total_count      BIGINT
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    -- Clamp limit and offset to sane values
-    p_limit  := GREATEST(1, LEAST(p_limit, 100));
-    p_offset := GREATEST(0, p_offset);
-
-    -- Price range guard
-    IF p_price_min IS NOT NULL AND p_price_max IS NOT NULL
-       AND p_price_min > p_price_max THEN
-        RAISE EXCEPTION 'p_price_min (%) cannot be greater than p_price_max (%)',
-            p_price_min, p_price_max
-            USING ERRCODE = 'invalid_parameter_value';
-    END IF;
-
     RETURN QUERY
     SELECT
         t.test_id,
@@ -405,28 +471,25 @@ BEGIN
         t.turnaround_hours,
         t.is_active,
         t.created_at,
+        t.created_by,
+        l.lab_name AS created_by_name,
         t.updated_at,
+        t.updated_by,
         COUNT(*) OVER () AS total_count
     FROM public.lab_tests t
-    LEFT JOIN public.lab_test_categories c USING (category_id)
-    WHERE
-        (p_is_active        IS NULL OR t.is_active            = p_is_active)
-        AND (p_category_id  IS NULL OR t.category_id          = p_category_id)
-        AND (p_fasting_required IS NULL OR t.fasting_required = p_fasting_required)
-        AND (p_sample_type  IS NULL OR LOWER(t.sample_type)   = LOWER(TRIM(p_sample_type)))
-        AND (p_price_min    IS NULL OR t.price                >= p_price_min)
-        AND (p_price_max    IS NULL OR t.price                <= p_price_max)
-        AND (
-            p_search IS NULL
-            OR t.test_code   ILIKE '%' || TRIM(p_search) || '%'
-            OR t.test_name   ILIKE '%' || TRIM(p_search) || '%'
-            OR t.description ILIKE '%' || TRIM(p_search) || '%'
-        )
-    ORDER BY t.created_at DESC
-    LIMIT  p_limit
-    OFFSET p_offset;
+    LEFT JOIN public.lab_test_categories c 
+        ON t.category_id = c.category_id
+    LEFT JOIN public.labs l 
+        ON t.created_by = l.lab_id
+    WHERE 
+        (p_created_by IS NULL OR t.created_by = p_created_by)
+    ORDER BY t.created_at DESC;
 END;
 $$;
+
+select * from l_list_lab_tests();
+
+
 
 /*
 USAGE — active tests, first page:

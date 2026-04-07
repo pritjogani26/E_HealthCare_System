@@ -1,7 +1,7 @@
 // frontend/src/pages/ProfilePage.tsx
 import React, { useEffect, useState } from "react";
 import { useToast } from "../hooks/useToast";
-import { Layout } from "../components/common/Layout";
+
 import { PageHeader } from "../components/common/PageHeader";
 import { LoadingState } from "../components/common/LoadingState";
 import { ErrorState } from "../components/common/ErrorState";
@@ -96,7 +96,7 @@ const ProfilePage: React.FC = () => {
   );
 
   return (
-    <Layout>
+    <>
       <PageHeader
         title="My Profile"
         description="View and manage your account information."
@@ -145,7 +145,7 @@ const ProfilePage: React.FC = () => {
           </div>
         </div>
       )}
-    </Layout>
+    </>
   );
 };
 

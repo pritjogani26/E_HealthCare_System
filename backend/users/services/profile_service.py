@@ -81,7 +81,7 @@ class LabProfileService(BaseProfileService):
         if not lab:
             return None
         lab["operating_hours"] = lq.get_lab_operating_hours(user_id)
-        lab["services"] = lq.get_lab_services(user_id)
+        # lab["services"] = lq.get_lab_services(user_id)
         return lab
 
     @staticmethod
@@ -129,20 +129,20 @@ class LabProfileService(BaseProfileService):
                     oh.get("is_closed", False),
                 )
 
-        if "services" in data:
-            lq.delete_lab_services(user_id)
-            for svc in data["services"]:
-                lq.insert_lab_service(
-                    user_id,
-                    svc["service_name"],
-                    svc.get("description"),
-                    svc.get("price"),
-                    svc.get("turnaround_hours"),
-                )
+        # if "services" in data:
+        #     lq.delete_lab_services(user_id)
+        #     for svc in data["services"]:
+        #         lq.insert_lab_service(
+        #             user_id,
+        #             svc["service_name"],
+        #             svc.get("description"),
+        #             svc.get("price"),
+        #             svc.get("turnaround_hours"),
+        #         )
 
         updated = lq.get_lab_by_user_id(user_id)
         updated["operating_hours"] = lq.get_lab_operating_hours(user_id)
-        updated["services"] = lq.get_lab_services(user_id)
+        # updated["services"] = lq.get_lab_services(user_id)
 
         return LabProfileSerializer(updated).data
 

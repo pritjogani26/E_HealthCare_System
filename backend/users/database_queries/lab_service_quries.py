@@ -97,7 +97,7 @@ def update_lab_test(
             description,
             fasting_required,
             fasting_hours,
-            False,  # p_clear_fasting_hours
+            False,
             price,
             turnaround_hours,
             is_active,
@@ -106,7 +106,7 @@ def update_lab_test(
 
 
 def get_details_lab_test(test_id):
-    return fn_fetchone("l_list_lab_tests", [test_id])
+    return fn_fetchone("l_list_lab_test", [test_id])
 
 
 def get_parameters_of_lab_test(test_id):
@@ -118,27 +118,11 @@ def delete_lab_test(test_id: int, deleted_by: str) -> dict:
 
 
 def list_lab_tests(
-    search: str = None,
-    category_id: int = None,
-    sample_type: str = None,
-    fasting_required: bool = None,
-    is_active: bool = True,
-    price_min: int = None,
-    price_max: int = None,
-    limit: int = 20,
-    offset: int = 0,
+    user_id = None,
 ) -> list:
     return fn_fetchall(
         "l_list_lab_tests",
         [
-            # search,
-            # category_id,
-            # sample_type,
-            # fasting_required,
-            # is_active,
-            # price_min,
-            # price_max,
-            # limit,
-            # offset,
+            user_id,
         ],
     )

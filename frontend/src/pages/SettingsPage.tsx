@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import * as settingsApi from "../services/settings_api";
 import { toast } from "react-hot-toast";
-import { Layout } from "../components/common/Layout";
+
 import { PageHeader } from "../components/common/PageHeader";
 
 const SettingsPage: React.FC = () => {
@@ -289,7 +289,7 @@ const SettingsPage: React.FC = () => {
   };
 
   return (
-    <Layout>
+    <>
       <PageHeader
         title="System Settings"
         description="Manage system-wide configuration and lookup data."
@@ -549,7 +549,7 @@ const SettingsPage: React.FC = () => {
           </div>
         </div>
       )}
-    </Layout>
+    </>
   );
 };
 

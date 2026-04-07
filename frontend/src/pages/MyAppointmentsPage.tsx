@@ -6,8 +6,6 @@ import {
     Clock,
     RefreshCw,
 } from "lucide-react";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
 import { handleApiError } from "../services/api";
 import { cancelAppointment, getMyAppointments } from "../services/doctor_api";
 import { DoctorAppointment } from "../types";
@@ -72,8 +70,7 @@ const MyAppointmentsPage: React.FC = () => {
             background: "#e8f0f7",
             color: "#555555",
         }}>
-            <Header setIsSidebarOpen={setSidebarOpen} />
-
+            
             <div style={{ flex: 1, display: "flex" }}>
                 <div style={{ flex: 1, padding: "32px", overflowY: "auto", maxWidth: "960px", margin: "0 auto", width: "100%" }}>
 
@@ -260,8 +257,7 @@ const MyAppointmentsPage: React.FC = () => {
                 </div>
             </div>
 
-            <Footer />
-        </div>
+                    </div>
     );
 };
 

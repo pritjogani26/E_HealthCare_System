@@ -20,9 +20,6 @@ import {
   AlertTriangle,
   Mail,
 } from "lucide-react";
-import Sidebar from "./Sidebar";
-import Header from "./Header";
-import Footer from "./Footer";
 import StatCard from "./StatCard";
 import { StatCardProps, Product } from "./types";
 import { AuditLog, AuditAction } from "../types";
@@ -116,7 +113,6 @@ const INITIAL_PLATFORM: Product[] = [
 ];
 
 const Dashboard: React.FC = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user } = useAuth();
   const toast = useToast();
 
@@ -235,15 +231,8 @@ const Dashboard: React.FC = () => {
     if (isAdminOrStaff) loadActivity();
   }, [isAdminOrStaff, loadActivity]);
 
-  // ── render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
-      <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
-
-      <div className="lg:pl-72">
-        <Header setIsSidebarOpen={setIsSidebarOpen} />
-
-        <main className="p-6 min-h-[calc(100vh-73px)] flex flex-col">
+    <>
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-slate-800 mb-2">Platform Dashboard</h2>
             <p className="text-slate-600">Manage registrations, verifications, and monitor platform activity.</p>
@@ -441,11 +430,7 @@ const Dashboard: React.FC = () => {
               </table>
             </div>
           </div>
-        </main>
-
-        <Footer />
-      </div>
-    </div>
+    </>
   );
 };
 

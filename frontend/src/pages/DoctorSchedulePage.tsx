@@ -2,8 +2,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import { getDoctorProfile, updateDoctorProfile } from "../services/doctor_api";
 import { WorkingDay } from "../types";
 import { Clock, Phone, Calendar, Save } from "lucide-react";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
 import { useToast } from "../hooks/useToast";
 import { Toaster } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -188,15 +186,13 @@ const DoctorSchedulePage: React.FC = () => {
           flexDirection: "column",
         }}
       >
-        <Header setIsSidebarOpen={setIsSidebarOpen} showSidebarToggle={false} />
-        <div className="flex-1 flex items-center justify-center">
+                <div className="flex-1 flex items-center justify-center">
           <div
             className="animate-spin rounded-full h-12 w-12 border-b-2"
             style={{ borderColor: "#1a3c6e" }}
           />
         </div>
-        <Footer />
-      </div>
+              </div>
     );
   }
 
@@ -243,8 +239,7 @@ const DoctorSchedulePage: React.FC = () => {
           },
         }}
       />
-      <Header setIsSidebarOpen={setIsSidebarOpen} showSidebarToggle={false} />
-
+      
       <main className="flex-1 max-w-4xl w-full mx-auto p-6">
         <div className="mb-6">
           <h1 className="text-2xl font-bold mb-1" style={{ color: "#1a3c6e" }}>
@@ -539,8 +534,7 @@ const DoctorSchedulePage: React.FC = () => {
         </form>
       </main>
 
-      <Footer />
-    </div>
+          </div>
   );
 };
 

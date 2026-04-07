@@ -66,7 +66,7 @@ class AdminVerifyLabView(generics.GenericAPIView):
         )
         uid = str(lab["lab_id"])
         lab["operating_hours"] = lq.get_lab_operating_hours(uid)
-        lab["services"] = lq.get_lab_services(uid)
+        # lab["services"] = lq.get_lab_services(uid)
         return send_success_msg(
             LabProfileSerializer(lab).data,
             message=f"Lab {new_status.lower()} successfully.",

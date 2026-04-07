@@ -69,5 +69,5 @@ if __name__ == "__main__":
     root_dir = os.getcwd()
     print(root_dir)
     root_dir = r"E:\New_Folder\backend"
-    output_file = "backend_full_code.txt"
+    output_file = r"E:\New_Folder\scripts\backend_full_code.txt"
     collect_code(root_dir, output_file)

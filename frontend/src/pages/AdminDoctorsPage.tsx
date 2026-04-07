@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { useToast } from "../hooks/useToast";
 import { useAuth } from "../context/AuthContext";
-import { Layout } from "../components/common/Layout";
+
 import { PageHeader } from "../components/common/PageHeader";
 import { FilterTabs } from "../components/common/FilterTabs";
 import { LoadingState } from "../components/common/LoadingState";
@@ -189,7 +189,7 @@ const AdminDoctorsPage: React.FC = () => {
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
 
   return (
-    <Layout>
+    <>
       <PageHeader
         title="Doctors Management"
         description="View and manage all registered doctors."
@@ -597,7 +597,7 @@ const AdminDoctorsPage: React.FC = () => {
         }
         loading={actionLoading}
       />
-    </Layout>
+    </>
   );
 };
 

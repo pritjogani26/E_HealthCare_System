@@ -4,8 +4,6 @@ import { Search, Calendar, Clock, ChevronLeft, X } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
-import Header from "../components/Header";
-import Footer from "../components/Footer";
 import { handleApiError } from "../services/api";
 import {
   bookAppointment,
@@ -160,8 +158,7 @@ const BookAppointmentPage: React.FC = () => {
           backgroundColor: "#e8f0f7",
         }}
       >
-        <Header setIsSidebarOpen={setSidebarOpen} />
-        <div style={{ flex: 1, padding: "32px", overflowY: "auto" }}>
+                <div style={{ flex: 1, padding: "32px", overflowY: "auto" }}>
           <h1
             style={{
               fontSize: "24px",
@@ -362,8 +359,7 @@ const BookAppointmentPage: React.FC = () => {
             </div>
           )}
         </div>
-        <Footer />
-      </div>
+              </div>
     );
   }
 
@@ -378,8 +374,7 @@ const BookAppointmentPage: React.FC = () => {
         backgroundColor: "#e8f0f7",
       }}
     >
-      <Header setIsSidebarOpen={setSidebarOpen} />
-      <div style={{ flex: 1, padding: "32px", overflowY: "auto" }}>
+            <div style={{ flex: 1, padding: "32px", overflowY: "auto" }}>
         {/* Back */}
         <button
           onClick={() => setSelectedDoctor(null)}
@@ -819,8 +814,7 @@ const BookAppointmentPage: React.FC = () => {
         </div>
       )}
 
-      <Footer />
-    </div>
+          </div>
   );
 };
 

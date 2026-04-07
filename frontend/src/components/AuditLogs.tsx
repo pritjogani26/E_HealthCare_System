@@ -10,9 +10,6 @@ import {
   Download,
   X,
 } from "lucide-react";
-import Sidebar from "./Sidebar";
-import Header from "./Header";
-import Footer from "./Footer";
 import { AuditLog, AuditAction } from "../types";
 import { downloadAuditLogs, getRecentActivity } from "../services/admin_api";
 import { useToast } from "../hooks/useToast";
@@ -258,9 +255,7 @@ const AuditLogs: React.FC = () => {
   const hasActiveFilters = !!(search || statusFilter !== "ALL");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
-      <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
-
+    <>
       {showDownloadModal && (
         <DownloadModal
           onClose={() => setShowDownloadModal(false)}
@@ -268,257 +263,304 @@ const AuditLogs: React.FC = () => {
         />
       )}
 
-      <div className="lg:pl-72">
-        <Header setIsSidebarOpen={setIsSidebarOpen} />
+      {/* Page Header */}
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-semibold mb-1" style={{ color: "#1a3c6e" }}>
+            Audit Logs
+          </h2>
+          <p className="text-sm" style={{ color: "#555555" }}>
+            Monitor system activity and security events.
+          </p>
+        </div>
 
-        <main className="p-6 min-h-[calc(100vh-73px)] flex flex-col">
-          {/* Heading */}
-          <div className="mb-6 flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-800">Audit Logs</h2>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={loadActivity}
-                disabled={loading}
-                className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-emerald-600 transition-all shadow-sm ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
-              >
-                Refresh
-              </button>
-              <button
-                onClick={() => setShowDownloadModal(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-emerald-600 transition-all shadow-sm"
-              >
-                Download
-              </button>
-            </div>
-          </div>
-
-          {/* Filters */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 mb-4 flex flex-col sm:flex-row gap-3">
-            <div className="flex items-center gap-1.5">
-              {(["ALL", "SUCCESS", "FAILURE"] as const).map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setStatusFilter(s)}
-                  className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                    statusFilter === s
-                      ? s === "FAILURE"
-                        ? "bg-red-600 text-white shadow-sm"
-                        : s === "SUCCESS"
-                          ? "bg-blue-600 text-white shadow-sm"
-                          : "bg-slate-700 text-white shadow-sm"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                  }`}
-                >
-                  {s === "ALL"
-                    ? "All"
-                    : s === "SUCCESS"
-                      ? "Success"
-                      : "Failure"}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Table */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex-1">
-            <div className="grid grid-cols-[2fr_1.5fr_1fr_auto] gap-4 px-5 py-3 bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-              <span>Actor / Action</span>
-              <span>Details</span>
-              <span>Timestamp</span>
-              <span>Status</span>
-            </div>
-
-            {loading && (
-              <div className="divide-y divide-slate-50">
-                {Array.from({ length: PAGE_SIZE }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="grid grid-cols-[2fr_1.5fr_1fr_auto] gap-4 px-5 py-3.5 animate-pulse"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-slate-100 flex-shrink-0" />
-                      <div className="space-y-1.5 flex-1">
-                        <div className="h-2.5 bg-slate-100 rounded w-3/5" />
-                        <div className="h-2 bg-slate-100 rounded w-2/5" />
-                      </div>
-                    </div>
-                    <div className="h-2.5 bg-slate-100 rounded w-4/5 my-auto" />
-                    <div className="h-2.5 bg-slate-100 rounded w-3/4 my-auto" />
-                    <div className="h-5 w-14 bg-slate-100 rounded my-auto" />
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {!loading && error && (
-              <div className="px-6 py-16 flex flex-col items-center gap-3 text-center">
-                <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
-                  <AlertCircle size={22} className="text-red-500" />
-                </div>
-                <p className="text-sm font-medium text-slate-700">
-                  Failed to load audit logs
-                </p>
-                <p className="text-xs text-slate-500">{error}</p>
-                <button
-                  onClick={loadActivity}
-                  className="text-sm font-medium text-emerald-600 hover:underline mt-1"
-                >
-                  Try again
-                </button>
-              </div>
-            )}
-
-            {!loading && !error && filtered.length === 0 && (
-              <div className="px-6 py-16 flex flex-col items-center gap-3 text-center">
-                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
-                  <Activity size={22} className="text-slate-400" />
-                </div>
-                <p className="text-sm font-medium text-slate-700">
-                  {hasActiveFilters
-                    ? "No logs match your filters"
-                    : "No audit logs recorded yet"}
-                </p>
-              </div>
-            )}
-
-            {!loading && !error && paginated.length > 0 && (
-              <div className="divide-y divide-slate-50">
-                {paginated.map((log) => {
-                  // const { icon, bg, iconColor } = actionMeta(log.action);
-                  const actor = log.performed_by ?? log.target_user ?? "System";
-                  const isFailure = log.status === "FAILURE";
-                  return (
-                    <div
-                      key={log.log_id}
-                      className="grid grid-cols-[2fr_1.5fr_1fr_auto] gap-4 px-5 py-3.5 hover:bg-slate-50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-slate-800 truncate">
-                            {actor}
-                          </p>
-                          <p className="text-xs text-slate-500 truncate">
-                            {actionLabel(log.action)}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center min-w-0">
-                        {log.details ? (
-                          <p
-                            className="text-xs text-slate-500 line-clamp-2 leading-relaxed"
-                            title={log.details}
-                          >
-                            {log.details}
-                          </p>
-                        ) : (
-                          <span className="text-xs text-slate-300 italic">
-                            —
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex flex-col justify-center min-w-0">
-                        <p className="text-xs text-slate-700 font-medium">
-                          {timeAgo(log.timestamp)}
-                        </p>
-                        <p className="text-[11px] text-slate-400 mt-0.5 truncate">
-                          {formatTimestamp(log.timestamp)}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center">
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide ${isFailure ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-700"}`}
-                        >
-                          {isFailure ? "FAILURE" : "SUCCESS"}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {!loading && !error && filtered.length > PAGE_SIZE && (
-              <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100 bg-slate-50">
-                <p className="text-xs text-slate-500">
-                  Showing{" "}
-                  <span className="font-semibold text-slate-700">
-                    {(page - 1) * PAGE_SIZE + 1}–
-                    {Math.min(page * PAGE_SIZE, filtered.length)}
-                  </span>{" "}
-                  of{" "}
-                  <span className="font-semibold text-slate-700">
-                    {filtered.length}
-                  </span>
-                </p>
-
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    disabled={page === 1}
-                    className="p-1.5 rounded-lg text-slate-500 hover:bg-white hover:text-slate-800 disabled:opacity-30 disabled:cursor-not-allowed transition border border-transparent hover:border-slate-200"
-                  >
-                    <ChevronLeft size={15} />
-                  </button>
-
-                  {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .filter(
-                      (p) =>
-                        p === 1 || p === totalPages || Math.abs(p - page) <= 1,
-                    )
-                    .reduce<(number | "…")[]>((acc, p, idx, arr) => {
-                      if (
-                        idx > 0 &&
-                        (p as number) - (arr[idx - 1] as number) > 1
-                      )
-                        acc.push("…");
-                      acc.push(p);
-                      return acc;
-                    }, [])
-                    .map((p, i) =>
-                      p === "…" ? (
-                        <span
-                          key={`ellipsis-${i}`}
-                          className="w-8 text-center text-xs text-slate-400"
-                        >
-                          …
-                        </span>
-                      ) : (
-                        <button
-                          key={p}
-                          onClick={() => setPage(p as number)}
-                          className={`w-8 h-8 rounded-lg text-xs font-medium transition ${
-                            page === p
-                              ? "bg-emerald-600 text-white shadow-sm"
-                              : "text-slate-600 hover:bg-white hover:text-slate-800 border border-transparent hover:border-slate-200"
-                          }`}
-                        >
-                          {p}
-                        </button>
-                      ),
-                    )}
-
-                  <button
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={page === totalPages}
-                    className="p-1.5 rounded-lg text-slate-500 hover:bg-white hover:text-slate-800 disabled:opacity-30 disabled:cursor-not-allowed transition border border-transparent hover:border-slate-200"
-                  >
-                    <ChevronRight size={15} />
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </main>
-
-        <Footer />
+        <div className="flex items-center gap-2">
+          <button
+            onClick={loadActivity}
+            disabled={loading}
+            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-all shadow-sm ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+            style={{ color: "#1a3c6e" }}
+          >
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+            Refresh
+          </button>
+          <button
+            onClick={() => setShowDownloadModal(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border border-slate-200 bg-white hover:bg-slate-50 transition-all shadow-sm"
+            style={{ color: "#1a3c6e" }}
+          >
+            <Download size={14} />
+            Download
+          </button>
+        </div>
       </div>
-    </div>
+
+      {/* Filters */}
+      <div
+        className="rounded-2xl p-4 mb-4 flex flex-col sm:flex-row gap-3"
+        style={{ backgroundColor: "#ffffff", border: "1px solid #d0dff0" }}
+      >
+        <div className="flex items-center gap-1.5">
+          {(["ALL", "SUCCESS", "FAILURE"] as const).map((s) => (
+            <button
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                statusFilter === s
+                  ? s === "FAILURE"
+                    ? "bg-red-600 text-white shadow-sm"
+                    : s === "SUCCESS"
+                      ? "bg-emerald-600 text-white shadow-sm"
+                      : "text-white shadow-sm"
+                  : "text-slate-600 hover:bg-slate-200"
+              }`}
+              style={
+                statusFilter === s && s === "ALL"
+                  ? { backgroundColor: "#1a3c6e" }
+                  : statusFilter !== s
+                    ? { backgroundColor: "#e8f0f7" }
+                    : {}
+              }
+            >
+              {s === "ALL" ? "All" : s === "SUCCESS" ? "Success" : "Failure"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Table */}
+      <div
+        className="rounded-2xl overflow-hidden flex-1"
+        style={{ backgroundColor: "#ffffff", border: "1px solid #d0dff0", boxShadow: "0 2px 8px rgba(26,60,110,0.07)" }}
+      >
+        <div
+          className="grid grid-cols-[2fr_1.5fr_1fr_auto] gap-4 px-5 py-3 border-b text-xs font-semibold uppercase tracking-wide"
+          style={{ backgroundColor: "#e8f0f7", borderColor: "#d0dff0", color: "#1a3c6e" }}
+        >
+          <span>Actor / Action</span>
+          <span>Details</span>
+          <span>Timestamp</span>
+          <span>Status</span>
+        </div>
+
+        {loading && (
+          <div className="divide-y" style={{ borderColor: "#e8f0f7" }}>
+            {Array.from({ length: PAGE_SIZE }).map((_, i) => (
+              <div
+                key={i}
+                className="grid grid-cols-[2fr_1.5fr_1fr_auto] gap-4 px-5 py-3.5 animate-pulse"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full flex-shrink-0" style={{ backgroundColor: "#e8f0f7" }} />
+                  <div className="space-y-1.5 flex-1">
+                    <div className="h-2.5 rounded w-3/5" style={{ backgroundColor: "#e8f0f7" }} />
+                    <div className="h-2 rounded w-2/5" style={{ backgroundColor: "#e8f0f7" }} />
+                  </div>
+                </div>
+                <div className="h-2.5 rounded w-4/5 my-auto" style={{ backgroundColor: "#e8f0f7" }} />
+                <div className="h-2.5 rounded w-3/4 my-auto" style={{ backgroundColor: "#e8f0f7" }} />
+                <div className="h-5 w-14 rounded my-auto" style={{ backgroundColor: "#e8f0f7" }} />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!loading && error && (
+          <div className="px-6 py-16 flex flex-col items-center gap-3 text-center">
+            <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
+              <AlertCircle size={22} className="text-red-500" />
+            </div>
+            <p className="text-sm font-medium" style={{ color: "#1a3c6e" }}>
+              Failed to load audit logs
+            </p>
+            <p className="text-xs" style={{ color: "#555555" }}>{error}</p>
+            <button
+              onClick={loadActivity}
+              className="text-sm font-medium mt-1 hover:underline"
+              style={{ color: "#1a3c6e" }}
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
+        {!loading && !error && filtered.length === 0 && (
+          <div className="px-6 py-16 flex flex-col items-center gap-3 text-center">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: "#e8f0f7" }}>
+              <Activity size={22} style={{ color: "#1a3c6e" }} />
+            </div>
+            <p className="text-sm font-medium" style={{ color: "#1a3c6e" }}>
+              {hasActiveFilters
+                ? "No logs match your filters"
+                : "No audit logs recorded yet"}
+            </p>
+          </div>
+        )}
+
+        {!loading && !error && paginated.length > 0 && (
+          <div className="divide-y" style={{ borderColor: "#e8f0f7" }}>
+            {paginated.map((log) => {
+              const actor = log.performed_by ?? log.target_user ?? "System";
+              const isFailure = log.status === "FAILURE";
+              return (
+                <div
+                  key={log.log_id}
+                  className="grid grid-cols-[2fr_1.5fr_1fr_auto] gap-4 px-5 py-3.5 transition-colors"
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#f5f8fc")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = "transparent")
+                  }
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold truncate" style={{ color: "#1a3c6e" }}>
+                        {actor}
+                      </p>
+                      <p className="text-xs truncate" style={{ color: "#555555" }}>
+                        {actionLabel(log.action)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center min-w-0">
+                    {log.details ? (
+                      <p
+                        className="text-xs line-clamp-2 leading-relaxed"
+                        style={{ color: "#555555" }}
+                        title={log.details}
+                      >
+                        {log.details}
+                      </p>
+                    ) : (
+                      <span className="text-xs italic" style={{ color: "#aabbcc" }}>
+                        —
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col justify-center min-w-0">
+                    <p className="text-xs font-medium" style={{ color: "#1a3c6e" }}>
+                      {timeAgo(log.timestamp)}
+                    </p>
+                    <p className="text-[11px] mt-0.5 truncate" style={{ color: "#888" }}>
+                      {formatTimestamp(log.timestamp)}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center">
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide ${isFailure ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-700"}`}
+                    >
+                      {isFailure ? "FAILURE" : "SUCCESS"}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {!loading && !error && filtered.length > PAGE_SIZE && (
+          <div
+            className="flex items-center justify-between px-5 py-3 border-t"
+            style={{ borderColor: "#d0dff0", backgroundColor: "#e8f0f7" }}
+          >
+            <p className="text-xs" style={{ color: "#555555" }}>
+              Showing{" "}
+              <span className="font-semibold" style={{ color: "#1a3c6e" }}>
+                {(page - 1) * PAGE_SIZE + 1}–
+                {Math.min(page * PAGE_SIZE, filtered.length)}
+              </span>{" "}
+              of{" "}
+              <span className="font-semibold" style={{ color: "#1a3c6e" }}>
+                {filtered.length}
+              </span>
+            </p>
+
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="p-1.5 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition border border-transparent"
+                style={{ color: "#1a3c6e" }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#d0dff0")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "transparent")
+                }
+              >
+                <ChevronLeft size={15} />
+              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(
+                  (p) =>
+                    p === 1 || p === totalPages || Math.abs(p - page) <= 1,
+                )
+                .reduce<(number | "…")[]>((acc, p, idx, arr) => {
+                  if (
+                    idx > 0 &&
+                    (p as number) - (arr[idx - 1] as number) > 1
+                  )
+                    acc.push("…");
+                  acc.push(p);
+                  return acc;
+                }, [])
+                .map((p, i) =>
+                  p === "…" ? (
+                    <span
+                      key={`ellipsis-${i}`}
+                      className="w-8 text-center text-xs"
+                      style={{ color: "#888" }}
+                    >
+                      …
+                    </span>
+                  ) : (
+                    <button
+                      key={p}
+                      onClick={() => setPage(p as number)}
+                      className="w-8 h-8 rounded-lg text-xs font-medium transition"
+                      style={
+                        page === p
+                          ? { backgroundColor: "#1a3c6e", color: "#ffffff" }
+                          : { color: "#1a3c6e" }
+                      }
+                      onMouseEnter={(e) => {
+                        if (page !== p)
+                          e.currentTarget.style.backgroundColor = "#d0dff0";
+                      }}
+                      onMouseLeave={(e) => {
+                        if (page !== p)
+                          e.currentTarget.style.backgroundColor = "transparent";
+                      }}
+                    >
+                      {p}
+                    </button>
+                  ),
+                )}
+
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="p-1.5 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition border border-transparent"
+                style={{ color: "#1a3c6e" }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#d0dff0")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "transparent")
+                }
+              >
+                <ChevronRight size={15} />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 

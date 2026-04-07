@@ -65,44 +65,71 @@ const LabTestManagementPage: React.FC = () => {
   }, [activeTab]);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">
-        Lab Test Management
-      </h1>
+    <>
+      {/* Page Header */}
+      <div className="mb-6">
+        <h2 className="text-2xl font-semibold mb-1" style={{ color: "#1a3c6e" }}>
+          Lab Test Management
+        </h2>
+        <p className="text-sm" style={{ color: "#555555" }}>
+          Manage lab test categories, tests, and parameters.
+        </p>
+      </div>
 
-      <div className="flex space-x-4 mb-6">
+      {/* Tab Navigation */}
+      <div className="flex gap-2 mb-6">
         <button
-          className={`px-4 py-2 font-medium rounded-lg shadow-sm transition-colors ${activeTab === "categories" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+          className="px-4 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors"
+          style={
+            activeTab === "categories"
+              ? { backgroundColor: "#1a3c6e", color: "#ffffff" }
+              : { backgroundColor: "#e8f0f7", color: "#1a3c6e" }
+          }
           onClick={() => setActiveTab("categories")}
+          onMouseEnter={(e) => {
+            if (activeTab !== "categories")
+              e.currentTarget.style.backgroundColor = "#d0dff0";
+          }}
+          onMouseLeave={(e) => {
+            if (activeTab !== "categories")
+              e.currentTarget.style.backgroundColor = "#e8f0f7";
+          }}
         >
           Categories
         </button>
         <button
-          className={`px-4 py-2 font-medium rounded-lg shadow-sm transition-colors ${activeTab === "tests" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+          className="px-4 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors"
+          style={
+            activeTab === "tests"
+              ? { backgroundColor: "#1a3c6e", color: "#ffffff" }
+              : { backgroundColor: "#e8f0f7", color: "#1a3c6e" }
+          }
           onClick={() => setActiveTab("tests")}
+          onMouseEnter={(e) => {
+            if (activeTab !== "tests")
+              e.currentTarget.style.backgroundColor = "#d0dff0";
+          }}
+          onMouseLeave={(e) => {
+            if (activeTab !== "tests")
+              e.currentTarget.style.backgroundColor = "#e8f0f7";
+          }}
         >
           Tests
         </button>
-        {/* <button
-          className={`px-4 py-2 font-medium rounded-lg shadow-sm transition-colors ${activeTab === "parameters" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
-          onClick={() => setActiveTab("parameters")}
-        >
-          Parameters
-        </button> */}
       </div>
 
       {error && (
-        <div className="text-red-500 mb-4 bg-red-100 p-3 rounded-lg border border-red-300">
+        <div className="text-red-600 mb-4 p-3 rounded-lg border" style={{ backgroundColor: "#fff1f2", borderColor: "#fecdd3" }}>
           {error}
         </div>
       )}
 
       {loading ? (
         <div className="flex justify-center p-10">
-          <div className="animate-spin h-10 w-10 border-4 border-blue-500 rounded-full border-t-transparent"></div>
+          <div className="animate-spin h-10 w-10 rounded-full border-4 border-t-transparent" style={{ borderColor: "#d0dff0", borderTopColor: "#1a3c6e" }}></div>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+        <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "#ffffff", border: "1px solid #d0dff0", boxShadow: "0 2px 8px rgba(26,60,110,0.07)" }}>
           {activeTab === "categories" ? (
             <CategoryList categories={categories} reload={loadData} />
           ) : activeTab === "tests" ? (
@@ -116,7 +143,7 @@ const LabTestManagementPage: React.FC = () => {
           )}
         </div>
       )}
-    </div>
+    </>
   );
 };
 
@@ -175,29 +202,33 @@ const CategoryList: React.FC<{
 
   return (
     <div>
-      <div className="p-4 border-b flex justify-between items-center bg-gray-50">
-        <h2 className="text-xl font-semibold text-gray-700">Lab Categories</h2>
+      <div className="p-4 border-b flex justify-between items-center" style={{ backgroundColor: "#e8f0f7", borderColor: "#d0dff0" }}>
+        <h2 className="text-base font-semibold" style={{ color: "#1a3c6e" }}>Lab Categories</h2>
         <button
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md shadow-sm transition-colors"
+          className="px-4 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors text-white"
+          style={{ backgroundColor: "#1a3c6e" }}
           onClick={handleAddClick}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#152d52")}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#1a3c6e")}
         >
           + Add Category
         </button>
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl w-96">
-            <h3 className="text-lg font-bold mb-4">{editingCategoryId ? "Edit Category" : "Add New Category"}</h3>
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50">
+          <div className="bg-white p-6 rounded-2xl shadow-xl w-96 border" style={{ borderColor: "#d0dff0" }}>
+            <h3 className="text-base font-semibold mb-4" style={{ color: "#1a3c6e" }}>{editingCategoryId ? "Edit Category" : "Add New Category"}</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium mb-1" style={{ color: "#1a3c6e" }}>
                   Category Name *
                 </label>
                 <input
                   required
                   type="text"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
+                  className="block w-full rounded-lg border p-2 text-sm outline-none transition"
+                  style={{ borderColor: "#d0dff0", color: "#1a3c6e" }}
                   value={formData.category_name}
                   onChange={(e) =>
                     setFormData({ ...formData, category_name: e.target.value })
@@ -205,22 +236,23 @@ const CategoryList: React.FC<{
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium mb-1" style={{ color: "#1a3c6e" }}>
                   Description
                 </label>
                 <textarea
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
+                  className="block w-full rounded-lg border p-2 text-sm outline-none transition"
+                  style={{ borderColor: "#d0dff0", color: "#555555" }}
                   value={formData.description}
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
                 />
               </div>
-              <div className="flex items-center mt-4">
+              <div className="flex items-center mt-2">
                 <input
                   type="checkbox"
                   id="category_is_active"
-                  className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                  className="h-4 w-4 rounded"
                   checked={formData.is_active}
                   onChange={(e) =>
                     setFormData({ ...formData, is_active: e.target.checked })
@@ -228,22 +260,29 @@ const CategoryList: React.FC<{
                 />
                 <label
                   htmlFor="category_is_active"
-                  className="ml-2 block text-sm font-medium text-gray-700"
+                  className="ml-2 text-sm font-medium"
+                  style={{ color: "#1a3c6e" }}
                 >
                   Is Active
                 </label>
               </div>
-              <div className="flex justify-end gap-2 pt-4">
+              <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md"
+                  className="px-4 py-2 text-sm rounded-lg border transition"
+                  style={{ borderColor: "#d0dff0", color: "#555555" }}
                   onClick={() => setShowModal(false)}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f5f8fc")}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md"
+                  className="px-4 py-2 text-sm rounded-lg text-white transition"
+                  style={{ backgroundColor: "#1a3c6e" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#152d52")}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#1a3c6e")}
                 >
                   Save
                 </button>
@@ -253,60 +292,73 @@ const CategoryList: React.FC<{
         </div>
       )}
 
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
+      <table className="min-w-full">
+        <thead style={{ backgroundColor: "#e8f0f7", borderBottom: "1px solid #d0dff0" }}>
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: "#1a3c6e" }}>
               ID
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: "#1a3c6e" }}>
               Name
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: "#1a3c6e" }}>
               Description
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: "#1a3c6e" }}>
               Status
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: "#1a3c6e" }}>
               Actions
             </th>
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody className="divide-y" style={{ borderColor: "#e8f0f7" }}>
           {categories.map((c, i) => (
-            <tr key={i} className="hover:bg-gray-50 transition-colors">
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            <tr
+              key={i}
+              style={{ borderBottom: "1px solid #e8f0f7" }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f5f8fc")}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+            >
+              <td className="px-5 py-3.5 whitespace-nowrap text-sm" style={{ color: "#555555" }}>
                 {c.category_id}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+              <td className="px-5 py-3.5 whitespace-nowrap text-sm font-medium" style={{ color: "#1a3c6e" }}>
                 {c.category_name}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 truncate max-w-xs">
+              <td className="px-5 py-3.5 whitespace-nowrap text-sm truncate max-w-xs" style={{ color: "#555555" }}>
                 {c.description}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
+              <td className="px-5 py-3.5 whitespace-nowrap">
                 <span
-                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${c.is_active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
+                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${c.is_active ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}
                 >
                   {c.is_active ? "Active" : "Inactive"}
                 </span>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <button 
-                  className="text-blue-600 hover:text-blue-900 mr-3"
+              <td className="px-5 py-3.5 whitespace-nowrap text-sm">
+                <button
+                  className="p-1.5 rounded-lg transition-colors mr-1"
+                  style={{ backgroundColor: "#e8f0f7", color: "#1a3c6e" }}
                   onClick={() => handleEditClick(c)}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#d0dff0")}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#e8f0f7")}
+                  title="Edit"
                 >
                   Edit
                 </button>
                 <button
-                  className="text-red-600 hover:text-red-900"
+                  className="p-1.5 rounded-lg transition-colors"
+                  style={{ backgroundColor: "#fef2f2", color: "#dc2626" }}
                   onClick={async () => {
                     if (window.confirm("Are you sure?")) {
                       await deleteLabCategory(c.category_id!);
                       reload();
                     }
                   }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#fee2e2")}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#fef2f2")}
+                  title="Delete"
                 >
                   Delete
                 </button>
@@ -317,7 +369,8 @@ const CategoryList: React.FC<{
             <tr>
               <td
                 colSpan={5}
-                className="px-6 py-10 text-center text-gray-500 text-sm"
+                className="px-5 py-10 text-center text-sm"
+                style={{ color: "#555555" }}
               >
                 No categories found.
               </td>
@@ -450,11 +503,14 @@ const TestList: React.FC<{
 
   return (
     <div>
-      <div className="p-4 border-b flex justify-between items-center bg-gray-50">
-        <h2 className="text-xl font-semibold text-gray-700">Lab Tests</h2>
+      <div className="p-4 border-b flex justify-between items-center" style={{ backgroundColor: "#e8f0f7", borderColor: "#d0dff0" }}>
+        <h2 className="text-base font-semibold" style={{ color: "#1a3c6e" }}>Lab Tests</h2>
         <button
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md shadow-sm transition-colors"
+          className="px-4 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors text-white"
+          style={{ backgroundColor: "#1a3c6e" }}
           onClick={handleAddClick}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#152d52")}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#1a3c6e")}
         >
           + Add Test
         </button>
@@ -525,6 +581,14 @@ const TestList: React.FC<{
                 </div>
                 <div>
                   <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-200 pb-1 mb-1">
+                    Lab Name
+                  </span>
+                  <span className="block text-sm font-medium text-gray-900">
+                    {viewTestDetails.created_by_name || "-"}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-200 pb-1 mb-1">
                     Status
                   </span>
                   <span
@@ -545,11 +609,31 @@ const TestList: React.FC<{
                 </div>
                 <div>
                   <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-200 pb-1 mb-1 mt-2">
-                    Turnaround Turn
+                    Turnaround Time
                   </span>
                   <span className="block text-sm font-medium text-gray-900">
                     {viewTestDetails.turnaround_hours
                       ? `${viewTestDetails.turnaround_hours} hours`
+                      : "-"}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-200 pb-1 mb-1 mt-2">
+                    Created At
+                  </span>
+                  <span className="block text-sm font-medium text-gray-900">
+                    {viewTestDetails.created_at
+                      ? new Date(viewTestDetails.created_at).toLocaleString()
+                      : "-"}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-200 pb-1 mb-1 mt-2">
+                    Updated At
+                  </span>
+                  <span className="block text-sm font-medium text-gray-900">
+                    {viewTestDetails.updated_at
+                      ? new Date(viewTestDetails.updated_at).toLocaleString()
                       : "-"}
                   </span>
                 </div>
@@ -665,19 +749,20 @@ const TestList: React.FC<{
       )}
 
       {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 py-4 px-2">
-          <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl max-h-full overflow-y-auto">
-            <h3 className="text-lg font-bold mb-4">{editingTestId ? "Edit Lab Test" : "Add New Lab Test"}</h3>
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50 py-4 px-2">
+          <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-2xl max-h-full overflow-y-auto border" style={{ borderColor: "#d0dff0" }}>
+            <h3 className="text-base font-semibold mb-4" style={{ color: "#1a3c6e" }}>{editingTestId ? "Edit Lab Test" : "Add New Lab Test"}</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium mb-1" style={{ color: "#1a3c6e" }}>
                     Test Code *
                   </label>
                   <input
                     required
                     type="text"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"
+                    className="block w-full rounded-lg border p-2 text-sm outline-none"
+                    style={{ borderColor: "#d0dff0", color: "#1a3c6e" }}
                     value={formData.test_code}
                     onChange={(e) =>
                       setFormData({ ...formData, test_code: e.target.value })
@@ -685,13 +770,14 @@ const TestList: React.FC<{
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium mb-1" style={{ color: "#1a3c6e" }}>
                     Test Name *
                   </label>
                   <input
                     required
                     type="text"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"
+                    className="block w-full rounded-lg border p-2 text-sm outline-none"
+                    style={{ borderColor: "#d0dff0", color: "#1a3c6e" }}
                     value={formData.test_name}
                     onChange={(e) =>
                       setFormData({ ...formData, test_name: e.target.value })
@@ -699,11 +785,12 @@ const TestList: React.FC<{
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium mb-1" style={{ color: "#1a3c6e" }}>
                     Category
                   </label>
                   <select
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"
+                    className="block w-full rounded-lg border p-2 text-sm outline-none"
+                    style={{ borderColor: "#d0dff0", color: "#1a3c6e" }}
                     value={formData.category_id || ""}
                     onChange={(e) =>
                       setFormData({
@@ -723,7 +810,7 @@ const TestList: React.FC<{
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium mb-1" style={{ color: "#1a3c6e" }}>
                     Price *
                   </label>
                   <input
@@ -731,7 +818,8 @@ const TestList: React.FC<{
                     type="number"
                     min="0"
                     step="0.01"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"
+                    className="block w-full rounded-lg border p-2 text-sm outline-none"
+                    style={{ borderColor: "#d0dff0", color: "#1a3c6e" }}
                     value={formData.price}
                     onChange={(e) =>
                       setFormData({
@@ -742,13 +830,14 @@ const TestList: React.FC<{
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium mb-1" style={{ color: "#1a3c6e" }}>
                     Sample Type *
                   </label>
                   <input
                     required
                     type="text"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"
+                    className="block w-full rounded-lg border p-2 text-sm outline-none"
+                    style={{ borderColor: "#d0dff0", color: "#1a3c6e" }}
                     value={formData.sample_type}
                     onChange={(e) =>
                       setFormData({ ...formData, sample_type: e.target.value })
@@ -756,13 +845,14 @@ const TestList: React.FC<{
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium mb-1" style={{ color: "#1a3c6e" }}>
                     Turnaround Hours
                   </label>
                   <input
                     type="number"
                     min="0"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"
+                    className="block w-full rounded-lg border p-2 text-sm outline-none"
+                    style={{ borderColor: "#d0dff0", color: "#1a3c6e" }}
                     value={formData.turnaround_hours}
                     onChange={(e) =>
                       setFormData({
@@ -773,11 +863,12 @@ const TestList: React.FC<{
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium mb-1" style={{ color: "#1a3c6e" }}>
                     Description
                   </label>
                   <textarea
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"
+                    className="block w-full rounded-lg border p-2 text-sm outline-none"
+                    style={{ borderColor: "#d0dff0", color: "#555555" }}
                     value={formData.description}
                     onChange={(e) =>
                       setFormData({ ...formData, description: e.target.value })
@@ -827,14 +918,15 @@ const TestList: React.FC<{
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium mb-1" style={{ color: "#1a3c6e" }}>
                     Fasting Hours
                   </label>
                   <input
                     type="number"
                     min="0"
                     disabled={!formData.fasting_required}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 disabled:bg-gray-100 disabled:text-gray-500"
+                    className="block w-full rounded-lg border p-2 text-sm outline-none disabled:opacity-50"
+                    style={{ borderColor: "#d0dff0", color: "#1a3c6e" }}
                     value={formData.fasting_hours}
                     onChange={(e) =>
                       setFormData({
@@ -952,14 +1044,20 @@ const TestList: React.FC<{
               <div className="flex justify-end gap-2 pt-4">
                 <button
                   type="button"
-                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md"
+                  className="px-4 py-2 text-sm rounded-lg border transition"
+                  style={{ borderColor: "#d0dff0", color: "#555555" }}
                   onClick={() => setShowModal(false)}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f5f8fc")}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md"
+                  className="px-4 py-2 text-sm rounded-lg text-white transition"
+                  style={{ backgroundColor: "#1a3c6e" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#152d52")}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#1a3c6e")}
                 >
                   Save
                 </button>
@@ -970,95 +1068,95 @@ const TestList: React.FC<{
       )}
 
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full">
+          <thead style={{ backgroundColor: "#e8f0f7", borderBottom: "1px solid #d0dff0" }}>
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: "#1a3c6e" }}>
                 Test Code
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: "#1a3c6e" }}>
                 Name
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: "#1a3c6e" }}>
                 Category
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: "#1a3c6e" }}>
                 Price
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: "#1a3c6e" }}>
                 Status
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: "#1a3c6e" }}>
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="divide-y" style={{ borderColor: "#e8f0f7" }}>
             {tests.map((t, i) => (
-              <tr key={i} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+              <tr
+                key={i}
+                style={{ borderBottom: "1px solid #e8f0f7" }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f5f8fc")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+              >
+                <td className="px-5 py-3.5 whitespace-nowrap text-sm font-medium" style={{ color: "#1a3c6e" }}>
                   {t.test_code}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-5 py-3.5 whitespace-nowrap text-sm font-medium" style={{ color: "#1a3c6e" }}>
                   {t.test_name}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className="px-5 py-3.5 whitespace-nowrap text-sm" style={{ color: "#555555" }}>
                   {categories.find((c) => c.category_id === t.category_id)
                     ?.category_name || "-"}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
-                  {t.price}
+                <td className="px-5 py-3.5 whitespace-nowrap text-sm font-semibold" style={{ color: "#1a3c6e" }}>
+                  ₹{t.price}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-5 py-3.5 whitespace-nowrap">
                   <span
-                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${t.is_active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
+                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${t.is_active ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}
                   >
                     {t.is_active ? "Active" : "Inactive"}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 flex items-center">
-                  <button
-                    className="text-indigo-600 font-medium hover:text-indigo-900 mr-3 flex items-center"
-                    onClick={() => handleViewDetails(t.test_id!)}
-                  >
-                    <svg
-                      className="w-4 h-4 mr-1"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                <td className="px-5 py-3.5 whitespace-nowrap text-sm">
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      className="p-1.5 rounded-lg transition-colors text-xs font-medium px-2"
+                      style={{ backgroundColor: "#e8f0f7", color: "#1a3c6e" }}
+                      onClick={() => handleViewDetails(t.test_id!)}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#d0dff0")}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#e8f0f7")}
+                      title="View Details"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                      />
-                    </svg>
-                    Details
-                  </button>
-                  <button 
-                    className="text-blue-600 hover:text-blue-900 mr-3"
-                    onClick={() => handleEditClick(t.test_id!)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="text-red-600 hover:text-red-900"
-                    onClick={async () => {
-                      if (window.confirm("Are you sure?")) {
-                        await deleteLabTest(t.test_id!);
-                        reload();
-                      }
-                    }}
-                  >
-                    Delete
-                  </button>
+                      Details
+                    </button>
+                    <button
+                      className="p-1.5 rounded-lg transition-colors text-xs font-medium px-2"
+                      style={{ backgroundColor: "#e8f0f7", color: "#1a3c6e" }}
+                      onClick={() => handleEditClick(t.test_id!)}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#d0dff0")}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#e8f0f7")}
+                      title="Edit"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="p-1.5 rounded-lg transition-colors text-xs font-medium px-2"
+                      style={{ backgroundColor: "#fef2f2", color: "#dc2626" }}
+                      onClick={async () => {
+                        if (window.confirm("Are you sure?")) {
+                          await deleteLabTest(t.test_id!);
+                          reload();
+                        }
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#fee2e2")}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#fef2f2")}
+                      title="Delete"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -1066,7 +1164,8 @@ const TestList: React.FC<{
               <tr>
                 <td
                   colSpan={6}
-                  className="px-6 py-10 text-center text-gray-500 text-sm"
+                  className="px-5 py-10 text-center text-sm"
+                  style={{ color: "#555555" }}
                 >
                   No tests found.
                 </td>

@@ -117,5 +117,5 @@ class AdminToggleLabStatusView(generics.GenericAPIView):
         lab, action = AdminService.toggle_lab_status(lab_user_id=user_id, reason=reason)
         uid = str(lab["lab_id"])
         lab["operating_hours"] = lq.get_lab_operating_hours(uid)
-        lab["services"] = lq.get_lab_services(uid)
+        # lab["services"] = lq.get_lab_services(uid)
         return send_success_msg(lab, message=f"Lab {action} successfully.")
