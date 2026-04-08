@@ -110,7 +110,6 @@ CREATE TABLE test_parameters (
 );
 
 
-
 CREATE TABLE IF NOT EXISTS public.lab_test_orders
 (
     order_id               uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,

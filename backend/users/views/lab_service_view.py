@@ -122,30 +122,23 @@ class LabTestListView(generics.GenericAPIView):
     serializer_class = LabTestSerializer
 
     def get(self, request):
-        # search      = request.query_params.get("search")
-        # category_id = request.query_params.get("category_id")
-        # if category_id:
-        #     category_id = int(category_id)
-        # is_active = request.query_params.get("is_active")
-        # if is_active is not None:
-        #     is_active = is_active.lower() == "true"
-        # limit  = int(request.query_params.get("limit", 20))
-        # offset = int(request.query_params.get("offset", 0))
+        search = request.query_params.get("search")
+        category_id = request.query_params.get("category_id")
+        if category_id:
+            category_id = int(category_id)
+        lab_id = request.query_params.get("lab_id")
+
         if request.user.role in [UserRole.ADMIN, UserRole.SUPERADMIN]:
             tests = lsq.list_lab_tests()
         elif request.user.role == UserRole.LAB:
             tests = lsq.list_lab_tests(request.user.user_id)
         else:
-            return Response(
-                {
-                    "success": False,
-                    "message": "Access denied. Lab or Admin role required.",
-                },
-                status=status.HTTP_403_FORBIDDEN,
+            # PATIENT and all other roles: return all active tests with optional filters
+            tests = lsq.list_lab_tests_by_filter(
+                search=search, category_id=category_id, lab_id=lab_id
             )
-        print(tests)
+
         serializer = self.get_serializer(tests, many=True)
-        print(serializer.data)
         total_count = tests[0]["total_count"] if tests else 0
 
         return Response(

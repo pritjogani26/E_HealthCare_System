@@ -20,8 +20,6 @@ CREATE TABLE IF NOT EXISTS public.users
 );
 
 
-
-
 CREATE TABLE IF NOT EXISTS public.email_verification_table
 (
     id bigint NOT NULL DEFAULT nextval('email_verification_table_id_seq'::regclass),

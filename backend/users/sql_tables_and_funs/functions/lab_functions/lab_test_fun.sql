@@ -491,6 +491,85 @@ select * from l_list_lab_tests();
 
 
 
+
+CREATE OR REPLACE FUNCTION public.l_get_lab_test_by_filter(
+    p_search TEXT DEFAULT NULL,
+    p_category_id INTEGER DEFAULT NULL,
+    p_lab_id UUID DEFAULT NULL
+)
+RETURNS TABLE (
+    test_id          INTEGER,
+    category_id      INTEGER,
+    category_name    VARCHAR(100),
+    test_code        VARCHAR(30),
+    test_name        VARCHAR(255),
+    description      TEXT,
+    sample_type      VARCHAR(50),
+    fasting_required BOOLEAN,
+    fasting_hours    INTEGER,
+    price            NUMERIC(10,2),
+    turnaround_hours INTEGER,
+    is_active        BOOLEAN,
+    created_at       TIMESTAMPTZ,
+    created_by       UUID,
+    created_by_name  VARCHAR(255),
+    updated_at       TIMESTAMPTZ,
+    updated_by       UUID,
+    total_count      BIGINT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        t.test_id,
+        t.category_id,
+        c.category_name,
+        t.test_code,
+        t.test_name,
+        t.description,
+        t.sample_type,
+        t.fasting_required,
+        t.fasting_hours,
+        t.price,
+        t.turnaround_hours,
+        t.is_active,
+        t.created_at,
+        t.created_by,
+        l.lab_name AS created_by_name,
+        t.updated_at,
+        t.updated_by,
+        COUNT(*) OVER () AS total_count
+    FROM public.lab_tests t
+    LEFT JOIN public.lab_test_categories c 
+        ON t.category_id = c.category_id
+    LEFT JOIN public.labs l 
+        ON t.created_by = l.lab_id
+    WHERE
+        -- Search filter
+        (
+            p_search IS NULL 
+            OR t.test_name ILIKE '%' || p_search || '%'
+            OR t.test_code ILIKE '%' || p_search || '%'
+        )
+        
+        -- Category filter
+        AND (
+            p_category_id IS NULL 
+            OR t.category_id = p_category_id
+        )
+
+        -- Lab filter
+        AND (
+            p_lab_id IS NULL 
+            OR t.created_by = p_lab_id
+        )
+
+    ORDER BY t.created_at DESC;
+END;
+$$;
+
+
 /*
 USAGE — active tests, first page:
     SELECT * FROM public.l_list_lab_tests();

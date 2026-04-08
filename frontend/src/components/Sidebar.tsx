@@ -147,6 +147,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       1,
       0,
       { icon: Stethoscope, label: "Book Appointment", route: "/book-appointment" },
+      { icon: FlaskConical, label: "Book Lab Test", route: "/book-lab-test" },
       { icon: Calendar, label: "My Appointments", route: "/my-appointments" },
     );
   }

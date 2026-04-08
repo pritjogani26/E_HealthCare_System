@@ -126,3 +126,14 @@ def list_lab_tests(
             user_id,
         ],
     )
+
+
+def list_lab_tests_by_filter(search: str = None, category_id: int = None, lab_id: str = None) -> list:
+    return fn_fetchall(
+        "l_get_lab_test_by_filter",
+        [
+            search,
+            category_id,
+            lab_id,
+        ],
+    )

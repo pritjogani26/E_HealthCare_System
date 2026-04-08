@@ -32,6 +32,7 @@ import AccessDeniedPage from "./pages/AccessDeniedPage";
 import RolePermissionsPage from "./pages/RolePermissionsPage";
 import Password_Reset from "./components/Password_Reset";
 import LabTestManagementPage from "./pages/LabTestManagementPage";
+import BookLabTestPage from "./pages/BookLabTestPage";
 
 // Components
 import Dashboard from "./components/Dashboard";
@@ -78,6 +79,7 @@ console.log("COMPONENT CHECK:", {
   MyAppointmentsPage,
   DoctorAppointmentsPage,
   SettingsPage,
+  BookLabTestPage,
   AuthProvider,
   ThemeProvider,
   ProtectedRoute,
@@ -168,6 +170,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <BookAppointmentPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/book-lab-test"
+                  element={
+                    <ProtectedRoute>
+                      <BookLabTestPage />
                     </ProtectedRoute>
                   }
                 />
