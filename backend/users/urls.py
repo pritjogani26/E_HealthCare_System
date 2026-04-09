@@ -68,6 +68,16 @@ from .views.test_parameter_view import (
     TestParameterListView,
     TestParameterDetailView,
 )
+from .views.lab_test_booking import (
+    LabBookingListCreateView,
+    LabBookingDetailView,
+    LabBookingCancelView,
+    LabBookingCompleteView,
+    LabOwnBookingsView,
+    LabBookingReportListView,
+    LabSlotListView,
+    LabSlotGenerateView,
+)
 from .views.doctor_view import (
     DoctorRegistrationView,
     DoctorProfileView,
@@ -256,7 +266,18 @@ urlpatterns = [
     path("labs/tests/<int:test_id>/", LabTestDetailView.as_view(), name="lab-test-detail"),
     path("labs/test-parameters/", TestParameterListView.as_view(), name="lab-test-parameters"),
     path("labs/test-parameters/<int:parameter_id>/", TestParameterDetailView.as_view(), name="lab-test-parameter-detail"),
-    # ------------------------------------------------------------------------------------------
+    # ── Lab Bookings ──────────────────────────────────────────────────────────
+    path("labs/bookings/", LabBookingListCreateView.as_view(), name="lab-bookings"),
+    path("labs/bookings/<uuid:booking_id>/", LabBookingDetailView.as_view(), name="lab-booking-detail"),
+    path("labs/bookings/<uuid:booking_id>/cancel/", LabBookingCancelView.as_view(), name="lab-booking-cancel"),
+    path("labs/bookings/<uuid:booking_id>/complete/", LabBookingCompleteView.as_view(), name="lab-booking-complete"),
+    path("labs/my-bookings/", LabOwnBookingsView.as_view(), name="lab-own-bookings"),
+    # ── Lab Reports ───────────────────────────────────────────────────────────
+    path("labs/bookings/<uuid:booking_id>/reports/", LabBookingReportListView.as_view(), name="lab-booking-reports"),
+    # ── Lab Slots ─────────────────────────────────────────────────────────────
+    path("labs/slots/", LabSlotListView.as_view(), name="lab-slots"),
+    path("labs/slots/generate/", LabSlotGenerateView.as_view(), name="lab-slots-generate"),
+    # ─────────────────────────────────────────────────────────────────────────
 
     path("doctors/register/", DoctorRegistrationView.as_view(), name="doctor-register"),
     path("doctors/profile/", DoctorProfileView.as_view(), name="doctor-profile"),

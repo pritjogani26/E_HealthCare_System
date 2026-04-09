@@ -33,6 +33,7 @@ import RolePermissionsPage from "./pages/RolePermissionsPage";
 import Password_Reset from "./components/Password_Reset";
 import LabTestManagementPage from "./pages/LabTestManagementPage";
 import BookLabTestPage from "./pages/BookLabTestPage";
+import MyLabBookingsPage from "./pages/MyLabBookingsPage";
 
 // Components
 import Dashboard from "./components/Dashboard";
@@ -178,6 +179,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <BookLabTestPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/my-lab-bookings"
+                  element={
+                    <ProtectedRoute>
+                      <MyLabBookingsPage />
                     </ProtectedRoute>
                   }
                 />

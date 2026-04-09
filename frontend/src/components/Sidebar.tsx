@@ -1,3 +1,4 @@
+// frontend\src\components\Sidebar.tsx
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -89,7 +90,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const isActive = (route?: string) => {
     if (!route) return false;
     if (route === "/profile" && location.pathname === "/profile") return true;
-    if (route !== "/profile" && location.pathname.startsWith(route)) return true;
+    if (route !== "/profile" && location.pathname.startsWith(route))
+      return true;
     return false;
   };
 
@@ -105,17 +107,21 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       : []),
     // Lab management
     ...(can("lab : view") || admin
-      ? [
-          { 
-            icon: FlaskConical, 
-            label: "Laboratory", 
-            section: "laboratory",
-            subitems: [
-              { label: "Lab List", route: "/admin/labs" },
-              { label: "Tests & Categories", route: "/lab/tests" }
-            ]
-          }
-        ]
+      ? // ? [
+        //     {
+        //       icon: FlaskConical,
+        //       label: "Laboratory",
+        //       section: "laboratory",
+        //       subitems: [
+        //         { label: "Lab List", route: "/admin/labs" },
+        //         { label: "Tests & Categories", route: "/lab/tests" }
+        //       ]
+        //     }
+        //   ]
+        [{ icon: FlaskConical, label: "Laboratory", route: "/admin/labs" }]
+      : []),
+      ...(can("lab : view") || admin
+      ? [{ icon: ClipboardList, label: "Tests & Categories", route: "/lab/tests" }]
       : []),
     // Audit Logs — ADMIN and SUPERADMIN only
     ...(isAdminOrSuper
@@ -127,7 +133,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       : []),
     // Role Permissions — SUPERADMIN only
     ...(isSuperAdmin
-      ? [{ icon: Shield, label: "Role Permissions", route: "/admin/role-permissions" }]
+      ? [
+          {
+            icon: Shield,
+            label: "Role Permissions",
+            route: "/admin/role-permissions",
+          },
+        ]
       : []),
   ];
 
@@ -138,7 +150,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       1,
       0,
       { icon: Calendar, label: "My Schedule", route: "/doctor/schedule" },
-      { icon: Calendar, label: "My Appointments", route: "/doctor/appointments" },
+      {
+        icon: Calendar,
+        label: "My Appointments",
+        route: "/doctor/appointments",
+      },
     );
   }
 
@@ -146,19 +162,23 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     menuItems.splice(
       1,
       0,
-      { icon: Stethoscope, label: "Book Appointment", route: "/book-appointment" },
+      {
+        icon: Stethoscope,
+        label: "Book Appointment",
+        route: "/book-appointment",
+      },
       { icon: FlaskConical, label: "Book Lab Test", route: "/book-lab-test" },
       { icon: Calendar, label: "My Appointments", route: "/my-appointments" },
     );
   }
 
-  if (userRole === "LAB_TECHNICIAN" || userRole === "LAB") {
-    menuItems.splice(
-      1,
-      0,
-      { icon: ClipboardList, label: "Tests & Categories", route: "/lab/tests" },
-    );
-  }
+  // if (can("lab : view") || admin) {
+  //   menuItems.splice(1, 0, {
+  //     icon: ClipboardList,
+  //     label: "Tests & Categories",
+  //     route: "/lab/tests",
+  //   });
+  // }
 
   // Pending approvals only relevant for admin-type users
   const supportItems: any[] = admin
@@ -308,7 +328,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
             MAIN MENU
           </p>
           <nav className="space-y-1">
-            {menuItems.map((item: any, idx: number) => renderMenuItem(item, idx))}
+            {menuItems.map((item: any, idx: number) =>
+              renderMenuItem(item, idx),
+            )}
           </nav>
 
           {/* Support Section */}

@@ -168,6 +168,8 @@ class LabTestListView(generics.GenericAPIView):
                 fasting_hours=data.get("fasting_hours"),
                 price=data["price"],
                 turnaround_hours=data.get("turnaround_hours"),
+                # FIX: pass the requesting user's ID so the test is linked to the lab
+                created_by=str(request.user.user_id),
             )
 
             if test and "test_id" in test:
@@ -197,10 +199,10 @@ class LabTestDetailView(generics.GenericAPIView):
         test = lsq.get_details_lab_test(test_id)
         parameters = lsq.get_parameters_of_lab_test(test_id)
 
-        data = self.get_serializer(test).data
+        # DRF serializer.data returns an OrderedDict — convert to plain dict
+        # so we can safely merge in the parameters list
+        data = dict(self.get_serializer(test).data)
         data["parameters"] = parameters
-        # data['created_by_name'] = test.get("created_by_name")  # Add creator's name
-        print(f"\n\ndata['created_by_name'] : {data['created_by_name']}")
 
         return Response(
             {
@@ -219,7 +221,6 @@ class LabTestDetailView(generics.GenericAPIView):
         received_parameters = data.pop("parameters", None)
 
         with transaction.atomic():
-
             test = lsq.update_lab_test(
                 test_id=test_id,
                 category_id=data.get("category_id"),
@@ -238,19 +239,18 @@ class LabTestDetailView(generics.GenericAPIView):
                 existing_parameters = lsq.get_parameters_of_lab_test(test_id)
 
                 existing_ids = {p["parameter_id"] for p in existing_parameters}
-
                 received_ids = {
                     p["parameter_id"]
                     for p in received_parameters
                     if p.get("parameter_id")
                 }
 
+                # Delete parameters that were removed by the user
                 for param_id in existing_ids - received_ids:
                     tpq.delete_test_parameter(param_id)
 
                 for p in received_parameters:
                     param_id = p.get("parameter_id")
-
                     if param_id and param_id in existing_ids:
                         tpq.update_test_parameter(
                             parameter_id=param_id,
@@ -268,7 +268,7 @@ class LabTestDetailView(generics.GenericAPIView):
                         )
 
         updated_parameters = lsq.get_parameters_of_lab_test(test_id)
-        response_data = self.get_serializer(test).data
+        response_data = dict(self.get_serializer(test).data)
         response_data["parameters"] = updated_parameters
 
         return Response(

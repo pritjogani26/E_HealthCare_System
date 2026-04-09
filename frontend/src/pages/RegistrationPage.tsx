@@ -265,13 +265,13 @@ const RegistrationPage: React.FC = () => {
           try {
             const parsed = JSON.parse(v.operating_hours_text);
             const weekMap: Record<string, number> = {
-              monday: 0,
-              tuesday: 1,
-              wednesday: 2,
-              thursday: 3,
-              friday: 4,
-              saturday: 5,
-              sunday: 6,
+              sunday: 0,
+              monday: 1,
+              tuesday: 2,
+              wednesday: 3,
+              thursday: 4,
+              friday: 5,
+              saturday: 6,
             };
             Object.entries(parsed).forEach(([dayKey, timeRange]) => {
               const dayNum = weekMap[dayKey.toLowerCase()];

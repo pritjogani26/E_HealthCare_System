@@ -1,4 +1,3 @@
-# backend\users\database_queries\lab_service_quries.py
 from users.database_queries.connection import (
     fn_fetchone,
     fn_fetchall,
@@ -56,6 +55,8 @@ def create_lab_test(
     fasting_hours: int,
     price: float,
     turnaround_hours: int,
+    # FIX: added created_by so tests are correctly linked to the creating lab
+    created_by: str = None,
 ) -> dict:
     return fn_fetchone(
         "l_create_lab_test",
@@ -69,6 +70,8 @@ def create_lab_test(
             fasting_hours,
             price,
             turnaround_hours,
+            # FIX: pass created_by to the SQL function
+            str(created_by) if created_by else None,
         ],
     )
 
@@ -97,7 +100,7 @@ def update_lab_test(
             description,
             fasting_required,
             fasting_hours,
-            False,
+            False,       # p_clear_fasting_hours — use True only when explicitly clearing
             price,
             turnaround_hours,
             is_active,
@@ -106,7 +109,11 @@ def update_lab_test(
 
 
 def get_details_lab_test(test_id):
-    return fn_fetchone("l_list_lab_test", [test_id])
+    """
+    FIX: was calling l_list_lab_test (non-existent singular form).
+    Now calls l_get_lab_test_detail which is a dedicated single-row function.
+    """
+    return fn_fetchone("l_get_lab_test_detail", [test_id])
 
 
 def get_parameters_of_lab_test(test_id):
@@ -118,7 +125,7 @@ def delete_lab_test(test_id: int, deleted_by: str) -> dict:
 
 
 def list_lab_tests(
-    user_id = None,
+    user_id=None,
 ) -> list:
     return fn_fetchall(
         "l_list_lab_tests",
@@ -128,7 +135,9 @@ def list_lab_tests(
     )
 
 
-def list_lab_tests_by_filter(search: str = None, category_id: int = None, lab_id: str = None) -> list:
+def list_lab_tests_by_filter(
+    search: str = None, category_id: int = None, lab_id: str = None
+) -> list:
     return fn_fetchall(
         "l_get_lab_test_by_filter",
         [

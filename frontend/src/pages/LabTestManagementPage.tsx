@@ -17,11 +17,94 @@ import {
   updateTestParameter,
   deleteTestParameter,
   fetchLabTestDetails,
+  generateLabSlots,
 } from "../services/labService";
+import { OperatingHours } from "../components/lab/OperatingHours";
+import { useToast } from "../hooks/useToast";
+import { Calendar, Clock, Loader2, CheckCircle } from "lucide-react";
+
+// --- Slot Management Component ---
+const SlotManagement: React.FC = () => {
+  const toast = useToast();
+  const [days, setDays] = useState(30);
+  const [loading, setLoading] = useState(false);
+
+  const handleGenerate = async () => {
+    setLoading(true);
+    try {
+      const result = await generateLabSlots(days);
+      toast.success(`Successfully generated ${result.slots_created} slots!`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to generate slots");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="p-8">
+      <div className="max-w-md mx-auto bg-slate-50 rounded-2xl p-6 border border-slate-200">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+            <Calendar size={24} />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-slate-800">Generate Time Slots</h3>
+            <p className="text-sm text-slate-500">Enable patients to book appointments</p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+              Number of days to generate for
+            </label>
+            <div className="flex gap-3">
+              {[7, 15, 30, 60].map((d) => (
+                <button
+                  key={d}
+                  onClick={() => setDays(d)}
+                  className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${
+                    days === d
+                      ? "bg-emerald-600 border-emerald-600 text-white shadow-sm shadow-emerald-200"
+                      : "bg-white border-slate-200 text-slate-600 hover:border-emerald-300"
+                  }`}
+                >
+                  {d} Days
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-amber-50 rounded-xl p-4 border border-amber-100 flex gap-3 items-start">
+            <Clock size={18} className="text-amber-500 shrink-0 mt-0.5" />
+            <p className="text-xs text-amber-700 leading-relaxed">
+              Slots will be generated based on your <strong>Operating Hours</strong>. 
+              Existing slots for these dates will not be duplicated.
+            </p>
+          </div>
+
+          <button
+            onClick={handleGenerate}
+            disabled={loading}
+            className="w-full py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 active:scale-[0.98] transition-all shadow-lg shadow-emerald-200 disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <Loader2 className="animate-spin" size={20} />
+            ) : (
+              <CheckCircle size={20} />
+            )}
+            {loading ? "Generating..." : "Generate Slots Now"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const LabTestManagementPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<
-    "categories" | "tests" | "parameters"
+    "categories" | "tests" | "parameters" | "slots" | "operating-hours"
   >("categories");
 
   const [categories, setCategories] = useState<LabTestCategory[]>([]);
@@ -116,6 +199,44 @@ const LabTestManagementPage: React.FC = () => {
         >
           Tests
         </button>
+        <button
+          className="px-4 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors"
+          style={
+            activeTab === "slots"
+              ? { backgroundColor: "#1a3c6e", color: "#ffffff" }
+              : { backgroundColor: "#e8f0f7", color: "#1a3c6e" }
+          }
+          onClick={() => setActiveTab("slots")}
+          onMouseEnter={(e) => {
+            if (activeTab !== "slots")
+              e.currentTarget.style.backgroundColor = "#d0dff0";
+          }}
+          onMouseLeave={(e) => {
+            if (activeTab !== "slots")
+              e.currentTarget.style.backgroundColor = "#e8f0f7";
+          }}
+        >
+          Manage Slots
+        </button>
+        <button
+          className="px-4 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors"
+          style={
+            activeTab === "operating-hours"
+              ? { backgroundColor: "#1a3c6e", color: "#ffffff" }
+              : { backgroundColor: "#e8f0f7", color: "#1a3c6e" }
+          }
+          onClick={() => setActiveTab("operating-hours")}
+          onMouseEnter={(e) => {
+            if (activeTab !== "operating-hours")
+              e.currentTarget.style.backgroundColor = "#d0dff0";
+          }}
+          onMouseLeave={(e) => {
+            if (activeTab !== "operating-hours")
+              e.currentTarget.style.backgroundColor = "#e8f0f7";
+          }}
+        >
+          Operating Hours
+        </button>
       </div>
 
       {error && (
@@ -134,12 +255,16 @@ const LabTestManagementPage: React.FC = () => {
             <CategoryList categories={categories} reload={loadData} />
           ) : activeTab === "tests" ? (
             <TestList tests={tests} categories={categories} reload={loadData} />
-          ) : (
+          ) : activeTab === "parameters" ? (
             <ParameterList
               parameters={parameters}
               tests={tests}
               reload={loadData}
             />
+          ) : activeTab === "slots" ? (
+            <SlotManagement />
+          ) : (
+            <OperatingHours />
           )}
         </div>
       )}
@@ -147,11 +272,13 @@ const LabTestManagementPage: React.FC = () => {
   );
 };
 
-// --- Category List Component ---
-const CategoryList: React.FC<{
+function CategoryList({
+  categories,
+  reload,
+}: {
   categories: LabTestCategory[];
   reload: () => void;
-}> = ({ categories, reload }) => {
+}) {
   const [showModal, setShowModal] = useState(false);
   const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
@@ -382,12 +509,15 @@ const CategoryList: React.FC<{
   );
 };
 
-// --- Test List Component ---
-const TestList: React.FC<{
+function TestList({
+  tests,
+  categories,
+  reload,
+}: {
   tests: LabTest[];
   categories: LabTestCategory[];
   reload: () => void;
-}> = ({ tests, categories, reload }) => {
+}) {
   const [showModal, setShowModal] = useState(false);
   const [viewTestDetails, setViewTestDetails] = useState<LabTest | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
@@ -1178,14 +1308,15 @@ const TestList: React.FC<{
   );
 };
 
-export default LabTestManagementPage;
-
-// --- Parameter List Component ---
-const ParameterList: React.FC<{
+function ParameterList({
+  parameters,
+  tests,
+  reload,
+}: {
   parameters: TestParameter[];
   tests: LabTest[];
   reload: () => void;
-}> = ({ parameters, tests, reload }) => {
+}) {
   const [showModal, setShowModal] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [formData, setFormData] = useState<TestParameter>({
@@ -1414,3 +1545,5 @@ const ParameterList: React.FC<{
     </div>
   );
 };
+
+export default LabTestManagementPage;

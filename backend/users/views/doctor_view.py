@@ -186,7 +186,7 @@ class BookAppointmentView(generics.GenericAPIView):
     def post(self, request):
         if getattr(request.user, "role", None) != UserRole.PATIENT:
             raise PermissionException("Only patients can book appointments.")
-
+        
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 

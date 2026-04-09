@@ -27,7 +27,7 @@ function formatTime(t: string | null): string {
 }
 
 const MyAppointmentsPage: React.FC = () => {
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+    // const [sidebarOpen, setSidebarOpen] = useState(false);
     const [appointments, setAppointments] = useState<DoctorAppointment[]>([]);
     const [loading, setLoading] = useState(true);
     const [cancellingId, setCancellingId] = useState<number | null>(null);
@@ -70,7 +70,6 @@ const MyAppointmentsPage: React.FC = () => {
             background: "#e8f0f7",
             color: "#555555",
         }}>
-            
             <div style={{ flex: 1, display: "flex" }}>
                 <div style={{ flex: 1, padding: "32px", overflowY: "auto", maxWidth: "960px", margin: "0 auto", width: "100%" }}>
 

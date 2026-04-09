@@ -30,7 +30,9 @@ CREATE OR REPLACE FUNCTION public.l_create_lab_test(
     p_fasting_required BOOLEAN       DEFAULT FALSE,
     p_fasting_hours    INTEGER       DEFAULT NULL,
     p_price            NUMERIC(10,2) DEFAULT 0,
-    p_turnaround_hours INTEGER       DEFAULT NULL
+    p_turnaround_hours INTEGER       DEFAULT NULL,
+    -- FIX: new parameter — links the test to the creating lab
+    p_created_by       UUID          DEFAULT NULL
 )
 RETURNS public.lab_tests
 LANGUAGE plpgsql
@@ -38,23 +40,21 @@ AS $$
 DECLARE
     v_row public.lab_tests;
 BEGIN
-    -- ── Blank field guards ────────────────────────────────────
+    -- Blank field guards
     IF TRIM(p_test_code) = '' THEN
         RAISE EXCEPTION 'test_code cannot be empty'
             USING ERRCODE = 'invalid_parameter_value';
     END IF;
-
     IF TRIM(p_test_name) = '' THEN
         RAISE EXCEPTION 'test_name cannot be empty'
             USING ERRCODE = 'invalid_parameter_value';
     END IF;
-
     IF TRIM(p_sample_type) = '' THEN
         RAISE EXCEPTION 'sample_type cannot be empty'
             USING ERRCODE = 'invalid_parameter_value';
     END IF;
-
-    -- ── Duplicate test_code check (case-insensitive) ──────────
+ 
+    -- Duplicate test_code check (case-insensitive)
     IF EXISTS (
         SELECT 1 FROM public.lab_tests
         WHERE LOWER(test_code) = LOWER(TRIM(p_test_code))
@@ -62,8 +62,8 @@ BEGIN
         RAISE EXCEPTION 'A test with code "%" already exists', TRIM(p_test_code)
             USING ERRCODE = 'unique_violation';
     END IF;
-
-    -- ── Category existence check ───────────────────────────────
+ 
+    -- Category existence check
     IF p_category_id IS NOT NULL AND NOT EXISTS (
         SELECT 1 FROM public.lab_test_categories
         WHERE category_id = p_category_id AND is_active = TRUE
@@ -71,29 +71,27 @@ BEGIN
         RAISE EXCEPTION 'Category with id % does not exist or is inactive', p_category_id
             USING ERRCODE = 'foreign_key_violation';
     END IF;
-
-    -- ── Numeric constraint guards ──────────────────────────────
+ 
+    -- Numeric constraint guards
     IF p_price < 0 THEN
         RAISE EXCEPTION 'price cannot be negative'
             USING ERRCODE = 'invalid_parameter_value';
     END IF;
-
     IF p_turnaround_hours IS NOT NULL AND p_turnaround_hours < 0 THEN
         RAISE EXCEPTION 'turnaround_hours cannot be negative'
             USING ERRCODE = 'invalid_parameter_value';
     END IF;
-
     IF p_fasting_hours IS NOT NULL AND p_fasting_hours < 0 THEN
         RAISE EXCEPTION 'fasting_hours cannot be negative'
             USING ERRCODE = 'invalid_parameter_value';
     END IF;
-
-    -- ── Fasting logic guard ────────────────────────────────────
+ 
+    -- Fasting logic guard
     IF p_fasting_required = FALSE AND p_fasting_hours IS NOT NULL THEN
         RAISE EXCEPTION 'fasting_hours should only be set when fasting_required is true'
             USING ERRCODE = 'invalid_parameter_value';
     END IF;
-
+ 
     INSERT INTO public.lab_tests (
         category_id,
         test_code,
@@ -105,6 +103,9 @@ BEGIN
         price,
         turnaround_hours,
         is_active,
+        -- FIX: store both created_by and updated_by
+        created_by,
+        updated_by,
         created_at,
         updated_at
     )
@@ -119,11 +120,13 @@ BEGIN
         p_price,
         p_turnaround_hours,
         TRUE,
+        p_created_by,
+        p_created_by,
         now(),
         now()
     )
     RETURNING * INTO v_row;
-
+ 
     RETURN v_row;
 END;
 $$;
@@ -163,7 +166,6 @@ USAGE — full:
 --   · negative numeric values
 --   · fasting logic mismatch
 -- ─────────────────────────────────────────────────────────────
-
 CREATE OR REPLACE FUNCTION public.l_update_lab_test(
     p_test_id              INTEGER,
     p_test_code            VARCHAR(30)   DEFAULT NULL,
@@ -173,7 +175,7 @@ CREATE OR REPLACE FUNCTION public.l_update_lab_test(
     p_description          TEXT          DEFAULT NULL,
     p_fasting_required     BOOLEAN       DEFAULT NULL,
     p_fasting_hours        INTEGER       DEFAULT NULL,
-    p_clear_fasting_hours  BOOLEAN       DEFAULT FALSE,  -- pass TRUE to set fasting_hours = NULL
+    p_clear_fasting_hours  BOOLEAN       DEFAULT FALSE,
     p_price                NUMERIC(10,2) DEFAULT NULL,
     p_turnaround_hours     INTEGER       DEFAULT NULL,
     p_is_active            BOOLEAN       DEFAULT NULL
@@ -183,20 +185,16 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
     v_row              public.lab_tests;
-    v_fasting_required BOOLEAN;
-    v_fasting_hours    INTEGER;
+    v_fasting_hours    INTEGER;   -- FIX: now properly assigned below
 BEGIN
-    -- ── Existence check ───────────────────────────────────────
-    SELECT * INTO v_row
-    FROM public.lab_tests
-    WHERE test_id = p_test_id;
-
+    -- Existence check
+    SELECT * INTO v_row FROM public.lab_tests WHERE test_id = p_test_id;
     IF NOT FOUND THEN
         RAISE EXCEPTION 'Lab test with id % not found', p_test_id
             USING ERRCODE = 'no_data_found';
     END IF;
-
-    -- ── Duplicate test_code check ─────────────────────────────
+ 
+    -- Duplicate test_code check
     IF p_test_code IS NOT NULL
        AND TRIM(p_test_code) <> ''
        AND LOWER(TRIM(p_test_code)) <> LOWER(v_row.test_code)
@@ -210,8 +208,8 @@ BEGIN
                 USING ERRCODE = 'unique_violation';
         END IF;
     END IF;
-
-    -- ── Category existence check ───────────────────────────────
+ 
+    -- Category existence check
     IF p_category_id IS NOT NULL AND NOT EXISTS (
         SELECT 1 FROM public.lab_test_categories
         WHERE category_id = p_category_id AND is_active = TRUE
@@ -219,18 +217,35 @@ BEGIN
         RAISE EXCEPTION 'Category with id % does not exist or is inactive', p_category_id
             USING ERRCODE = 'foreign_key_violation';
     END IF;
-
-    -- ── Numeric constraint guards ──────────────────────────────
+ 
+    -- Numeric constraint guards
     IF p_price IS NOT NULL AND p_price < 0 THEN
         RAISE EXCEPTION 'price cannot be negative'
             USING ERRCODE = 'invalid_parameter_value';
     END IF;
-
     IF p_turnaround_hours IS NOT NULL AND p_turnaround_hours < 0 THEN
         RAISE EXCEPTION 'turnaround_hours cannot be negative'
             USING ERRCODE = 'invalid_parameter_value';
     END IF;
-
+    IF p_fasting_hours IS NOT NULL AND p_fasting_hours < 0 THEN
+        RAISE EXCEPTION 'fasting_hours cannot be negative'
+            USING ERRCODE = 'invalid_parameter_value';
+    END IF;
+ 
+    -- FIX: compute v_fasting_hours before the UPDATE
+    --   Priority: explicit clear > new value provided > keep existing value
+    IF p_clear_fasting_hours THEN
+        v_fasting_hours := NULL;
+    ELSIF p_fasting_required = FALSE THEN
+        -- Turning fasting off implicitly clears the hours
+        v_fasting_hours := NULL;
+    ELSIF p_fasting_hours IS NOT NULL THEN
+        v_fasting_hours := p_fasting_hours;
+    ELSE
+        -- No change — preserve the existing value
+        v_fasting_hours := v_row.fasting_hours;
+    END IF;
+ 
     UPDATE public.lab_tests
     SET
         test_code        = COALESCE(NULLIF(TRIM(p_test_code),    ''), test_code),
@@ -239,14 +254,14 @@ BEGIN
         category_id      = COALESCE(p_category_id,      category_id),
         description      = COALESCE(p_description,      description),
         fasting_required = COALESCE(p_fasting_required, fasting_required),
-        fasting_hours    = v_fasting_hours,
+        fasting_hours    = v_fasting_hours,   -- FIX: now correctly set
         price            = COALESCE(p_price,            price),
         turnaround_hours = COALESCE(p_turnaround_hours, turnaround_hours),
         is_active        = COALESCE(p_is_active,        is_active),
         updated_at       = now()
     WHERE test_id = p_test_id
     RETURNING * INTO v_row;
-
+ 
     RETURN v_row;
 END;
 $$;
@@ -621,4 +636,51 @@ BEGIN
     WHERE t.test_id = p_test_id
     ORDER BY t.parameter_id ASC;
 END;
+$$;
+
+
+
+CREATE OR REPLACE FUNCTION public.l_get_lab_test_detail(p_test_id INTEGER)
+RETURNS TABLE (
+    test_id          INTEGER,
+    category_id      INTEGER,
+    category_name    VARCHAR(100),
+    test_code        VARCHAR(30),
+    test_name        VARCHAR(255),
+    description      TEXT,
+    sample_type      VARCHAR(50),
+    fasting_required BOOLEAN,
+    fasting_hours    INTEGER,
+    price            NUMERIC(10,2),
+    turnaround_hours INTEGER,
+    is_active        BOOLEAN,
+    created_at       TIMESTAMPTZ,
+    created_by       UUID,
+    created_by_name  VARCHAR(255),
+    updated_at       TIMESTAMPTZ,
+    updated_by       UUID
+)
+LANGUAGE sql STABLE AS $$
+    SELECT
+        t.test_id,
+        t.category_id,
+        c.category_name,
+        t.test_code,
+        t.test_name,
+        t.description,
+        t.sample_type,
+        t.fasting_required,
+        t.fasting_hours,
+        t.price,
+        t.turnaround_hours,
+        t.is_active,
+        t.created_at,
+        t.created_by,
+        l.lab_name  AS created_by_name,
+        t.updated_at,
+        t.updated_by
+    FROM public.lab_tests t
+    LEFT JOIN public.lab_test_categories c ON c.category_id = t.category_id
+    LEFT JOIN public.labs               l ON l.lab_id       = t.created_by
+    WHERE t.test_id = p_test_id;
 $$;

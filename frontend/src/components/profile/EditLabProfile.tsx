@@ -1,3 +1,4 @@
+// frontend\src\components\profile\EditLabProfile.tsx
 import React, { useCallback } from "react";
 import { useFormik } from "formik";
 import { X, Save, Building2, Phone, MapPin } from "lucide-react";

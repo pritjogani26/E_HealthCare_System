@@ -1,3 +1,4 @@
+# backend\users\serializers\lab_serializers.py
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 import users.database_queries.user_queries as uq
