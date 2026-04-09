@@ -10,8 +10,6 @@ import {
   FlaskConical,
   Settings,
   AlertCircle,
-  Heart,
-  ShieldPlus,
   Shield,
   Hospital,
   ClipboardList,
