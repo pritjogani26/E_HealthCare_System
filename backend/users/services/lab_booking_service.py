@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 # ── Pricing constants ──────────────────────────────────────────────────────────
 HOME_COLLECTION_CHARGE = 50.00
-DEFAULT_DISCOUNT       = 0.00
+DEFAULT_DISCOUNT = 0.00
 
 
 class LabBookingService:
@@ -48,12 +48,12 @@ class LabBookingService:
           5 – Atomic: increment slot counter then INSERT booking.
           6 – Return full booking detail dict.
         """
-        slot_id            = validated_data["slot_id"]
-        test_id            = validated_data["test_id"]
-        lab_id             = str(validated_data["lab_id"])
-        collection_type    = validated_data["collection_type"]
+        slot_id = validated_data["slot_id"]
+        test_id = validated_data["test_id"]
+        lab_id = str(validated_data["lab_id"])
+        collection_type = validated_data["collection_type"]
         collection_address = validated_data.get("collection_address")
-        notes              = validated_data.get("notes")
+        notes = validated_data.get("notes")
 
         # ── Step 1: Validate slot ────────────────────────────────────────────
         slot = fetchone(
@@ -87,9 +87,7 @@ class LabBookingService:
 
         # ── Step 3: Validate collection type / address ───────────────────────
         if collection_type not in ("lab_visit", "home"):
-            raise ValidationException(
-                "collection_type must be 'lab_visit' or 'home'."
-            )
+            raise ValidationException("collection_type must be 'lab_visit' or 'home'.")
 
         if collection_type == "home" and not collection_address:
             raise ValidationException(
@@ -100,7 +98,7 @@ class LabBookingService:
         subtotal = float(test["price"])
         home_fee = HOME_COLLECTION_CHARGE if collection_type == "home" else 0.00
         discount = DEFAULT_DISCOUNT
-        total    = subtotal + home_fee - discount
+        total = subtotal + home_fee - discount
 
         # ── Step 5: Atomic transaction ───────────────────────────────────────
         try:
@@ -146,9 +144,7 @@ class LabBookingService:
         # ── Step 2: Permission check ─────────────────────────────────────────
         is_patient = requesting_user_role == UserRole.PATIENT
         if is_patient and str(booking["patient_id"]) != requesting_user_id:
-            raise PermissionException(
-                "You are not authorised to cancel this booking."
-            )
+            raise PermissionException("You are not authorised to cancel this booking.")
 
         # ── Step 3: Status check ─────────────────────────────────────────────
         if booking["booking_status"] != "BOOKED":
@@ -244,7 +240,9 @@ class LabBookingService:
 
         if not raw_ops:
             logger.warning("No operating hours for lab %s", lab_id)
-            raise ValueError("No operating hours found. Please configure your operating hours first.")
+            raise ValueError(
+                "No operating hours found. Please configure your operating hours first."
+            )
 
         # Build lookup: db_day_of_week → operating hour record
         ops_by_day = {}
@@ -257,7 +255,9 @@ class LabBookingService:
 
         if not ops_by_day:
             logger.warning("All operating hours are marked closed for lab %s", lab_id)
-            raise ValueError("All configured operating hours are marked as 'Closed'. Cannot generate slots.")
+            raise ValueError(
+                "All configured operating hours are marked as 'Closed'. Cannot generate slots."
+            )
 
         today = datetime.now().date()
         print(f"[INFO] Today’s date: {today}")
@@ -266,17 +266,19 @@ class LabBookingService:
 
         for offset in range(days):
             slot_date = today + timedelta(days=offset)
-            weekday = slot_date.weekday()   # Python: 0=Mon … 6=Sun
+            weekday = slot_date.weekday()  # Python: 0=Mon … 6=Sun
             db_weekday = (weekday + 1) % 7  # Convert → DB: 0=Sun … 6=Sat
 
-            print(f"\n[DAY] Processing date={slot_date}, weekday={weekday}, db_weekday={db_weekday}")
+            print(
+                f"\n[DAY] Processing date={slot_date}, weekday={weekday}, db_weekday={db_weekday}"
+            )
 
             op = ops_by_day.get(db_weekday)
             if not op:
                 print(f"[SKIP] No operating hours for this day")
                 continue
 
-            open_time  = op["open_time"]
+            open_time = op["open_time"]
             close_time = op["close_time"]
 
             print(f"[DEBUG] Raw open_time={open_time}, close_time={close_time}")
@@ -289,7 +291,7 @@ class LabBookingService:
             print(f"[DEBUG] Parsed open_time={open_time}, close_time={close_time}")
 
             curr_dt = datetime.combine(slot_date, open_time)
-            end_dt  = datetime.combine(slot_date, close_time)
+            end_dt = datetime.combine(slot_date, close_time)
 
             print(f"[DEBUG] Slot window: {curr_dt} → {end_dt}")
 
@@ -316,10 +318,11 @@ class LabBookingService:
         print(f"\n[END] Total newly created slots: {newly_created}")
         return newly_created
 
-
     @staticmethod
     def get_available_slots(lab_id: str, target_date: str = None) -> list:
-        print(f"\n[START] Fetching available slots for lab_id={lab_id}, target_date={target_date}")
+        print(
+            f"\n[START] Fetching available slots for lab_id={lab_id}, target_date={target_date}"
+        )
 
         today = datetime.now().date()
         parsed_date = None
@@ -332,7 +335,9 @@ class LabBookingService:
                 print(f"[ERROR] Invalid date format: {target_date}")
                 raise ValidationException("Invalid date format. Use YYYY-MM-DD.")
 
-        print(f"[INFO] Calling DB for available slots (today={today}, target_date={parsed_date})")
+        print(
+            f"[INFO] Calling DB for available slots (today={today}, target_date={parsed_date})"
+        )
 
         result = bq.get_available_slots(lab_id, today, parsed_date)
 

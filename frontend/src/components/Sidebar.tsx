@@ -11,7 +11,9 @@ import {
   Settings,
   AlertCircle,
   Heart,
+  ShieldPlus,
   Shield,
+  Hospital,
   ClipboardList,
 } from "lucide-react";
 import { ExpandedSections } from "./types";
@@ -120,8 +122,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
         //   ]
         [{ icon: FlaskConical, label: "Laboratory", route: "/admin/labs" }]
       : []),
-      ...(can("lab : view") || admin
-      ? [{ icon: ClipboardList, label: "Tests & Categories", route: "/lab/tests" }]
+    ...(can("lab : view") || admin
+      ? [
+          {
+            icon: ClipboardList,
+            label: "Tests & Categories",
+            route: "/lab/tests",
+          },
+        ]
       : []),
     // Audit Logs — ADMIN and SUPERADMIN only
     ...(isAdminOrSuper
@@ -309,7 +317,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
         <div className="p-6 border-b border-slate-200 dark:border-slate-800/50">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 dark:from-emerald-600 dark:to-teal-700 rounded-lg flex items-center justify-center shadow-lg shadow-emerald-500/20">
-              <Heart className="w-6 h-6 text-white" />
+              <Hospital className="w-6 h-6 text-white" />
+              {/* <ShieldPlus className="w-6 h-6 text-white" /> */}
             </div>
             <div>
               <h1 className="text-xl font-bold text-slate-800 dark:text-white tracking-tight">

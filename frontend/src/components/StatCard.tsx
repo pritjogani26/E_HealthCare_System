@@ -1,11 +1,27 @@
-import React from 'react';
-import { StatCardProps } from './types';
+import React from "react";
+import { StatCardProps } from "./types";
+import { useNavigate } from "react-router-dom";
 
-const StatCard: React.FC<StatCardProps> = ({ icon: Icon, title, value, change, trend, color }) => {
+const StatCard: React.FC<StatCardProps> = ({
+  icon: Icon,
+  title,
+  value,
+  change,
+  trend,
+  color,
+  link,
+}) => {
+  const navigate = useNavigate();
+
   return (
-    <div className="group bg-white rounded-2xl p-6 border border-slate-200 hover:border-slate-300 transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1">
+    <div
+      onClick={() => link && navigate(link)}
+      className="group bg-white rounded-2xl p-6 border border-slate-200 hover:border-slate-300 transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1"
+    >
       <div className="flex items-start justify-between mb-4">
-        <div className={`p-3 rounded-xl bg-gradient-to-br ${color} shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+        <div
+          className={`p-3 rounded-xl bg-gradient-to-br ${color} shadow-lg group-hover:scale-110 transition-transform duration-300`}
+        >
           <Icon className="w-6 h-6 text-white" />
         </div>
         {/* {change && (
@@ -18,7 +34,9 @@ const StatCard: React.FC<StatCardProps> = ({ icon: Icon, title, value, change, t
       </div>
       <div>
         <p className="text-sm text-slate-500 font-medium mb-1">{title}</p>
-        <p className="text-3xl font-bold text-slate-800 tracking-tight">{value}</p>
+        <p className="text-3xl font-bold text-slate-800 tracking-tight">
+          {value}
+        </p>
       </div>
     </div>
   );

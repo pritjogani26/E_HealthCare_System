@@ -23,15 +23,16 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     "—";
 
   // Resolve avatar initials / image
-  let profileImage = profile?.profile_image;
+  let profileImage = profile?.profile_image || profile?.lab_logo;
   // let profileImage =
   //   profile?.profile_image && !profile.profile_image.includes("/defaults/")
   //     ? profile.profile_image
   //     : profile?.lab_logo && !profile.lab_logo.includes("/defaults/")
   //       ? profile.lab_logo
   //       : null;
-
+  console.log("Profile Image:", profileImage);
   if (profileImage && profileImage.startsWith("/")) {
+    console.log(profileImage);
     const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
     profileImage = `${baseUrl}${profileImage}`;
     console.log(profileImage);

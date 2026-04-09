@@ -32,6 +32,7 @@ export interface StatCardProps {
   change?: string;
   trend?: "up" | "down";
   color: string;
+  link?: string;
 }
 
 export interface Activity {
