@@ -15,8 +15,10 @@ import logging
 
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
 from rest_framework.response import Response
 
+from users.services.profile_service import PatientProfileService
 from users.middleware.exceptions import (
     NotFoundException,
     PermissionException,
@@ -42,6 +44,7 @@ logger = logging.getLogger(__name__)
 #  Helpers
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def _ensure_patient(user) -> None:
     """Raise PermissionException if the caller is not a PATIENT."""
     if getattr(user, "role", None) != UserRole.PATIENT:
@@ -51,7 +54,9 @@ def _ensure_patient(user) -> None:
 def _ensure_lab_or_admin(user) -> None:
     """Raise PermissionException if the caller is not a LAB or ADMIN."""
     if getattr(user, "role", None) not in (
-        UserRole.LAB, UserRole.ADMIN, UserRole.SUPERADMIN
+        UserRole.LAB,
+        UserRole.ADMIN,
+        UserRole.SUPERADMIN,
     ):
         raise PermissionException("Lab or Admin role required.")
 
@@ -60,13 +65,15 @@ def _ensure_lab_or_admin(user) -> None:
 #  CREATE / LIST PATIENT BOOKINGS
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class LabBookingListCreateView(generics.GenericAPIView):
     """
     GET  /labs/bookings/          – patient sees their own bookings.
     POST /labs/bookings/          – patient creates a new booking.
     """
+
     permission_classes = [IsAuthenticated]
-    serializer_class   = CreateBookingSerializer
+    serializer_class = CreateBookingSerializer
 
     def get(self, request):
         """
@@ -131,12 +138,14 @@ class LabBookingListCreateView(generics.GenericAPIView):
 #  RETRIEVE / CANCEL / COMPLETE A SINGLE BOOKING
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class LabBookingDetailView(generics.GenericAPIView):
     """
     GET    /labs/bookings/<uuid:booking_id>/          – fetch booking detail.
     DELETE /labs/bookings/<uuid:booking_id>/cancel/   – cancel a booking.
     PATCH  /labs/bookings/<uuid:booking_id>/complete/ – mark as completed.
     """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, booking_id):
@@ -177,8 +186,9 @@ class LabBookingCancelView(generics.GenericAPIView):
     Patients cancel their own BOOKED bookings.
     Lab / Admin can cancel any booking (e.g., if slot is unavailable).
     """
+
     permission_classes = [IsAuthenticated]
-    serializer_class   = CancelBookingSerializer
+    serializer_class = CancelBookingSerializer
 
     def post(self, request, booking_id):
         """
@@ -216,8 +226,10 @@ class LabBookingCompleteView(generics.GenericAPIView):
 
     Marks a booking as COMPLETED. Only lab users or admins may call this.
     """
+
     permission_classes = [IsAuthenticated]
-    serializer_class   = CompleteBookingSerializer
+    serializer_class = CompleteBookingSerializer
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def post(self, request, booking_id):
         """
@@ -228,13 +240,23 @@ class LabBookingCompleteView(generics.GenericAPIView):
         """
         _ensure_lab_or_admin(request.user)
 
-        booking = LabBookingService.complete_booking(str(booking_id))
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        booking, _report = LabBookingService.complete_booking_with_report(
+            booking_id=str(booking_id),
+            uploaded_by=str(request.user.user_id),
+            report_file=serializer.validated_data.get("report_file"),
+            report_type=serializer.validated_data.get("report_type", "pdf"),
+            result_notes=serializer.validated_data.get("result_notes"),
+            parameter_results=serializer.validated_data.get("parameter_results"),
+        )
 
         return Response(
             {
                 "success": True,
                 "data": BookingDetailSerializer(booking).data,
-                "message": "Booking marked as completed.",
+                "message": "Booking marked as completed and report uploaded.",
             }
         )
 
@@ -243,12 +265,14 @@ class LabBookingCompleteView(generics.GenericAPIView):
 #  LAB DASHBOARD – list bookings belonging to a lab
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class LabOwnBookingsView(generics.GenericAPIView):
     """
     GET /labs/my-bookings/
 
     Returns all bookings for the authenticated lab user.
     """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -262,6 +286,11 @@ class LabOwnBookingsView(generics.GenericAPIView):
 
         bookings = bq.list_lab_bookings(str(request.user.user_id))
 
+        for b in bookings:
+            patient = PatientProfileService.get_patient_profile(b["patient_id"])
+            b["patient"] = patient
+            print(f"\nBooking : {b}")
+
         return Response(
             {
                 "success": True,
@@ -269,19 +298,28 @@ class LabOwnBookingsView(generics.GenericAPIView):
                 "total_count": len(bookings),
             }
         )
+        # return Response(
+        #     {
+        #         "success": True,
+        #         "data": bookings,
+        #         "total_count": len(bookings),
+        #     }
+        # )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  REPORTS
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class LabBookingReportListView(generics.GenericAPIView):
     """
     GET  /labs/bookings/<uuid:booking_id>/reports/ – list all reports for a booking.
     POST /labs/bookings/<uuid:booking_id>/reports/ – upload a new report.
     """
+
     permission_classes = [IsAuthenticated]
-    serializer_class   = LabReportSerializer
+    serializer_class = LabReportSerializer
 
     def get(self, request, booking_id):
         """
@@ -357,17 +395,19 @@ class LabBookingReportListView(generics.GenericAPIView):
 #  SLOTS
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class LabSlotListView(generics.GenericAPIView):
     """
     GET /labs/slots/
-    
+
     Fetch all available slots for a lab on a specific date.
     Anyone can view available slots.
     """
+
     authentication_classes = []
-    permission_classes = [] 
-    # permission_classes = [IsAuthenticated] 
-    
+    permission_classes = []
+    # permission_classes = [IsAuthenticated]
+
     def get(self, request):
         lab_id = request.query_params.get("lab_id")
         date = request.query_params.get("date")
@@ -375,44 +415,52 @@ class LabSlotListView(generics.GenericAPIView):
 
         if not lab_id:
             raise ValidationException("lab_id is required.")
-        
+
         slots = LabBookingService.get_available_slots(lab_id, date)
-        return Response({
-            "success": True,
-            "data": LabSlotSerializer(slots, many=True).data
-        })
+        return Response(
+            {"success": True, "data": LabSlotSerializer(slots, many=True).data}
+        )
 
 
 class LabSlotGenerateView(generics.GenericAPIView):
     """
     POST /labs/slots/generate/
-    
+
     Generate slots for the authenticated lab.
     """
+
     permission_classes = [IsAuthenticated]
-    
+
     def post(self, request):
         if getattr(request.user, "role", None) != UserRole.LAB:
             raise PermissionException("Only labs can generate their slots.")
-        
+
         days = int(request.data.get("days", 30))
-        print(f"\n\nGenerating slots for lab {request.user.user_id} for next {days} days")
-        
+        print(
+            f"\n\nGenerating slots for lab {request.user.user_id} for next {days} days"
+        )
+
         try:
-            count = LabBookingService.generate_slots_for_lab(str(request.user.user_id), days=days)
-            return Response({
-                "success": True,
-                "data": {"slots_created": count},
-                "message": f"Successfully generated {count} slots."
-            })
+            count = LabBookingService.generate_slots_for_lab(
+                str(request.user.user_id), days=days
+            )
+            return Response(
+                {
+                    "success": True,
+                    "data": {"slots_created": count},
+                    "message": f"Successfully generated {count} slots.",
+                }
+            )
         except ValueError as e:
-            return Response({
-                "success": False,
-                "message": str(e)
-            }, status=400)
+            return Response({"success": False, "message": str(e)}, status=400)
         except Exception as e:
-            logger.error("Error generating slots for lab %s: %s", request.user.user_id, str(e))
-            return Response({
-                "success": False,
-                "message": "An unexpected error occurred while generating slots."
-            }, status=500)
+            logger.error(
+                "Error generating slots for lab %s: %s", request.user.user_id, str(e)
+            )
+            return Response(
+                {
+                    "success": False,
+                    "message": "An unexpected error occurred while generating slots.",
+                },
+                status=500,
+            )

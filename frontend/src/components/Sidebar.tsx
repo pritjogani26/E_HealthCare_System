@@ -175,6 +175,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       },
       { icon: FlaskConical, label: "Book Lab Test", route: "/book-lab-test" },
       { icon: Calendar, label: "My Appointments", route: "/my-appointments" },
+      {
+        icon: ClipboardList,
+        label: "My Lab Bookings",
+        route: "/my-lab-bookings",
+      },
+    );
+  }
+
+  if (userRole === "LAB") {
+    menuItems.splice(
+      1,
+      0,
+      { icon: Calendar, label: "Test Bookings", route: "/lab/bookings" }
     );
   }
 

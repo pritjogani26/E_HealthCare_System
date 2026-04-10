@@ -16,7 +16,7 @@ import {
   Loader2,
   AlertCircle,
   CheckCircle2,
-  Search,
+  Download,
 } from "lucide-react";
 
 import { handleApiError } from "../services/api";
@@ -24,8 +24,10 @@ import { useToast } from "../hooks/useToast";
 import {
   fetchMyLabBookings,
   cancelLabBooking,
+  fetchBookingReports,
   LabBooking,
   BookingStatus,
+  LabReport,
 } from "../services/labService";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -279,6 +281,31 @@ function BookingCard({
   onCancelClick: () => void;
 }) {
   const sc = STATUS_STYLES[booking.booking_status] ?? STATUS_STYLES.BOOKED;
+  const { data: reports = [], isLoading: reportsLoading } = useQuery<LabReport[], Error>({
+    queryKey: ["bookingReports", booking.booking_id],
+    queryFn: () => fetchBookingReports(booking.booking_id),
+    enabled: expanded && booking.booking_status === "COMPLETED",
+    staleTime: 30 * 1000,
+  });
+
+  const latestPdfReport = reports.find((r) => (r.report_type || "").toLowerCase() === "pdf") || reports[0];
+
+  const getDownloadUrl = (raw?: string | null): string | null => {
+    if (!raw) return null;
+    if (/^https?:\/\//i.test(raw)) return raw;
+    if (raw.startsWith("/media/")) {
+      const apiBase = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
+      const root = apiBase.endsWith("/api") ? apiBase.slice(0, -4) : apiBase;
+      return `${root}${raw}`;
+    }
+    return raw;
+  };
+
+  const openReport = (report?: LabReport) => {
+    const url = getDownloadUrl(report?.report_file_url);
+    if (!url) return;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
 
   return (
     <div style={{
@@ -353,6 +380,26 @@ function BookingCard({
             </button>
           )}
 
+          {booking.booking_status === "COMPLETED" && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                openReport(latestPdfReport);
+              }}
+              disabled={!latestPdfReport}
+              style={{
+                padding: "5px 12px", borderRadius: 7,
+                border: "1px solid #bfdbfe", background: "#eff6ff",
+                color: "#1d4ed8", fontWeight: 600, fontSize: 12, cursor: "pointer",
+                whiteSpace: "nowrap", opacity: latestPdfReport ? 1 : 0.65,
+                display: "flex", alignItems: "center", gap: 6,
+              }}
+            >
+              <Download size={12} />
+              {latestPdfReport ? "Download PDF" : "No report"}
+            </button>
+          )}
+
           {expanded ? <ChevronUp size={16} color="#94a3b8" /> : <ChevronDown size={16} color="#94a3b8" />}
         </div>
       </div>
@@ -417,6 +464,42 @@ function BookingCard({
                     ].filter(Boolean).join(", ")
                   : String(booking.collection_address)}
               </p>
+            </div>
+          )}
+
+          {booking.booking_status === "COMPLETED" && (
+            <div style={{ gridColumn: "1 / -1" }}>
+              <p style={{ fontSize: 11, color: "#94a3b8", marginBottom: 8 }}>
+                Lab Report
+              </p>
+              {reportsLoading ? (
+                <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Loading report...</p>
+              ) : latestPdfReport ? (
+                <button
+                  type="button"
+                  onClick={() => openReport(latestPdfReport)}
+                  style={{
+                    padding: "8px 12px",
+                    borderRadius: 8,
+                    border: "1px solid #bfdbfe",
+                    background: "#eff6ff",
+                    color: "#1d4ed8",
+                    fontWeight: 600,
+                    fontSize: 13,
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                >
+                  <Download size={14} />
+                  Download completed test report
+                </button>
+              ) : (
+                <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>
+                  Report not available yet.
+                </p>
+              )}
             </div>
           )}
         </div>

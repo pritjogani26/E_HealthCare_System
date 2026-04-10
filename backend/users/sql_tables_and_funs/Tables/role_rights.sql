@@ -61,7 +61,7 @@ INSERT INTO public.user_roles (role, role_description) VALUES
   ('STAFF',         'Administrative staff member'),
   ('DOCTOR',        'Medical professional'),
   ('PATIENT',       'Healthcare receiver'),
-  ('LAB_TECHNICIAN','Medical lab specialist'),
+  ('LAB','Medical lab specialist'),
   ('SUPERADMIN',    'Full System Access')
 ON CONFLICT (role) DO NOTHING;
 
@@ -129,9 +129,9 @@ BEGIN
         ('PATIENT', 'appointment', 'cancel'),
         ('PATIENT', 'appointment', 'view_own'),
 
-        -- ── LAB_TECHNICIAN → labs + view patients ─────────────────
-        ('LAB_TECHNICIAN', 'patient', 'view'),
-        ('LAB_TECHNICIAN', 'lab',     'view')
+        -- ── LAB → labs + view patients ─────────────────
+        ('LAB', 'patient', 'view'),
+        ('LAB', 'lab',     'view')
 
     )
     INSERT INTO role_permissions (role_id, permission_id)

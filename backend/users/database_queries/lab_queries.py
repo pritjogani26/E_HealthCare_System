@@ -19,7 +19,7 @@ def _normalize_lab(row: dict) -> dict:
     d.setdefault("user_updated_at", d.get("updated_at"))
     d.setdefault("lab_created_at", d.get("created_at"))
     d.setdefault("lab_updated_at", d.get("updated_at"))
-    d.setdefault("role", "lab_technician")
+    d.setdefault("role", "lab")
     d.setdefault("two_factor_enabled", False)
     d.setdefault("last_login_at", None)
     return d

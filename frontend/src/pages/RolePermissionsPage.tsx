@@ -66,7 +66,7 @@ const ROLE_BADGE: Record<string, string> = {
   STAFF: "#2e5fa3",
   DOCTOR: "#0e7490",
   PATIENT: "#0369a1",
-  LAB_TECHNICIAN: "#7e22ce",
+  LAB: "#7e22ce",
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────

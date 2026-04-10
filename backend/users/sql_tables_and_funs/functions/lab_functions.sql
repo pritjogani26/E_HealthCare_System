@@ -6,6 +6,7 @@ RETURNS TABLE(
     is_active           boolean,
     two_factor_enabled  boolean,
     last_login_at       timestamptz,
+    role_id             int,
     role                varchar,
 
     lab_name            varchar,
@@ -37,6 +38,7 @@ BEGIN
         u.is_active,
         u.two_factor_enabled,
         u.last_login_at,
+        u.role_id,
         r.role,
 
         l.lab_name,

@@ -1,4 +1,6 @@
 # backend\users\services\profile_service.py
+import uuid
+
 import users.database_queries.patient_queries as pq
 import users.database_queries.user_queries as uq
 from ..serializers.patient_serializers import PatientProfileSerializer
@@ -19,7 +21,10 @@ class PatientProfileService(BaseProfileService):
 
     @staticmethod
     def get_patient_profile(user) -> dict | None:
-        user_id = str(getattr(user, "user_id", ""))
+        if type(user) == uuid.UUID:
+            user_id = str(user)
+        else:
+            user_id = str(getattr(user, "user_id", ""))
         return pq.get_patient_by_id(user_id)
 
     @staticmethod

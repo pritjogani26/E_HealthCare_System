@@ -136,6 +136,22 @@ export interface LabSlot {
 export type BookingStatus = "BOOKED" | "COMPLETED" | "CANCELLED";
 export type CollectionType = "lab_visit" | "home";
 
+/** Present on lab `my-bookings` responses for display at the lab. */
+export interface LabBookingPatient {
+  email: string;
+  full_name: string;
+  date_of_birth?: string | null;
+  mobile?: string | null;
+  emergency_contact_name?: string | null;
+  emergency_contact_number?: string | null;
+  blood_group?: string | null;
+  gender?: string | null;
+  address_line?: string | null;
+  city?: string | null;
+  state?: string | null;
+  pincode?: string | null;
+}
+
 export interface LabBooking {
   booking_id: string;
   patient_id: string;
@@ -143,8 +159,10 @@ export interface LabBooking {
   slot_id: number;
   test_id: number;
   collection_type: CollectionType;
-  collection_address?: CollectionAddress | null;
+  /** API may return a JSON string for home collection. */
+  collection_address?: CollectionAddress | string | null;
   booking_status: BookingStatus;
+  patient?: LabBookingPatient | null;
   subtotal: string;
   home_collection_charge: string;
   discount_amount: string;
@@ -174,6 +192,15 @@ export interface LabReport {
   result_notes?: string | null;
   uploaded_by?: string | null;
   uploaded_at: string;
+}
+
+export interface LabTestParameterResult {
+  parameter_id?: number;
+  parameter_name: string;
+  unit?: string;
+  normal_range?: string;
+  patient_value: string;
+  is_abnormal?: boolean;
 }
 
 export interface CreateBookingPayload {
@@ -223,6 +250,25 @@ export const cancelLabBooking = async (
 /** Lab / Admin: mark booking as completed */
 export const completeLabBooking = async (bookingId: string): Promise<LabBooking> => {
   const res = await api.post(`/labs/bookings/${bookingId}/complete/`);
+  return unwrap<LabBooking>(res.data);
+};
+
+export const completeLabBookingWithReport = async (
+  bookingId: string,
+  payload: {
+    report_file: File;
+    report_type?: string;
+    result_notes?: string;
+    parameter_results: LabTestParameterResult[];
+  },
+): Promise<LabBooking> => {
+  const formData = new FormData();
+  formData.append("report_file", payload.report_file);
+  formData.append("report_type", payload.report_type ?? "pdf");
+  if (payload.result_notes) formData.append("result_notes", payload.result_notes);
+  formData.append("parameter_results", JSON.stringify(payload.parameter_results));
+
+  const res = await api.post(`/labs/bookings/${bookingId}/complete/`, formData);
   return unwrap<LabBooking>(res.data);
 };
 

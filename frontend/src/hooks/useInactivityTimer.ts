@@ -2,7 +2,7 @@
 import { useEffect, useRef, useCallback } from "react";
 
 export const INACTIVITY_TIMEOUT_MS = 150 * 60 * 1000;
-// export const INACTIVITY_TIMEOUT_MS = 10 * 1000;
+// export const INACTIVITY_TIMEOUT_MS = 15 * 1000;
 
 const ACTIVITY_EVENT: ReadonlyArray<string> = [
   "mousemove",

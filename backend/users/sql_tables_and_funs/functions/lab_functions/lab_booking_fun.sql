@@ -443,11 +443,11 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql AS $$
 BEGIN
-    UPDATE lab_test_slot_bookings
+    UPDATE lab_test_slot_bookings lb
     SET booking_status = 'COMPLETED',
         updated_at     = NOW()
-    WHERE lab_test_slot_bookings.booking_id = p_booking_id
-      AND booking_status = 'BOOKED';
+    WHERE lb.booking_id = p_booking_id
+      AND lb.booking_status = 'BOOKED';
 
     IF NOT FOUND THEN
         RAISE EXCEPTION 'Booking % not found or is not in BOOKED status.', p_booking_id;

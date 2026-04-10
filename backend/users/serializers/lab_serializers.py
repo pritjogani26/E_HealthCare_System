@@ -81,17 +81,34 @@ class LabServiceSerializer(serializers.Serializer):
 
 class LabProfileSerializer(serializers.Serializer):
     lab_id = serializers.UUIDField()
-    lab_name = serializers.CharField()
     email = serializers.EmailField()
+    email_verified = serializers.BooleanField()
+
+    is_active = serializers.BooleanField()
+    two_factor_enabled = serializers.BooleanField()
+    
+    role_id = serializers.CharField()
+    role = serializers.CharField()
+    
+    lab_name = serializers.CharField()
     phone_number = serializers.CharField(allow_null=True)
     license_number = serializers.CharField(allow_null=True)
     lab_logo = serializers.CharField()
+    
+    address_line = serializers.CharField(allow_null=True, allow_blank=True)
+    city = serializers.CharField(allow_null=True, allow_blank=True)
+    state = serializers.CharField(allow_null=True, allow_blank=True)
+    pincode = serializers.CharField(allow_null=True, allow_blank=True)
+
     verification_status = serializers.CharField()
     verified_at = serializers.DateTimeField(allow_null=True)
     verification_notes = serializers.CharField(allow_null=True, allow_blank=True)
-    is_active = serializers.BooleanField()
+    verified_by_id = serializers.UUIDField(allow_null=True)
+    verified_by_email = serializers.EmailField(allow_null=True, allow_blank=True)
+    
     created_at = serializers.DateTimeField()
     updated_at = serializers.DateTimeField(allow_null=True)
+    last_login_at = serializers.DateTimeField(allow_null=True)
 
 
 class LabListSerializer(serializers.Serializer):

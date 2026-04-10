@@ -242,7 +242,7 @@ END IF;
 
 SELECT role_id INTO v_role_id
 FROM user_roles
-WHERE role = 'LAB_TECHNICIAN';
+WHERE role = 'LAB';
 
 IF v_role_id IS NULL THEN
     RAISE EXCEPTION 'ROLE_NOT_FOUND';

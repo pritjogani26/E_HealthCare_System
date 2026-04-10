@@ -17,7 +17,7 @@ from rest_framework import serializers
 
 COLLECTION_TYPES = ("lab_visit", "home")
 BOOKING_STATUSES = ("BOOKED", "COMPLETED", "CANCELLED")
-REPORT_TYPES     = ("pdf", "image", "csv", "other")
+REPORT_TYPES = ("pdf", "image", "csv", "other")
 
 
 class CollectionAddressSerializer(serializers.Serializer):
@@ -28,18 +28,19 @@ class CollectionAddressSerializer(serializers.Serializer):
     to keep future extensibility open, but `address_line1` and `city` are
     the expected minimum.
     """
+
     address_line1 = serializers.CharField(max_length=255)
     address_line2 = serializers.CharField(
         max_length=255, allow_blank=True, allow_null=True, required=False
     )
-    city          = serializers.CharField(max_length=100)
-    state         = serializers.CharField(
+    city = serializers.CharField(max_length=100)
+    state = serializers.CharField(
         max_length=100, allow_blank=True, allow_null=True, required=False
     )
-    pincode       = serializers.CharField(
+    pincode = serializers.CharField(
         max_length=20, allow_blank=True, allow_null=True, required=False
     )
-    landmark      = serializers.CharField(
+    landmark = serializers.CharField(
         max_length=255, allow_blank=True, allow_null=True, required=False
     )
 
@@ -47,6 +48,7 @@ class CollectionAddressSerializer(serializers.Serializer):
 # ─────────────────────────────────────────────────────────────────────────────
 # Request serializers  (input validation)
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class CreateBookingSerializer(serializers.Serializer):
     """
@@ -62,12 +64,13 @@ class CreateBookingSerializer(serializers.Serializer):
 
     Outputs: validated_data dict passed to LabBookingService.create_booking().
     """
-    lab_id             = serializers.UUIDField()
-    slot_id            = serializers.IntegerField(min_value=1)
-    test_id            = serializers.IntegerField(min_value=1)
-    collection_type    = serializers.ChoiceField(choices=COLLECTION_TYPES)
+
+    lab_id = serializers.UUIDField()
+    slot_id = serializers.IntegerField(min_value=1)
+    test_id = serializers.IntegerField(min_value=1)
+    collection_type = serializers.ChoiceField(choices=COLLECTION_TYPES)
     collection_address = CollectionAddressSerializer(required=False, allow_null=True)
-    notes              = serializers.CharField(
+    notes = serializers.CharField(
         max_length=1000, allow_blank=True, allow_null=True, required=False
     )
 
@@ -94,6 +97,7 @@ class CancelBookingSerializer(serializers.Serializer):
     Inputs:
         cancellation_reason – optional free-text reason.
     """
+
     cancellation_reason = serializers.CharField(
         max_length=500, allow_blank=True, allow_null=True, required=False
     )
@@ -106,12 +110,34 @@ class CompleteBookingSerializer(serializers.Serializer):
     Currently no extra fields; kept as a serializer so future fields
     (e.g. technician_notes) can be added without changing the view.
     """
-    pass
+
+    report_file = serializers.FileField(required=False, allow_null=True)
+    report_type = serializers.ChoiceField(
+        choices=REPORT_TYPES, default="pdf", required=False
+    )
+    result_notes = serializers.CharField(
+        max_length=5000, allow_blank=True, allow_null=True, required=False
+    )
+    parameter_results = serializers.JSONField(required=False, allow_null=True)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Response serializers  (output shaping)
 # ─────────────────────────────────────────────────────────────────────────────
+class PatientBookingSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    full_name = serializers.CharField()
+    date_of_birth = serializers.DateField()
+    mobile = serializers.CharField()
+    emergency_contact_name = serializers.CharField(allow_blank=True, allow_null=True)
+    emergency_contact_number = serializers.CharField(allow_blank=True, allow_null=True)
+    blood_group = serializers.CharField(allow_blank=True, allow_null=True)
+    gender = serializers.CharField(allow_blank=True, allow_null=True)
+    address_line = serializers.CharField(allow_blank=True, allow_null=True)
+    city = serializers.CharField(allow_blank=True, allow_null=True)
+    state = serializers.CharField(allow_blank=True, allow_null=True)
+    pincode = serializers.CharField(allow_blank=True, allow_null=True)
+
 
 class BookingDetailSerializer(serializers.Serializer):
     """
@@ -119,64 +145,55 @@ class BookingDetailSerializer(serializers.Serializer):
 
     All fields are read-only because this serializer is only used for output.
     """
-    booking_id             = serializers.UUIDField(read_only=True)
-    patient_id             = serializers.UUIDField(read_only=True)
-    lab_id                 = serializers.UUIDField(read_only=True)
-    slot_id                = serializers.IntegerField(read_only=True)
-    test_id                = serializers.IntegerField(read_only=True)
-    collection_type        = serializers.CharField(read_only=True)
-    collection_address     = serializers.JSONField(
-        read_only=True, allow_null=True
-    )
-    booking_status         = serializers.CharField(read_only=True)
+
+    booking_id = serializers.UUIDField(read_only=True)
+    patient_id = serializers.UUIDField(read_only=True)
+    lab_id = serializers.UUIDField(read_only=True)
+    slot_id = serializers.IntegerField(read_only=True)
+    test_id = serializers.IntegerField(read_only=True)
+    collection_type = serializers.CharField(read_only=True)
+    collection_address = serializers.JSONField(read_only=True, allow_null=True)
+    booking_status = serializers.CharField(read_only=True)
 
     # Pricing
-    subtotal               = serializers.DecimalField(
-        max_digits=10, decimal_places=2, read_only=True
-    )
+    subtotal = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     home_collection_charge = serializers.DecimalField(
         max_digits=10, decimal_places=2, read_only=True
     )
-    discount_amount        = serializers.DecimalField(
+    discount_amount = serializers.DecimalField(
         max_digits=10, decimal_places=2, read_only=True
     )
-    total_amount           = serializers.DecimalField(
+    total_amount = serializers.DecimalField(
         max_digits=10, decimal_places=2, read_only=True
     )
+
+    patient = PatientBookingSerializer(read_only=True, allow_null=True, partial=True)
 
     # Patient notes
-    notes                  = serializers.CharField(
-        read_only=True, allow_null=True
-    )
+    notes = serializers.CharField(read_only=True, allow_null=True)
 
     # Cancellation info
-    cancelled_at           = serializers.DateTimeField(
-        read_only=True, allow_null=True
-    )
-    cancellation_reason    = serializers.CharField(
-        read_only=True, allow_null=True
-    )
-    cancelled_by           = serializers.UUIDField(
-        read_only=True, allow_null=True
-    )
+    cancelled_at = serializers.DateTimeField(read_only=True, allow_null=True)
+    cancellation_reason = serializers.CharField(read_only=True, allow_null=True)
+    cancelled_by = serializers.UUIDField(read_only=True, allow_null=True)
 
     # Timestamps
-    created_at             = serializers.DateTimeField(read_only=True)
-    updated_at             = serializers.DateTimeField(read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
 
     # Joined fields from lab_tests
-    test_name              = serializers.CharField(read_only=True)
-    test_code              = serializers.CharField(read_only=True)
-    sample_type            = serializers.CharField(read_only=True)
-    fasting_required       = serializers.BooleanField(read_only=True)
+    test_name = serializers.CharField(read_only=True)
+    test_code = serializers.CharField(read_only=True)
+    sample_type = serializers.CharField(read_only=True)
+    fasting_required = serializers.BooleanField(read_only=True)
 
     # Joined fields from lab_test_slots
-    slot_date              = serializers.DateField(read_only=True)
-    start_time             = serializers.TimeField(read_only=True)
-    end_time               = serializers.TimeField(read_only=True)
+    slot_date = serializers.DateField(read_only=True)
+    start_time = serializers.TimeField(read_only=True)
+    end_time = serializers.TimeField(read_only=True)
 
     # Joined field from labs
-    lab_name               = serializers.CharField(read_only=True)
+    lab_name = serializers.CharField(read_only=True)
 
 
 class LabReportSerializer(serializers.Serializer):
@@ -185,27 +202,29 @@ class LabReportSerializer(serializers.Serializer):
 
     Used both for output and for validating upload requests.
     """
-    result_id       = serializers.IntegerField(read_only=True)
-    booking_id      = serializers.UUIDField(read_only=True)
+
+    result_id = serializers.IntegerField(read_only=True)
+    booking_id = serializers.UUIDField(read_only=True)
     report_file_url = serializers.CharField(max_length=255)
-    report_type     = serializers.ChoiceField(
+    report_type = serializers.ChoiceField(
         choices=REPORT_TYPES, default="pdf", required=False
     )
-    result_notes    = serializers.CharField(
+    result_notes = serializers.CharField(
         max_length=5000, allow_blank=True, allow_null=True, required=False
     )
-    uploaded_by     = serializers.UUIDField(read_only=True, allow_null=True)
-    uploaded_at     = serializers.DateTimeField(read_only=True)
+    uploaded_by = serializers.UUIDField(read_only=True, allow_null=True)
+    uploaded_at = serializers.DateTimeField(read_only=True)
 
 
 class LabSlotSerializer(serializers.Serializer):
     """
     Serializer for lab test slots.
     """
-    slot_id      = serializers.IntegerField(read_only=True)
-    lab_id       = serializers.UUIDField(read_only=True)
-    slot_date    = serializers.DateField(read_only=True)
-    start_time   = serializers.TimeField(read_only=True)
-    end_time     = serializers.TimeField(read_only=True)
+
+    slot_id = serializers.IntegerField(read_only=True)
+    lab_id = serializers.UUIDField(read_only=True)
+    slot_date = serializers.DateField(read_only=True)
+    start_time = serializers.TimeField(read_only=True)
+    end_time = serializers.TimeField(read_only=True)
     booked_count = serializers.IntegerField(read_only=True)
-    is_active    = serializers.BooleanField(read_only=True)
+    is_active = serializers.BooleanField(read_only=True)

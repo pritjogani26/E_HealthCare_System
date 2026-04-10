@@ -6,9 +6,12 @@ Views delegate to this service; raw DB calls go through `lab_booking_queries`.
 """
 
 import logging
+import json
+import uuid
 from datetime import datetime, date, timedelta, time as dt_time
 
 from django.db import transaction
+from django.core.files.storage import default_storage
 
 # ── All imports at module level (previously some were inside method bodies) ──
 from users.middleware.exceptions import (
@@ -194,6 +197,56 @@ class LabBookingService:
             raise ValidationException(str(exc))
 
         return bq.get_lab_booking(booking_id)
+
+    @staticmethod
+    def complete_booking_with_report(
+        booking_id: str,
+        uploaded_by: str,
+        report_file=None,
+        report_type: str = "pdf",
+        result_notes: str = None,
+        parameter_results=None,
+    ) -> tuple[dict, dict]:
+        """
+        Mark booking as completed and create a report row.
+        """
+        booking = bq.get_lab_booking(booking_id)
+        if not booking:
+            raise NotFoundException(f"Booking {booking_id} not found.")
+
+        if report_file is None:
+            raise ValidationException("report_file is required to complete booking.")
+
+        notes_parts = []
+        if result_notes:
+            notes_parts.append(result_notes.strip())
+        if parameter_results is not None:
+            notes_parts.append(
+                "Parameter results:\n" + json.dumps(parameter_results, ensure_ascii=True)
+            )
+        composed_notes = "\n\n".join([p for p in notes_parts if p]).strip() or None
+
+        report_path = (
+            f"lab_reports/{booking_id}/{uuid.uuid4().hex}_{report_file.name or 'report.pdf'}"
+        )
+
+        try:
+            with transaction.atomic():
+                bq.complete_lab_booking(booking_id)
+                stored_path = default_storage.save(report_path, report_file)
+                report_url = f"/media/{stored_path.replace('\\', '/')}"
+                report = bq.upload_lab_report(
+                    booking_id=booking_id,
+                    report_file_url=report_url,
+                    report_type=report_type or "pdf",
+                    result_notes=composed_notes,
+                    uploaded_by=uploaded_by,
+                )
+        except Exception as exc:
+            logger.warning("Booking completion with report failed: %s", exc)
+            raise ValidationException(str(exc))
+
+        return bq.get_lab_booking(booking_id), report
 
     # ────────────────────────────────────────────────────────────────────────
     # REPORT UPLOAD
