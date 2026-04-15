@@ -1,0 +1,44 @@
+PROJECT EXECUTION GUIDE
+
+ENVIRONMENT SETUP
+
+Step 1: Create Virtual Environment
+python -m venv venv
+
+Step 2: Activate Virtual Environment (Windows)
+venv\Scripts\activate
+
+Step 3: Install Required Dependencies
+pip install -r requirements.txt
+
+BACKEND SETUP (DJANGO)
+
+Step 1: Navigate to Backend Directory
+cd backend
+
+Step 2: Run Django Development Server
+python manage.py runserver
+
+Backend will run at:
+http://127.0.0.1:8000/
+
+FRONTEND SETUP (REACT)
+
+Step 1: Open a New Terminal
+
+Step 2: Navigate to Frontend Directory
+cd frontend
+
+Step 3: Install Node Modules
+npm install
+
+Step 4: Start React Application
+npm start
+
+Frontend will run at:
+http://localhost:3000/
+
+IMPORTANT NOTES
+Make sure backend and frontend both are running at the same time
+Backend should be started before frontend
+If any error occurs, reinstall dependencies

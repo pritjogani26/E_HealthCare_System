@@ -851,7 +851,6 @@ function parseRange(normalRange?: string | null): ParsedRange | null {
     if (op === ">") return { kind: "gt", value };
     return { kind: "gte", value };
   }
-
   const between = raw.match(
     /(-?\d+(?:\.\d+)?)\s*(?:-|to)\s*(-?\d+(?:\.\d+)?)/i,
   );

@@ -86,6 +86,7 @@ class LabProfileService(BaseProfileService):
         if not lab:
             return None
         lab["operating_hours"] = lq.get_lab_operating_hours(user_id)
+        print(f"\nLab operating hours: {lab['operating_hours']}")  # Debug print
         # lab["services"] = lq.get_lab_services(user_id)
         return lab
 
@@ -133,6 +134,22 @@ class LabProfileService(BaseProfileService):
                     oh.get("close_time"),
                     oh.get("is_closed", False),
                 )
+
+            # Purge future unbooked slots and regenerate from new hours
+            deleted = lq.delete_future_unbooked_lab_slots(user_id)
+            logger.info(
+                "Deleted %d future unbooked slot(s) for lab %s after hours update.",
+                deleted,
+                user_id,
+            )
+            from users.services.lab_booking_service import LabBookingService
+
+            count = LabBookingService.generate_slots_for_lab(user_id, days=30)
+            logger.info(
+                "Auto-generated %d slot(s) for lab %s after hours update.",
+                count,
+                user_id,
+            )
 
         # if "services" in data:
         #     lq.delete_lab_services(user_id)

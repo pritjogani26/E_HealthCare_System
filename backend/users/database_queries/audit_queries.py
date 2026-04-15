@@ -1,10 +1,36 @@
+# backend\users\database_queries\audit_queries.py
 import uuid
 
 from users.database_queries.connection import fn_scalar, fn_fetchall
 
 
-def get_recent_activity(limit: int = 100) -> list:
-    rows = fn_fetchall("o_get_audit_logs", [limit])
+def get_audit_logs(
+    user_id: uuid.UUID = None,
+    targeted_user_id: uuid.UUID = None,
+    table_name: str = None,
+    row_id: str = None,
+    action: str = None,
+    status: str = None,
+    from_date: str = None,
+    to_date: str = None,
+    limit: int = 100,
+    offset: int = 0,
+) -> list:
+    rows = fn_fetchall(
+        "a_get_audit_logs",
+        [
+            user_id,
+            targeted_user_id,
+            table_name,
+            row_id,
+            action,
+            status,
+            from_date,
+            to_date,
+            limit,
+            offset,
+        ],
+    )
     return rows
 
 
@@ -15,19 +41,4 @@ def insert_auth_audit(user_id, action, status, reason=None):
     fn_scalar(
         "a_auth_audit_fn",
         [user_id, action, status, reason],
-    )
-
-
-def insert_patient_audit(
-    user_id,
-    action,
-    status,
-    targeted_user_id=None,
-    old_data=None,
-    new_data=None,
-    reason=None,
-):
-    fn_scalar(
-        "a_patient_audit_insert_fn",
-        [user_id, action, status, targeted_user_id, old_data, new_data, reason],
     )

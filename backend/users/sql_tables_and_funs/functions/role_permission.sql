@@ -1,5 +1,6 @@
 -- Roles
 
+
 CREATE OR REPLACE FUNCTION r_create_role(
     p_role             VARCHAR(30),
     p_role_description TEXT        DEFAULT NULL,

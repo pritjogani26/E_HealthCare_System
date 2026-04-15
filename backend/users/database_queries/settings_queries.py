@@ -1,3 +1,5 @@
+import uuid
+
 from users.database_queries.connection import (
     fn_fetchone,
     fn_fetchall,
@@ -59,5 +61,5 @@ def get_user_roles():
     return fn_fetchall("o_get_user_roles", [])
 
 
-def insert_user_role(role: str, description: str = None):
-    return fn_scalar("o_insert_user_role", [role, description])
+def insert_user_role(role: str, description: str = None, user_id: uuid.UUID = None):
+    return fn_scalar("o_insert_user_role", [role, description, user_id])

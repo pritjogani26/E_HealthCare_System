@@ -17,7 +17,9 @@ from ..serializers.lab_serializers import (
     LabRegistrationSerializer,
     LabProfileSerializer,
     LabProfileUpdateSerializer,
+    LabOperatingHourSerializer,
 )
+import users.database_queries.lab_queries as lq
 
 from ..services.profile_service import LabProfileService
 from ..services.success_response import send_success_msg
@@ -108,3 +110,52 @@ class LabProfileView(generics.GenericAPIView):
             lab, serializer, request=request
         )
         return send_success_msg(updated_data, message="Profile updated successfully.")
+
+
+class LabOperatingHoursView(generics.GenericAPIView):
+    """Dedicated endpoint for reading and replacing lab operating hours.
+
+    GET  /labs/operating-hours/  – returns the current configured hours.
+    PUT  /labs/operating-hours/  – replaces all hours, deletes stale future
+                                   slots, and auto-regenerates new ones.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def _require_lab(self, request):
+        if getattr(request.user, "role", None) != UserRole.LAB:
+            raise PermissionException("Access denied. Lab role required.")
+        return str(request.user.user_id)
+
+    def get(self, request):
+        lab_id = self._require_lab(request)
+        hours = lq.get_lab_operating_hours(lab_id)
+        return send_success_msg(
+            LabOperatingHourSerializer(hours, many=True).data
+        )
+
+    def put(self, request):
+        lab_id = self._require_lab(request)
+
+        serializer = LabOperatingHourSerializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+
+        # Delegate to the profile service so slot-regeneration logic runs once
+        from ..services.profile_service import LabProfileService
+
+        # Retrieve full lab dict (needed by update_lab_profile signature)
+        lab = LabProfileService.get_lab_profile(request.user)
+        if not lab:
+            raise NotFoundException("Lab profile not found.")
+
+        # Build a minimal serializer-shaped object carrying only operating_hours
+        class _MinimalSerializer:
+            validated_data = {"operating_hours": serializer.validated_data}
+
+        LabProfileService.update_lab_profile(lab, _MinimalSerializer(), request=request)
+
+        hours = lq.get_lab_operating_hours(lab_id)
+        return send_success_msg(
+            LabOperatingHourSerializer(hours, many=True).data,
+            message="Operating hours updated and slots regenerated successfully.",
+        )

@@ -51,8 +51,10 @@ const AdminLabsPage: React.FC = () => {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const toast = useToast();
   const { hasPermission } = useAuth();
-  const canToggle = hasPermission("lab : toggle_status");
+  const canActions = hasPermission("lab : actions");
   const canVerify = hasPermission("lab : verify");
+
+  const showActionsColumn = canActions || canVerify;
 
   const [actionModalOpen, setActionModalOpen] = useState(false);
   const [actionData, setActionData] = useState<{
@@ -184,12 +186,16 @@ const AdminLabsPage: React.FC = () => {
       <FilterTabs
         tabs={[
           { id: "ALL", label: "All Labs" },
-          { id: "PENDING", label: "Pending Approval" },
-          { id: "VERIFIED", label: "Verified" },
-          { id: "REJECTED", label: "Rejected" },
+          ...(showActionsColumn
+            ? [
+                { id: "PENDING", label: "Pending Approval" },
+                { id: "VERIFIED", label: "Verified" },
+                { id: "REJECTED", label: "Rejected" },
+              ]
+            : []),
         ]}
         activeTab={filterStatus}
-        onTabChange={(id) => setFilterStatus(id as any)}
+        onTabChange={(id: string) => setFilterStatus(id as any)}
       />
 
       {loading && <LoadingState message="Loading labs…" />}
@@ -221,7 +227,7 @@ const AdminLabsPage: React.FC = () => {
                     "Phone",
                     "Verification",
                     "Status",
-                    "Actions",
+                    ...(showActionsColumn ? ["Actions"] : []),
                   ].map((h) => (
                     <th
                       key={h}
@@ -272,130 +278,134 @@ const AdminLabsPage: React.FC = () => {
                     <td className="py-3 px-4">
                       <StatusBadge type="active" status={lab.is_active} />
                     </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-1.5">
-                        {/* View */}
-                        <button
-                          onClick={() => {
-                            setSelectedLab(lab);
-                            setIsDetailOpen(true);
-                          }}
-                          className="p-1.5 rounded-lg transition-colors"
-                          style={{
-                            backgroundColor: "#e8f0f7",
-                            color: "#1a3c6e",
-                          }}
-                          onMouseEnter={(e) =>
-                            (e.currentTarget.style.backgroundColor = "#d0dff0")
-                          }
-                          onMouseLeave={(e) =>
-                            (e.currentTarget.style.backgroundColor = "#e8f0f7")
-                          }
-                          title="View"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-
-                        {/* Toggle */}
-                        {canToggle && (
+                    {showActionsColumn && (
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-1.5">
+                          {/* View */}
                           <button
-                            onClick={() => handleToggleRequest(lab)}
-                            disabled={actionLoading}
-                            className="p-1.5 rounded-lg transition-colors disabled:opacity-50"
-                            style={
-                              lab.is_active
-                                ? {
-                                    backgroundColor: "#fef2f2",
-                                    color: "#dc2626",
+                            onClick={() => {
+                              setSelectedLab(lab);
+                              setIsDetailOpen(true);
+                            }}
+                            className="p-1.5 rounded-lg transition-colors"
+                            style={{
+                              backgroundColor: "#e8f0f7",
+                              color: "#1a3c6e",
+                            }}
+                            onMouseEnter={(e) =>
+                              (e.currentTarget.style.backgroundColor =
+                                "#d0dff0")
+                            }
+                            onMouseLeave={(e) =>
+                              (e.currentTarget.style.backgroundColor =
+                                "#e8f0f7")
+                            }
+                            title="View"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+
+                          {/* Toggle */}
+                          {canActions && (
+                            <button
+                              onClick={() => handleToggleRequest(lab)}
+                              disabled={actionLoading}
+                              className="p-1.5 rounded-lg transition-colors disabled:opacity-50"
+                              style={
+                                lab.is_active
+                                  ? {
+                                      backgroundColor: "#fef2f2",
+                                      color: "#dc2626",
+                                    }
+                                  : {
+                                      backgroundColor: "#f0fdf4",
+                                      color: "#16a34a",
+                                    }
+                              }
+                              onMouseEnter={(e) => {
+                                (
+                                  e.currentTarget as HTMLButtonElement
+                                ).style.backgroundColor = lab.is_active
+                                  ? "#fee2e2"
+                                  : "#dcfce7";
+                              }}
+                              onMouseLeave={(e) => {
+                                (
+                                  e.currentTarget as HTMLButtonElement
+                                ).style.backgroundColor = lab.is_active
+                                  ? "#fef2f2"
+                                  : "#f0fdf4";
+                              }}
+                              title={lab.is_active ? "Deactivate" : "Activate"}
+                            >
+                              {lab.is_active ? (
+                                <UserX className="w-4 h-4" />
+                              ) : (
+                                <UserCheck className="w-4 h-4" />
+                              )}
+                            </button>
+                          )}
+
+                          {/* Approve / Reject */}
+                          {canVerify &&
+                            lab.verification_status?.toUpperCase() ===
+                              "PENDING" && (
+                              <>
+                                <button
+                                  onClick={() =>
+                                    handleVerifyRequest(lab, "VERIFIED")
                                   }
-                                : {
+                                  disabled={actionLoading}
+                                  className="p-1.5 rounded-lg transition-colors disabled:opacity-50"
+                                  style={{
                                     backgroundColor: "#f0fdf4",
                                     color: "#16a34a",
+                                  }}
+                                  onMouseEnter={(e) =>
+                                    (e.currentTarget.style.backgroundColor =
+                                      "#dcfce7")
                                   }
-                            }
-                            onMouseEnter={(e) => {
-                              (
-                                e.currentTarget as HTMLButtonElement
-                              ).style.backgroundColor = lab.is_active
-                                ? "#fee2e2"
-                                : "#dcfce7";
-                            }}
-                            onMouseLeave={(e) => {
-                              (
-                                e.currentTarget as HTMLButtonElement
-                              ).style.backgroundColor = lab.is_active
-                                ? "#fef2f2"
-                                : "#f0fdf4";
-                            }}
-                            title={lab.is_active ? "Deactivate" : "Activate"}
-                          >
-                            {lab.is_active ? (
-                              <UserX className="w-4 h-4" />
-                            ) : (
-                              <UserCheck className="w-4 h-4" />
+                                  onMouseLeave={(e) =>
+                                    (e.currentTarget.style.backgroundColor =
+                                      "#f0fdf4")
+                                  }
+                                  title="Approve"
+                                >
+                                  <Check className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    handleVerifyRequest(lab, "REJECTED")
+                                  }
+                                  disabled={actionLoading}
+                                  className="p-1.5 rounded-lg transition-colors disabled:opacity-50"
+                                  style={{
+                                    backgroundColor: "#fef2f2",
+                                    color: "#dc2626",
+                                  }}
+                                  onMouseEnter={(e) =>
+                                    (e.currentTarget.style.backgroundColor =
+                                      "#fee2e2")
+                                  }
+                                  onMouseLeave={(e) =>
+                                    (e.currentTarget.style.backgroundColor =
+                                      "#fef2f2")
+                                  }
+                                  title="Reject"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </>
                             )}
-                          </button>
-                        )}
-
-                        {/* Approve / Reject */}
-                        {canVerify &&
-                          lab.verification_status?.toUpperCase() ===
-                            "PENDING" && (
-                            <>
-                              <button
-                                onClick={() =>
-                                  handleVerifyRequest(lab, "VERIFIED")
-                                }
-                                disabled={actionLoading}
-                                className="p-1.5 rounded-lg transition-colors disabled:opacity-50"
-                                style={{
-                                  backgroundColor: "#f0fdf4",
-                                  color: "#16a34a",
-                                }}
-                                onMouseEnter={(e) =>
-                                  (e.currentTarget.style.backgroundColor =
-                                    "#dcfce7")
-                                }
-                                onMouseLeave={(e) =>
-                                  (e.currentTarget.style.backgroundColor =
-                                    "#f0fdf4")
-                                }
-                                title="Approve"
-                              >
-                                <Check className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() =>
-                                  handleVerifyRequest(lab, "REJECTED")
-                                }
-                                disabled={actionLoading}
-                                className="p-1.5 rounded-lg transition-colors disabled:opacity-50"
-                                style={{
-                                  backgroundColor: "#fef2f2",
-                                  color: "#dc2626",
-                                }}
-                                onMouseEnter={(e) =>
-                                  (e.currentTarget.style.backgroundColor =
-                                    "#fee2e2")
-                                }
-                                onMouseLeave={(e) =>
-                                  (e.currentTarget.style.backgroundColor =
-                                    "#fef2f2")
-                                }
-                                title="Reject"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
-                            </>
-                          )}
-                      </div>
-                    </td>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
                 {filtered.length === 0 && (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={showActionsColumn ? 7 : 6}
                       className="py-10 text-center"
                       style={{ color: "#555555" }}
                     >
@@ -443,7 +453,7 @@ const AdminLabsPage: React.FC = () => {
                   {selectedLab.license_number ?? "No license on file"}
                 </p>
               </div>
-              {canToggle && (
+              {canActions && (
                 <button
                   onClick={() => handleToggleRequest(selectedLab)}
                   disabled={actionLoading}

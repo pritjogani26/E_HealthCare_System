@@ -6,6 +6,7 @@ import {
   Home,
   Users,
   Calendar,
+  Clock,
   Stethoscope,
   FlaskConical,
   Settings,
@@ -14,6 +15,7 @@ import {
   Hospital,
   ClipboardList,
 } from "lucide-react";
+
 import { ExpandedSections } from "./types";
 import { getPendingApprovalsCount } from "../services/admin_api";
 import { useAuth } from "../context/AuthContext";
@@ -187,7 +189,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     menuItems.splice(
       1,
       0,
-      { icon: Calendar, label: "Test Bookings", route: "/lab/bookings" }
+      { icon: Calendar, label: "Test Bookings", route: "/lab/bookings" },
+      { icon: Clock, label: "Operating Hours", route: "/lab/operating-hours" },
     );
   }
 

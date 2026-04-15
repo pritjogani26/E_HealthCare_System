@@ -107,7 +107,7 @@ export async function downloadAuditLogs(
   type: "PDF" | "CSV",
 ): Promise<void> {
   const res = await api.post(
-    `/users/admin/download-audit-logs/`,
+    `/users/admin/recent-activity/`,
     { status, type },
     {
       responseType: "blob",

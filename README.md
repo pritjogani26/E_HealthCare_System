@@ -391,28 +391,3 @@ cd E:\New_Folder\backend
 cd E:\New_Folder\frontend
 npm test
 ```
-
-## Observations and Project Caveats
-
-These are worth knowing before extending the project:
-
-- The backend uses custom query modules and SQL functions extensively, so schema drift can break the app even when Python code looks fine.
-- There are signs of active development and local debugging code in a few files, such as console logging and print statements.
-- Role naming for lab users is not perfectly consistent between frontend and backend.
-- Some operational knowledge currently lives in `Run.txt` rather than structured docs.
-- The root project previously lacked a consolidated README, so setup knowledge may still be partly tribal/manual.
-
-## Recommended Improvements
-
-If you continue maintaining this project, the next documentation wins would be:
-
-- add a repeatable database bootstrap script
-- provide sample seed data
-- document the exact order for applying SQL files
-- add a root `.env.example`
-- add a proper API reference or OpenAPI schema
-- document deployment steps separately for development and production
-
-## License
-
-No license file was found during analysis. Add one if this project is meant to be shared or distributed.

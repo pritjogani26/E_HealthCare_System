@@ -40,10 +40,34 @@ function actionLabel(action: AuditAction): string {
     DOCTOR_DEACTIVATED: "Doctor deactivated",
     LAB_ACTIVATED: "Lab activated",
     LAB_DEACTIVATED: "Lab deactivated",
+    TOGGLE_PATIENT_STATUS: "Patient status changed",
+    TOGGLE_DOCTOR_STATUS: "Doctor status changed",
+    TOGGLE_LAB_STATUS: "Lab status changed",
     ADMIN_ACTION: "Admin action",
     SYSTEM_ERROR: "System error",
   };
   return map[action] ?? action;
+}
+
+function formatValue(value: unknown): string {
+  if (value === null || value === undefined) return "null";
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  return JSON.stringify(value);
+}
+
+function buildDetails(log: AuditLog): string {
+  if (log.failure_reason) return log.failure_reason;
+
+  const oldData = log.old_data ?? {};
+  const newData = log.new_data ?? {};
+  const keys = Array.from(new Set([...Object.keys(oldData), ...Object.keys(newData)]));
+
+  if (keys.length === 0) return "";
+
+  return keys
+    .map((key) => `${key}: ${formatValue(oldData[key])} -> ${formatValue(newData[key])}`)
+    .join(", ");
 }
 
 function timeAgo(iso: string): string {
@@ -240,9 +264,9 @@ const AuditLogs: React.FC = () => {
     return logs.filter((log) => {
       if (statusFilter !== "ALL" && log.status !== statusFilter) return false;
       if (q) {
-        const actor = (log.performed_by ?? log.target_user ?? "").toLowerCase();
+        const actor = (log.user_email ?? log.targeted_user_email ?? "").toLowerCase();
         const label = actionLabel(log.action).toLowerCase();
-        const details = (log.details ?? "").toLowerCase();
+        const details = buildDetails(log).toLowerCase();
         if (!actor.includes(q) && !label.includes(q) && !details.includes(q))
           return false;
       }
@@ -334,11 +358,13 @@ const AuditLogs: React.FC = () => {
         style={{ backgroundColor: "#ffffff", border: "1px solid #d0dff0", boxShadow: "0 2px 8px rgba(26,60,110,0.07)" }}
       >
         <div
-          className="grid grid-cols-[2fr_1.5fr_1fr_auto] gap-4 px-5 py-3 border-b text-xs font-semibold uppercase tracking-wide"
+          className="grid grid-cols-[1.5fr_1fr_1.5fr_1fr_1fr_auto] gap-4 px-5 py-3 border-b text-xs font-semibold uppercase tracking-wide"
           style={{ backgroundColor: "#e8f0f7", borderColor: "#d0dff0", color: "#1a3c6e" }}
         >
           <span>Actor / Action</span>
+          <span>Target / Record</span>
           <span>Details</span>
+          <span>Context</span>
           <span>Timestamp</span>
           <span>Status</span>
         </div>
@@ -348,7 +374,7 @@ const AuditLogs: React.FC = () => {
             {Array.from({ length: PAGE_SIZE }).map((_, i) => (
               <div
                 key={i}
-                className="grid grid-cols-[2fr_1.5fr_1fr_auto] gap-4 px-5 py-3.5 animate-pulse"
+                className="grid grid-cols-[1.5fr_1fr_1.5fr_1fr_1fr_auto] gap-4 px-5 py-3.5 animate-pulse"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full flex-shrink-0" style={{ backgroundColor: "#e8f0f7" }} />
@@ -357,8 +383,19 @@ const AuditLogs: React.FC = () => {
                     <div className="h-2 rounded w-2/5" style={{ backgroundColor: "#e8f0f7" }} />
                   </div>
                 </div>
-                <div className="h-2.5 rounded w-4/5 my-auto" style={{ backgroundColor: "#e8f0f7" }} />
-                <div className="h-2.5 rounded w-3/4 my-auto" style={{ backgroundColor: "#e8f0f7" }} />
+                <div className="space-y-1.5 my-auto">
+                  <div className="h-2.5 rounded w-3/4" style={{ backgroundColor: "#e8f0f7" }} />
+                  <div className="h-2 rounded w-1/2" style={{ backgroundColor: "#e8f0f7" }} />
+                </div>
+                <div className="h-2.5 rounded w-full my-auto" style={{ backgroundColor: "#e8f0f7" }} />
+                <div className="space-y-1.5 my-auto">
+                  <div className="h-2.5 rounded w-full" style={{ backgroundColor: "#e8f0f7" }} />
+                  <div className="h-2 rounded w-4/5" style={{ backgroundColor: "#e8f0f7" }} />
+                </div>
+                <div className="space-y-1.5 my-auto">
+                  <div className="h-2.5 rounded w-3/4" style={{ backgroundColor: "#e8f0f7" }} />
+                  <div className="h-2 rounded w-1/2" style={{ backgroundColor: "#e8f0f7" }} />
+                </div>
                 <div className="h-5 w-14 rounded my-auto" style={{ backgroundColor: "#e8f0f7" }} />
               </div>
             ))}
@@ -400,12 +437,13 @@ const AuditLogs: React.FC = () => {
         {!loading && !error && paginated.length > 0 && (
           <div className="divide-y" style={{ borderColor: "#e8f0f7" }}>
             {paginated.map((log) => {
-              const actor = log.performed_by ?? log.target_user ?? "System";
+              const actor = log.user_email ?? log.targeted_user_email ?? "System";
               const isFailure = log.status === "FAILURE";
+              const details = buildDetails(log);
               return (
                 <div
-                  key={log.log_id}
-                  className="grid grid-cols-[2fr_1.5fr_1fr_auto] gap-4 px-5 py-3.5 transition-colors"
+                  key={log.audit_id}
+                  className="grid grid-cols-[1.5fr_1fr_1.5fr_1fr_1fr_auto] gap-4 px-5 py-3.5 transition-colors"
                   onMouseEnter={(e) =>
                     (e.currentTarget.style.backgroundColor = "#f5f8fc")
                   }
@@ -424,14 +462,31 @@ const AuditLogs: React.FC = () => {
                     </div>
                   </div>
 
+                  <div className="flex flex-col justify-center min-w-0">
+                    {log.table_name ? (
+                      <>
+                        <p className="text-xs font-medium truncate" style={{ color: "#1a3c6e" }}>
+                          {log.table_name}
+                        </p>
+                        {log.row_id && (
+                          <p className="text-[11px] mt-0.5 truncate" style={{ color: "#888" }}>
+                            ID: {log.row_id}
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-xs italic" style={{ color: "#aabbcc" }}>—</span>
+                    )}
+                  </div>
+
                   <div className="flex items-center min-w-0">
-                    {log.details ? (
+                    {details ? (
                       <p
                         className="text-xs line-clamp-2 leading-relaxed"
                         style={{ color: "#555555" }}
-                        title={log.details}
+                        title={details}
                       >
-                        {log.details}
+                        {details}
                       </p>
                     ) : (
                       <span className="text-xs italic" style={{ color: "#aabbcc" }}>
@@ -441,11 +496,26 @@ const AuditLogs: React.FC = () => {
                   </div>
 
                   <div className="flex flex-col justify-center min-w-0">
+                    {log.ip_address ? (
+                      <p className="text-[11px] truncate font-mono" style={{ color: "#555" }}>
+                        IP: {log.ip_address}
+                      </p>
+                    ) : (
+                      <span className="text-xs italic" style={{ color: "#aabbcc" }}>—</span>
+                    )}
+                    {log.user_agent && (
+                      <p className="text-[10px] mt-0.5 truncate" style={{ color: "#888" }} title={log.user_agent}>
+                        {log.user_agent}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col justify-center min-w-0">
                     <p className="text-xs font-medium" style={{ color: "#1a3c6e" }}>
-                      {timeAgo(log.timestamp)}
+                      {timeAgo(log.created_at)}
                     </p>
                     <p className="text-[11px] mt-0.5 truncate" style={{ color: "#888" }}>
-                      {formatTimestamp(log.timestamp)}
+                      {formatTimestamp(log.created_at)}
                     </p>
                   </div>
 

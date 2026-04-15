@@ -15,7 +15,7 @@ from .views.admin_verification_views import (
     AdminVerifyLabView,
 )
 from .views.audit_views import (
-    RecentActivityView,
+    AuditLogsView,
     # DownloadAuditLogsView,
 )
 
@@ -57,7 +57,7 @@ from .views.settings_views import (
     SettingsUserRolesView,
 )
 from .views.patients_view import PatientRegistrationView, PatientProfileView
-from .views.lab_view import LabRegistrationView, LabProfileView
+from .views.lab_view import LabRegistrationView, LabProfileView, LabOperatingHoursView
 from .views.lab_service_view import (
     LabTestCategoryListView,
     LabTestCategoryDetailView,
@@ -90,6 +90,13 @@ from .views.doctor_view import (
     CancelAppointmentView,
 )
 
+from .views.payment_views import (
+    CreateOrderView,
+    VerifyPaymentView,
+    RefundPaymentView,
+    PaymentHistoryView,
+    RazorpayWebhookView,
+)
 
 app_name = "users"
 
@@ -186,7 +193,7 @@ urlpatterns = [
     ),
     path(
         "users/admin/recent-activity/",
-        RecentActivityView.as_view(),
+        AuditLogsView.as_view(),
         name="admin-recent-activity",
     ),
     # path(
@@ -258,27 +265,63 @@ urlpatterns = [
     # ── Labs ──────────────────────────────────────────────────────────────────
     path("labs/register/", LabRegistrationView.as_view(), name="lab-register"),
     path("labs/profile/", LabProfileView.as_view(), name="lab-profile"),
+    path(
+        "labs/operating-hours/",
+        LabOperatingHoursView.as_view(),
+        name="lab-operating-hours",
+    ),
     # ------------------------------------------------------------------------------------------
     path("labs/categories/", LabTestCategoryListView.as_view(), name="lab-categories"),
-    path("labs/categories/<int:category_id>/", LabTestCategoryDetailView.as_view(), name="lab-category-detail"),
+    path(
+        "labs/categories/<int:category_id>/",
+        LabTestCategoryDetailView.as_view(),
+        name="lab-category-detail",
+    ),
     # ------------------------------------------------------------------------------------------
     path("labs/tests/", LabTestListView.as_view(), name="lab-tests"),
-    path("labs/tests/<int:test_id>/", LabTestDetailView.as_view(), name="lab-test-detail"),
-    path("labs/test-parameters/", TestParameterListView.as_view(), name="lab-test-parameters"),
-    path("labs/test-parameters/<int:parameter_id>/", TestParameterDetailView.as_view(), name="lab-test-parameter-detail"),
+    path(
+        "labs/tests/<int:test_id>/", LabTestDetailView.as_view(), name="lab-test-detail"
+    ),
+    path(
+        "labs/test-parameters/",
+        TestParameterListView.as_view(),
+        name="lab-test-parameters",
+    ),
+    path(
+        "labs/test-parameters/<int:parameter_id>/",
+        TestParameterDetailView.as_view(),
+        name="lab-test-parameter-detail",
+    ),
     # ── Lab Bookings ──────────────────────────────────────────────────────────
     path("labs/bookings/", LabBookingListCreateView.as_view(), name="lab-bookings"),
-    path("labs/bookings/<uuid:booking_id>/", LabBookingDetailView.as_view(), name="lab-booking-detail"),
-    path("labs/bookings/<uuid:booking_id>/cancel/", LabBookingCancelView.as_view(), name="lab-booking-cancel"),
-    path("labs/bookings/<uuid:booking_id>/complete/", LabBookingCompleteView.as_view(), name="lab-booking-complete"),
+    path(
+        "labs/bookings/<uuid:booking_id>/",
+        LabBookingDetailView.as_view(),
+        name="lab-booking-detail",
+    ),
+    path(
+        "labs/bookings/<uuid:booking_id>/cancel/",
+        LabBookingCancelView.as_view(),
+        name="lab-booking-cancel",
+    ),
+    path(
+        "labs/bookings/<uuid:booking_id>/complete/",
+        LabBookingCompleteView.as_view(),
+        name="lab-booking-complete",
+    ),
     path("labs/my-bookings/", LabOwnBookingsView.as_view(), name="lab-own-bookings"),
     # ── Lab Reports ───────────────────────────────────────────────────────────
-    path("labs/bookings/<uuid:booking_id>/reports/", LabBookingReportListView.as_view(), name="lab-booking-reports"),
+    path(
+        "labs/bookings/<uuid:booking_id>/reports/",
+        LabBookingReportListView.as_view(),
+        name="lab-booking-reports",
+    ),
     # ── Lab Slots ─────────────────────────────────────────────────────────────
     path("labs/slots/", LabSlotListView.as_view(), name="lab-slots"),
-    path("labs/slots/generate/", LabSlotGenerateView.as_view(), name="lab-slots-generate"),
+    path(
+        "labs/slots/generate/", LabSlotGenerateView.as_view(), name="lab-slots-generate"
+    ),
     # ─────────────────────────────────────────────────────────────────────────
-
     path("doctors/register/", DoctorRegistrationView.as_view(), name="doctor-register"),
     path("doctors/profile/", DoctorProfileView.as_view(), name="doctor-profile"),
     path("doctors/list/", DoctorListView.as_view(), name="doctor-list"),
@@ -309,4 +352,9 @@ urlpatterns = [
         AvailableSlotsView.as_view(),
         name="doctor-slots",
     ),
+    path("payments/create-order/", CreateOrderView.as_view(),    name="payment-create-order"),
+    path("payments/verify/",       VerifyPaymentView.as_view(),  name="payment-verify"),
+    path("payments/refund/",       RefundPaymentView.as_view(),  name="payment-refund"),
+    path("payments/history/",      PaymentHistoryView.as_view(), name="payment-history"),
+    path("payments/webhook/",      RazorpayWebhookView.as_view(),name="payment-webhook"),
 ]

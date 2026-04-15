@@ -171,9 +171,11 @@ CREATE OR REPLACE FUNCTION l_get_lab_booking(p_booking_id UUID)
 RETURNS TABLE (
     booking_id              UUID,
     patient_id              UUID,
+    patient_name            VARCHAR(255),
     lab_id                  UUID,
     slot_id                 INT,
     test_id                 INT,
+    test_name               VARCHAR(255),
     collection_type         VARCHAR(20),
     collection_address      JSONB,
     booking_status          VARCHAR(20),
@@ -198,7 +200,7 @@ RETURNS TABLE (
 )
 LANGUAGE sql STABLE AS $$
     SELECT
-        b.booking_id, b.patient_id, b.lab_id, b.slot_id, b.test_id,
+        b.booking_id, b.patient_id, u.full_name, b.lab_id, b.slot_id, b.test_id, t.test_name,
         b.collection_type, b.collection_address,
         b.booking_status,
         b.subtotal, b.home_collection_charge, b.discount_amount, b.total_amount,
@@ -211,6 +213,7 @@ LANGUAGE sql STABLE AS $$
     JOIN lab_tests           t ON t.test_id  = b.test_id
     JOIN lab_test_slots      s ON s.slot_id  = b.slot_id
     JOIN labs                l ON l.lab_id   = b.lab_id
+    JOIN patients            u ON u.patient_id = b.patient_id
     WHERE b.booking_id = p_booking_id;
 $$;
 

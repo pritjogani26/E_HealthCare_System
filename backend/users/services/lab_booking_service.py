@@ -1,3 +1,4 @@
+# backend\users\services\lab_booking_service.py
 """
 Business logic for lab test slot bookings and reports.
 
@@ -7,6 +8,8 @@ Views delegate to this service; raw DB calls go through `lab_booking_queries`.
 
 import logging
 import json
+from pydoc import text
+import re
 import uuid
 from datetime import datetime, date, timedelta, time as dt_time
 
@@ -222,13 +225,23 @@ class LabBookingService:
             notes_parts.append(result_notes.strip())
         if parameter_results is not None:
             notes_parts.append(
-                "Parameter results:\n" + json.dumps(parameter_results, ensure_ascii=True)
+                "Parameter results:\n"
+                + json.dumps(parameter_results, ensure_ascii=True)
             )
         composed_notes = "\n\n".join([p for p in notes_parts if p]).strip() or None
 
-        report_path = (
-            f"lab_reports/{booking_id}/{uuid.uuid4().hex}_{report_file.name or 'report.pdf'}"
-        )
+        def slugify(text: str) -> str:
+            return re.sub(r"[^a-z0-9]+", "_", text.strip().lower()).strip("_")
+
+        try:
+            lab_name = slugify(booking["lab_name"])
+            patient_name = slugify(booking["patient_name"])
+            test_name = slugify(booking["test_name"])
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            report_path = f"lab_reports/{lab_name}/{patient_name}_{test_name}_{timestamp}_{'lab_report.pdf'}"
+        except Exception as exc:
+            logger.warning("Error constructing report path: %s", exc)
+            report_path = f"lab_reports/General/{uuid.uuid4().hex}_{report_file.name or 'report.pdf'}"
 
         try:
             with transaction.atomic():
@@ -248,7 +261,7 @@ class LabBookingService:
 
         return bq.get_lab_booking(booking_id), report
 
-    # ────────────────────────────────────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────poi   0uw
     # REPORT UPLOAD
     # ────────────────────────────────────────────────────────────────────────
 

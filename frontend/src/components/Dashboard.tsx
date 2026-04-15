@@ -59,10 +59,31 @@ function actionLabel(action: AuditAction): string {
     DOCTOR_DEACTIVATED: "Doctor deactivated",
     LAB_ACTIVATED: "Lab activated",
     LAB_DEACTIVATED: "Lab deactivated",
+    TOGGLE_PATIENT_STATUS: "Patient status changed",
+    TOGGLE_DOCTOR_STATUS: "Doctor status changed",
+    TOGGLE_LAB_STATUS: "Lab status changed",
     ADMIN_ACTION: "Admin action",
     SYSTEM_ERROR: "System error",
   };
   return map[action] ?? action;
+}
+
+function formatValue(value: unknown): string {
+  if (value === null || value === undefined) return "null";
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  return JSON.stringify(value);
+}
+
+function buildDetails(log: AuditLog): string {
+  if (log.failure_reason) return log.failure_reason;
+  const oldData = log.old_data ?? {};
+  const newData = log.new_data ?? {};
+  const keys = Array.from(new Set([...Object.keys(oldData), ...Object.keys(newData)]));
+  if (keys.length === 0) return "";
+  return keys
+    .map((key) => `${key}: ${formatValue(oldData[key])} -> ${formatValue(newData[key])}`)
+    .join(", ");
 }
 
 function actionMeta(action: AuditAction): {
@@ -440,11 +461,12 @@ const Dashboard: React.FC = () => {
               !activityError &&
               recentActivity.slice(0, 5).map((log) => {
                 const { icon, bg, iconColor } = actionMeta(log.action);
-                const actor = log.performed_by ?? log.target_user ?? "System";
+                const actor = log.user_email ?? log.targeted_user_email ?? "System";
                 const isFailure = log.status === "FAILURE";
+                const details = buildDetails(log);
                 return (
                   <div
-                    key={log.log_id}
+                    key={log.audit_id}
                     className="flex items-start gap-4 px-6 py-3.5 hover:bg-slate-50 transition-colors"
                   >
                     <div
@@ -457,19 +479,17 @@ const Dashboard: React.FC = () => {
                         {actor}
                       </p>
                       <p className="text-xs text-slate-500 mt-0.5 truncate">
-                        {log.entity_name
-                          ? `${actionLabel(log.action)} · ${log.entity_name}`
-                          : actionLabel(log.action)}
+                        {actionLabel(log.action)}
                       </p>
-                      {log.details && (
+                      {details && (
                         <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">
-                          {log.details}
+                          {details}
                         </p>
                       )}
                     </div>
                     <div className="flex flex-col items-end gap-1 flex-shrink-0">
                       <span className="text-xs text-slate-400 whitespace-nowrap">
-                        {timeAgo(log.timestamp)}
+                        {timeAgo(log.created_at)}
                       </span>
                       <span
                         className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold ${isFailure ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-700"}`}
@@ -509,7 +529,7 @@ const Dashboard: React.FC = () => {
                     ? String(
                         new Set(
                           recentActivity
-                            .map((l) => l.performed_by)
+                            .map((l) => l.user_email)
                             .filter(Boolean),
                         ).size,
                       )

@@ -16,7 +16,7 @@ BEGIN
         b.blood_group_value,
         b.created_at
     FROM public.blood_groups b
-    ORDER BY b.blood_group_value;
+    ORDER BY b.blood_group_id;
 END;
 $$;
 
@@ -72,7 +72,7 @@ BEGIN
         g.gender_value,
         g.created_at
     FROM public.genders g
-    ORDER BY g.gender_value;
+    ORDER BY g.gender_id;
 END;
 $$;
 
@@ -237,7 +237,7 @@ BEGIN
         q.created_at
     FROM public.qualifications q
     WHERE (NOT p_active_only OR q.is_active = TRUE)
-    ORDER BY q.qualification_code;
+    ORDER BY q.qualification_id;
 END;
 $$;
 
@@ -379,4 +379,58 @@ BEGIN
     RETURN v_id;
 
 END;
+$$;
+
+
+create or replace function o_get_user_roles()
+returns table (
+    role_id int,
+    role varchar,
+    role_description text,
+    created_at timestamptz,
+    updated_at timestamptz,
+    created_by uuid,
+    updated_by uuid
+)
+language plpgsql
+as $$
+begin 
+    RETURN QUERY
+    SELECT 
+        ur.role_id,
+        ur.role,
+        ur.role_description,
+        ur.created_at,
+        ur.updated_at,
+        ur.created_by,
+        ur.updated_by
+    FROM user_roles ur
+    ORDER BY ur.role_id;
+end;
+$$;
+
+create or replace function o_insert_user_role(
+    p_role varchar,
+    p_role_description text,
+    p_user_id uuid
+)
+returns void
+language plpgsql
+as $$
+begin 
+
+    IF EXISTS (
+        SELECT 1 FROM user_roles WHERE LOWER(role) = LOWER(p_role)
+    ) THEN
+        RAISE EXCEPTION 'Role Already Exist';
+    END IF;
+    
+    insert into user_roles (
+        role, role_description, created_at, updated_at, created_by, updated_by
+    )
+    values (
+        p_role, p_role_description, now(), now(), p_user_id, p_user_id
+    );
+
+end;
 $$;

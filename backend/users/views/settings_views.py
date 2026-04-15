@@ -114,5 +114,6 @@ class SettingsUserRolesView(generics.GenericAPIView):
         desc = request.data.get("role_description", "")
         if not role:
             raise ValidationException("role is required")
-        sq.insert_user_role(role, desc)
+        print(f"\n\nrequest.user.user_id {request.user.user_id}")
+        sq.insert_user_role(role, desc, request.user.user_id)
         return send_success_msg(message="User role added successfully")

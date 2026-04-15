@@ -49,8 +49,12 @@ const SlotManagement: React.FC = () => {
             <Calendar size={24} />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-slate-800">Generate Time Slots</h3>
-            <p className="text-sm text-slate-500">Enable patients to book appointments</p>
+            <h3 className="text-lg font-bold text-slate-800">
+              Generate Time Slots
+            </h3>
+            <p className="text-sm text-slate-500">
+              Enable patients to book appointments
+            </p>
           </div>
         </div>
 
@@ -79,8 +83,9 @@ const SlotManagement: React.FC = () => {
           <div className="bg-amber-50 rounded-xl p-4 border border-amber-100 flex gap-3 items-start">
             <Clock size={18} className="text-amber-500 shrink-0 mt-0.5" />
             <p className="text-xs text-amber-700 leading-relaxed">
-              Slots will be generated based on your <strong>Operating Hours</strong>. 
-              Existing slots for these dates will not be duplicated.
+              Slots will be generated based on your{" "}
+              <strong>Operating Hours</strong>. Existing slots for these dates
+              will not be duplicated.
             </p>
           </div>
 
@@ -104,8 +109,8 @@ const SlotManagement: React.FC = () => {
 
 const LabTestManagementPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<
-    "categories" | "tests" | "parameters" | "slots" | "operating-hours"
-  >("categories");
+    "tests" | "categories" | "slots" | "operating-hours"
+  >("tests");
 
   const [categories, setCategories] = useState<LabTestCategory[]>([]);
   const [tests, setTests] = useState<LabTest[]>([]);
@@ -151,7 +156,10 @@ const LabTestManagementPage: React.FC = () => {
     <>
       {/* Page Header */}
       <div className="mb-6">
-        <h2 className="text-2xl font-semibold mb-1" style={{ color: "#1a3c6e" }}>
+        <h2
+          className="text-2xl font-semibold mb-1"
+          style={{ color: "#1a3c6e" }}
+        >
           Lab Test Management
         </h2>
         <p className="text-sm" style={{ color: "#555555" }}>
@@ -161,25 +169,6 @@ const LabTestManagementPage: React.FC = () => {
 
       {/* Tab Navigation */}
       <div className="flex gap-2 mb-6">
-        <button
-          className="px-4 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors"
-          style={
-            activeTab === "categories"
-              ? { backgroundColor: "#1a3c6e", color: "#ffffff" }
-              : { backgroundColor: "#e8f0f7", color: "#1a3c6e" }
-          }
-          onClick={() => setActiveTab("categories")}
-          onMouseEnter={(e) => {
-            if (activeTab !== "categories")
-              e.currentTarget.style.backgroundColor = "#d0dff0";
-          }}
-          onMouseLeave={(e) => {
-            if (activeTab !== "categories")
-              e.currentTarget.style.backgroundColor = "#e8f0f7";
-          }}
-        >
-          Categories
-        </button>
         <button
           className="px-4 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors"
           style={
@@ -199,6 +188,27 @@ const LabTestManagementPage: React.FC = () => {
         >
           Tests
         </button>
+
+        <button
+          className="px-4 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors"
+          style={
+            activeTab === "categories"
+              ? { backgroundColor: "#1a3c6e", color: "#ffffff" }
+              : { backgroundColor: "#e8f0f7", color: "#1a3c6e" }
+          }
+          onClick={() => setActiveTab("categories")}
+          onMouseEnter={(e) => {
+            if (activeTab !== "categories")
+              e.currentTarget.style.backgroundColor = "#d0dff0";
+          }}
+          onMouseLeave={(e) => {
+            if (activeTab !== "categories")
+              e.currentTarget.style.backgroundColor = "#e8f0f7";
+          }}
+        >
+          Categories
+        </button>
+
         <button
           className="px-4 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors"
           style={
@@ -240,27 +250,34 @@ const LabTestManagementPage: React.FC = () => {
       </div>
 
       {error && (
-        <div className="text-red-600 mb-4 p-3 rounded-lg border" style={{ backgroundColor: "#fff1f2", borderColor: "#fecdd3" }}>
+        <div
+          className="text-red-600 mb-4 p-3 rounded-lg border"
+          style={{ backgroundColor: "#fff1f2", borderColor: "#fecdd3" }}
+        >
           {error}
         </div>
       )}
 
       {loading ? (
         <div className="flex justify-center p-10">
-          <div className="animate-spin h-10 w-10 rounded-full border-4 border-t-transparent" style={{ borderColor: "#d0dff0", borderTopColor: "#1a3c6e" }}></div>
+          <div
+            className="animate-spin h-10 w-10 rounded-full border-4 border-t-transparent"
+            style={{ borderColor: "#d0dff0", borderTopColor: "#1a3c6e" }}
+          ></div>
         </div>
       ) : (
-        <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "#ffffff", border: "1px solid #d0dff0", boxShadow: "0 2px 8px rgba(26,60,110,0.07)" }}>
+        <div
+          className="rounded-2xl overflow-hidden"
+          style={{
+            backgroundColor: "#ffffff",
+            border: "1px solid #d0dff0",
+            boxShadow: "0 2px 8px rgba(26,60,110,0.07)",
+          }}
+        >
           {activeTab === "categories" ? (
             <CategoryList categories={categories} reload={loadData} />
           ) : activeTab === "tests" ? (
             <TestList tests={tests} categories={categories} reload={loadData} />
-          ) : activeTab === "parameters" ? (
-            <ParameterList
-              parameters={parameters}
-              tests={tests}
-              reload={loadData}
-            />
           ) : activeTab === "slots" ? (
             <SlotManagement />
           ) : (
@@ -280,7 +297,9 @@ function CategoryList({
   reload: () => void;
 }) {
   const [showModal, setShowModal] = useState(false);
-  const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
+  const [editingCategoryId, setEditingCategoryId] = useState<number | null>(
+    null,
+  );
   const [formData, setFormData] = useState({
     category_name: "",
     description: "",
@@ -300,7 +319,9 @@ function CategoryList({
         setShowModal(true);
       }
     } catch (err: any) {
-      alert("Error fetching category details: " + (err.message || "Unknown error"));
+      alert(
+        "Error fetching category details: " + (err.message || "Unknown error"),
+      );
     }
   };
 
@@ -329,14 +350,23 @@ function CategoryList({
 
   return (
     <div>
-      <div className="p-4 border-b flex justify-between items-center" style={{ backgroundColor: "#e8f0f7", borderColor: "#d0dff0" }}>
-        <h2 className="text-base font-semibold" style={{ color: "#1a3c6e" }}>Lab Categories</h2>
+      <div
+        className="p-4 border-b flex justify-between items-center"
+        style={{ backgroundColor: "#e8f0f7", borderColor: "#d0dff0" }}
+      >
+        <h2 className="text-base font-semibold" style={{ color: "#1a3c6e" }}>
+          Lab Categories
+        </h2>
         <button
           className="px-4 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors text-white"
           style={{ backgroundColor: "#1a3c6e" }}
           onClick={handleAddClick}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#152d52")}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#1a3c6e")}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.backgroundColor = "#152d52")
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.backgroundColor = "#1a3c6e")
+          }
         >
           + Add Category
         </button>
@@ -344,11 +374,22 @@ function CategoryList({
 
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50">
-          <div className="bg-white p-6 rounded-2xl shadow-xl w-96 border" style={{ borderColor: "#d0dff0" }}>
-            <h3 className="text-base font-semibold mb-4" style={{ color: "#1a3c6e" }}>{editingCategoryId ? "Edit Category" : "Add New Category"}</h3>
+          <div
+            className="bg-white p-6 rounded-2xl shadow-xl w-96 border"
+            style={{ borderColor: "#d0dff0" }}
+          >
+            <h3
+              className="text-base font-semibold mb-4"
+              style={{ color: "#1a3c6e" }}
+            >
+              {editingCategoryId ? "Edit Category" : "Add New Category"}
+            </h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: "#1a3c6e" }}>
+                <label
+                  className="block text-sm font-medium mb-1"
+                  style={{ color: "#1a3c6e" }}
+                >
                   Category Name *
                 </label>
                 <input
@@ -363,7 +404,10 @@ function CategoryList({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: "#1a3c6e" }}>
+                <label
+                  className="block text-sm font-medium mb-1"
+                  style={{ color: "#1a3c6e" }}
+                >
                   Description
                 </label>
                 <textarea
@@ -399,8 +443,12 @@ function CategoryList({
                   className="px-4 py-2 text-sm rounded-lg border transition"
                   style={{ borderColor: "#d0dff0", color: "#555555" }}
                   onClick={() => setShowModal(false)}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f5f8fc")}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#f5f8fc")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = "transparent")
+                  }
                 >
                   Cancel
                 </button>
@@ -408,8 +456,12 @@ function CategoryList({
                   type="submit"
                   className="px-4 py-2 text-sm rounded-lg text-white transition"
                   style={{ backgroundColor: "#1a3c6e" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#152d52")}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#1a3c6e")}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#152d52")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#1a3c6e")
+                  }
                 >
                   Save
                 </button>
@@ -420,21 +472,41 @@ function CategoryList({
       )}
 
       <table className="min-w-full">
-        <thead style={{ backgroundColor: "#e8f0f7", borderBottom: "1px solid #d0dff0" }}>
+        <thead
+          style={{
+            backgroundColor: "#e8f0f7",
+            borderBottom: "1px solid #d0dff0",
+          }}
+        >
           <tr>
-            <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: "#1a3c6e" }}>
+            <th
+              className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider"
+              style={{ color: "#1a3c6e" }}
+            >
               ID
             </th>
-            <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: "#1a3c6e" }}>
+            <th
+              className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider"
+              style={{ color: "#1a3c6e" }}
+            >
               Name
             </th>
-            <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: "#1a3c6e" }}>
+            <th
+              className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider"
+              style={{ color: "#1a3c6e" }}
+            >
               Description
             </th>
-            <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: "#1a3c6e" }}>
+            <th
+              className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider"
+              style={{ color: "#1a3c6e" }}
+            >
               Status
             </th>
-            <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: "#1a3c6e" }}>
+            <th
+              className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider"
+              style={{ color: "#1a3c6e" }}
+            >
               Actions
             </th>
           </tr>
@@ -444,16 +516,29 @@ function CategoryList({
             <tr
               key={i}
               style={{ borderBottom: "1px solid #e8f0f7" }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f5f8fc")}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.backgroundColor = "#f5f8fc")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.backgroundColor = "transparent")
+              }
             >
-              <td className="px-5 py-3.5 whitespace-nowrap text-sm" style={{ color: "#555555" }}>
+              <td
+                className="px-5 py-3.5 whitespace-nowrap text-sm"
+                style={{ color: "#555555" }}
+              >
                 {c.category_id}
               </td>
-              <td className="px-5 py-3.5 whitespace-nowrap text-sm font-medium" style={{ color: "#1a3c6e" }}>
+              <td
+                className="px-5 py-3.5 whitespace-nowrap text-sm font-medium"
+                style={{ color: "#1a3c6e" }}
+              >
                 {c.category_name}
               </td>
-              <td className="px-5 py-3.5 whitespace-nowrap text-sm truncate max-w-xs" style={{ color: "#555555" }}>
+              <td
+                className="px-5 py-3.5 whitespace-nowrap text-sm truncate max-w-xs"
+                style={{ color: "#555555" }}
+              >
                 {c.description}
               </td>
               <td className="px-5 py-3.5 whitespace-nowrap">
@@ -468,8 +553,12 @@ function CategoryList({
                   className="p-1.5 rounded-lg transition-colors mr-1"
                   style={{ backgroundColor: "#e8f0f7", color: "#1a3c6e" }}
                   onClick={() => handleEditClick(c)}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#d0dff0")}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#e8f0f7")}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#d0dff0")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#e8f0f7")
+                  }
                   title="Edit"
                 >
                   Edit
@@ -483,8 +572,12 @@ function CategoryList({
                       reload();
                     }
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#fee2e2")}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#fef2f2")}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#fee2e2")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#fef2f2")
+                  }
                   title="Delete"
                 >
                   Delete
@@ -507,7 +600,7 @@ function CategoryList({
       </table>
     </div>
   );
-};
+}
 
 function TestList({
   tests,
@@ -627,20 +720,32 @@ function TestList({
       setShowModal(false);
       reload();
     } catch (err: any) {
-      alert(`Error ${editingTestId ? 'updating' : 'creating'} test: ` + (err.message || "Unknown error"));
+      alert(
+        `Error ${editingTestId ? "updating" : "creating"} test: ` +
+          (err.message || "Unknown error"),
+      );
     }
   };
 
   return (
     <div>
-      <div className="p-4 border-b flex justify-between items-center" style={{ backgroundColor: "#e8f0f7", borderColor: "#d0dff0" }}>
-        <h2 className="text-base font-semibold" style={{ color: "#1a3c6e" }}>Lab Tests</h2>
+      <div
+        className="p-4 border-b flex justify-between items-center"
+        style={{ backgroundColor: "#e8f0f7", borderColor: "#d0dff0" }}
+      >
+        <h2 className="text-base font-semibold" style={{ color: "#1a3c6e" }}>
+          Lab Tests
+        </h2>
         <button
           className="px-4 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors text-white"
           style={{ backgroundColor: "#1a3c6e" }}
           onClick={handleAddClick}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#152d52")}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#1a3c6e")}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.backgroundColor = "#152d52")
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.backgroundColor = "#1a3c6e")
+          }
         >
           + Add Test
         </button>
@@ -880,12 +985,23 @@ function TestList({
 
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50 py-4 px-2">
-          <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-2xl max-h-full overflow-y-auto border" style={{ borderColor: "#d0dff0" }}>
-            <h3 className="text-base font-semibold mb-4" style={{ color: "#1a3c6e" }}>{editingTestId ? "Edit Lab Test" : "Add New Lab Test"}</h3>
+          <div
+            className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-2xl max-h-full overflow-y-auto border"
+            style={{ borderColor: "#d0dff0" }}
+          >
+            <h3
+              className="text-base font-semibold mb-4"
+              style={{ color: "#1a3c6e" }}
+            >
+              {editingTestId ? "Edit Lab Test" : "Add New Lab Test"}
+            </h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1" style={{ color: "#1a3c6e" }}>
+                  <label
+                    className="block text-sm font-medium mb-1"
+                    style={{ color: "#1a3c6e" }}
+                  >
                     Test Code *
                   </label>
                   <input
@@ -900,7 +1016,10 @@ function TestList({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1" style={{ color: "#1a3c6e" }}>
+                  <label
+                    className="block text-sm font-medium mb-1"
+                    style={{ color: "#1a3c6e" }}
+                  >
                     Test Name *
                   </label>
                   <input
@@ -915,7 +1034,10 @@ function TestList({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1" style={{ color: "#1a3c6e" }}>
+                  <label
+                    className="block text-sm font-medium mb-1"
+                    style={{ color: "#1a3c6e" }}
+                  >
                     Category
                   </label>
                   <select
@@ -940,7 +1062,10 @@ function TestList({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1" style={{ color: "#1a3c6e" }}>
+                  <label
+                    className="block text-sm font-medium mb-1"
+                    style={{ color: "#1a3c6e" }}
+                  >
                     Price *
                   </label>
                   <input
@@ -960,7 +1085,10 @@ function TestList({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1" style={{ color: "#1a3c6e" }}>
+                  <label
+                    className="block text-sm font-medium mb-1"
+                    style={{ color: "#1a3c6e" }}
+                  >
                     Sample Type *
                   </label>
                   <input
@@ -975,7 +1103,10 @@ function TestList({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1" style={{ color: "#1a3c6e" }}>
+                  <label
+                    className="block text-sm font-medium mb-1"
+                    style={{ color: "#1a3c6e" }}
+                  >
                     Turnaround Hours
                   </label>
                   <input
@@ -993,7 +1124,10 @@ function TestList({
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium mb-1" style={{ color: "#1a3c6e" }}>
+                  <label
+                    className="block text-sm font-medium mb-1"
+                    style={{ color: "#1a3c6e" }}
+                  >
                     Description
                   </label>
                   <textarea
@@ -1048,7 +1182,10 @@ function TestList({
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1" style={{ color: "#1a3c6e" }}>
+                  <label
+                    className="block text-sm font-medium mb-1"
+                    style={{ color: "#1a3c6e" }}
+                  >
                     Fasting Hours
                   </label>
                   <input
@@ -1177,8 +1314,12 @@ function TestList({
                   className="px-4 py-2 text-sm rounded-lg border transition"
                   style={{ borderColor: "#d0dff0", color: "#555555" }}
                   onClick={() => setShowModal(false)}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f5f8fc")}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#f5f8fc")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = "transparent")
+                  }
                 >
                   Cancel
                 </button>
@@ -1186,8 +1327,12 @@ function TestList({
                   type="submit"
                   className="px-4 py-2 text-sm rounded-lg text-white transition"
                   style={{ backgroundColor: "#1a3c6e" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#152d52")}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#1a3c6e")}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#152d52")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#1a3c6e")
+                  }
                 >
                   Save
                 </button>
@@ -1199,24 +1344,47 @@ function TestList({
 
       <div className="overflow-x-auto">
         <table className="min-w-full">
-          <thead style={{ backgroundColor: "#e8f0f7", borderBottom: "1px solid #d0dff0" }}>
+          <thead
+            style={{
+              backgroundColor: "#e8f0f7",
+              borderBottom: "1px solid #d0dff0",
+            }}
+          >
             <tr>
-              <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: "#1a3c6e" }}>
+              <th
+                className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider"
+                style={{ color: "#1a3c6e" }}
+              >
                 Test Code
               </th>
-              <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: "#1a3c6e" }}>
+              <th
+                className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider"
+                style={{ color: "#1a3c6e" }}
+              >
                 Name
               </th>
-              <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: "#1a3c6e" }}>
+              <th
+                className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider"
+                style={{ color: "#1a3c6e" }}
+              >
                 Category
               </th>
-              <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: "#1a3c6e" }}>
+              <th
+                className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider"
+                style={{ color: "#1a3c6e" }}
+              >
                 Price
               </th>
-              <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: "#1a3c6e" }}>
+              <th
+                className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider"
+                style={{ color: "#1a3c6e" }}
+              >
                 Status
               </th>
-              <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: "#1a3c6e" }}>
+              <th
+                className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider"
+                style={{ color: "#1a3c6e" }}
+              >
                 Actions
               </th>
             </tr>
@@ -1226,20 +1394,36 @@ function TestList({
               <tr
                 key={i}
                 style={{ borderBottom: "1px solid #e8f0f7" }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f5f8fc")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#f5f8fc")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "transparent")
+                }
               >
-                <td className="px-5 py-3.5 whitespace-nowrap text-sm font-medium" style={{ color: "#1a3c6e" }}>
+                <td
+                  className="px-5 py-3.5 whitespace-nowrap text-sm font-medium"
+                  style={{ color: "#1a3c6e" }}
+                >
                   {t.test_code}
                 </td>
-                <td className="px-5 py-3.5 whitespace-nowrap text-sm font-medium" style={{ color: "#1a3c6e" }}>
+                <td
+                  className="px-5 py-3.5 whitespace-nowrap text-sm font-medium"
+                  style={{ color: "#1a3c6e" }}
+                >
                   {t.test_name}
                 </td>
-                <td className="px-5 py-3.5 whitespace-nowrap text-sm" style={{ color: "#555555" }}>
+                <td
+                  className="px-5 py-3.5 whitespace-nowrap text-sm"
+                  style={{ color: "#555555" }}
+                >
                   {categories.find((c) => c.category_id === t.category_id)
                     ?.category_name || "-"}
                 </td>
-                <td className="px-5 py-3.5 whitespace-nowrap text-sm font-semibold" style={{ color: "#1a3c6e" }}>
+                <td
+                  className="px-5 py-3.5 whitespace-nowrap text-sm font-semibold"
+                  style={{ color: "#1a3c6e" }}
+                >
                   ₹{t.price}
                 </td>
                 <td className="px-5 py-3.5 whitespace-nowrap">
@@ -1255,8 +1439,12 @@ function TestList({
                       className="p-1.5 rounded-lg transition-colors text-xs font-medium px-2"
                       style={{ backgroundColor: "#e8f0f7", color: "#1a3c6e" }}
                       onClick={() => handleViewDetails(t.test_id!)}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#d0dff0")}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#e8f0f7")}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.backgroundColor = "#d0dff0")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.backgroundColor = "#e8f0f7")
+                      }
                       title="View Details"
                     >
                       Details
@@ -1265,8 +1453,12 @@ function TestList({
                       className="p-1.5 rounded-lg transition-colors text-xs font-medium px-2"
                       style={{ backgroundColor: "#e8f0f7", color: "#1a3c6e" }}
                       onClick={() => handleEditClick(t.test_id!)}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#d0dff0")}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#e8f0f7")}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.backgroundColor = "#d0dff0")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.backgroundColor = "#e8f0f7")
+                      }
                       title="Edit"
                     >
                       Edit
@@ -1280,8 +1472,12 @@ function TestList({
                           reload();
                         }
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#fee2e2")}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#fef2f2")}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.backgroundColor = "#fee2e2")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.backgroundColor = "#fef2f2")
+                      }
                       title="Delete"
                     >
                       Delete
@@ -1306,7 +1502,7 @@ function TestList({
       </div>
     </div>
   );
-};
+}
 
 function ParameterList({
   parameters,
@@ -1544,6 +1740,6 @@ function ParameterList({
       </div>
     </div>
   );
-};
+}
 
 export default LabTestManagementPage;

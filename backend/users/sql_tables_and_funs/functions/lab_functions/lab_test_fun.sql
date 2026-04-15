@@ -31,7 +31,6 @@ CREATE OR REPLACE FUNCTION public.l_create_lab_test(
     p_fasting_hours    INTEGER       DEFAULT NULL,
     p_price            NUMERIC(10,2) DEFAULT 0,
     p_turnaround_hours INTEGER       DEFAULT NULL,
-    -- FIX: new parameter — links the test to the creating lab
     p_created_by       UUID          DEFAULT NULL
 )
 RETURNS public.lab_tests
@@ -81,17 +80,7 @@ BEGIN
         RAISE EXCEPTION 'turnaround_hours cannot be negative'
             USING ERRCODE = 'invalid_parameter_value';
     END IF;
-    IF p_fasting_hours IS NOT NULL AND p_fasting_hours < 0 THEN
-        RAISE EXCEPTION 'fasting_hours cannot be negative'
-            USING ERRCODE = 'invalid_parameter_value';
-    END IF;
- 
-    -- Fasting logic guard
-    IF p_fasting_required = FALSE AND p_fasting_hours IS NOT NULL THEN
-        RAISE EXCEPTION 'fasting_hours should only be set when fasting_required is true'
-            USING ERRCODE = 'invalid_parameter_value';
-    END IF;
- 
+    
     INSERT INTO public.lab_tests (
         category_id,
         test_code,

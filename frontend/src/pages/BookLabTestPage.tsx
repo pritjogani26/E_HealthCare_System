@@ -1,6 +1,7 @@
 // src/pages/BookLabTestPage.tsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom"; // ← add
 import {
   Search,
   Filter,
@@ -38,6 +39,8 @@ import {
 } from "../services/labService";
 import { getAllLabs } from "../services/admin_api";
 import { LabList } from "../types";
+import PaymentButton from "../components/PaymentButton";
+import { useAuth } from "../context/AuthContext"; // ← add
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -67,6 +70,8 @@ interface BookingWizardState {
 export const BookLabTestPage: React.FC = () => {
   const toast = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate(); // ← add
+  const { user } = useAuth(); // ← add
 
   // ── filter state ──────────────────────────────────────────────────────────
   const [search, setSearch] = useState("");
@@ -86,7 +91,6 @@ export const BookLabTestPage: React.FC = () => {
   // slot selection
   const [slotDate, setSlotDate] = useState<string>(todayISO());
   const [selectedSlotId, setSelectedSlotId] = useState<number | null>(null);
-  // FIX: track the full slot object so we can display its time in the summary
   const [selectedSlot, setSelectedSlot] = useState<LabSlot | null>(null);
 
   // collection
@@ -103,6 +107,9 @@ export const BookLabTestPage: React.FC = () => {
   // notes
   const [notes, setNotes] = useState("");
 
+  // ── payment: booking_id is only known AFTER createLabBooking succeeds ──── // ← add
+  const [createdBookingId, setCreatedBookingId] = useState<string | null>(null); // ← add
+
   // debounce search
   useEffect(() => {
     const h = setTimeout(() => setDebouncedSearch(search), 500);
@@ -116,7 +123,7 @@ export const BookLabTestPage: React.FC = () => {
     queryFn: () => fetchLabCategories({ is_active: true }),
     staleTime: 5 * 60 * 1000,
   });
- 
+
   const { data: labs = [] } = useQuery<LabList[], Error>({
     queryKey: ["allLabs"],
     queryFn: () => getAllLabs(),
@@ -156,10 +163,12 @@ export const BookLabTestPage: React.FC = () => {
 
   const { mutate: doBook, isPending: booking } = useMutation({
     mutationFn: createLabBooking,
-    onSuccess: () => {
-      toast.success("Lab test booked successfully!");
+    onSuccess: (data: any) => {
+      // ← changed
+      // Store booking_id so PaymentButton can use it.             // ← add
+      // Do NOT close the wizard here — payment step comes next.   // ← add
+      setCreatedBookingId(data?.booking_id ?? data?.data?.booking_id ?? null); // ← add
       queryClient.invalidateQueries({ queryKey: ["myLabBookings"] });
-      closeWizard();
     },
     onError: (err) => toast.error(handleApiError(err)),
   });
@@ -174,7 +183,6 @@ export const BookLabTestPage: React.FC = () => {
       setWizardStep("slot");
       setSlotDate(todayISO());
       setSelectedSlotId(null);
-      // FIX: reset the full slot object when opening wizard
       setSelectedSlot(null);
       setCollectionType("lab_visit");
       setHomeAddress({
@@ -185,6 +193,7 @@ export const BookLabTestPage: React.FC = () => {
         landmark: "",
       });
       setNotes("");
+      setCreatedBookingId(null); // ← add
       // eslint-disable-next-line react-hooks/exhaustive-deps
     },
     [selectedLab],
@@ -194,6 +203,7 @@ export const BookLabTestPage: React.FC = () => {
     setWizardState(null);
     setSelectedTestId(null);
     setSelectedSlot(null);
+    setCreatedBookingId(null); // ← add
   }, []);
 
   const handleConfirmBook = () => {
@@ -212,6 +222,14 @@ export const BookLabTestPage: React.FC = () => {
     }
 
     doBook(payload);
+  };
+
+  // ── payment success handler ───────────────────────────────────────────────  // ← add block
+  const handlePaymentSuccess = (referenceId: string) => {
+    toast.success("Payment successful! Lab test booking confirmed.");
+    queryClient.invalidateQueries({ queryKey: ["myLabBookings"] });
+    closeWizard();
+    navigate(`/lab-bookings/${referenceId}/confirmed`);
   };
 
   // ── misc ──────────────────────────────────────────────────────────────────
@@ -395,7 +413,6 @@ export const BookLabTestPage: React.FC = () => {
           setSlotDate={setSlotDate}
           selectedSlotId={selectedSlotId}
           setSelectedSlotId={setSelectedSlotId}
-          // FIX: pass slot object state down to wizard
           selectedSlot={selectedSlot}
           setSelectedSlot={setSelectedSlot}
           collectionType={collectionType}
@@ -410,6 +427,10 @@ export const BookLabTestPage: React.FC = () => {
           booking={booking}
           onConfirm={handleConfirmBook}
           onClose={closeWizard}
+          createdBookingId={createdBookingId} // ← add
+          patientEmail={user?.email ?? ""} // ← add
+          onPaymentSuccess={handlePaymentSuccess} // ← add
+          onPaymentError={(msg) => toast.error(msg)} // ← add
         />
       )}
     </>
@@ -417,7 +438,7 @@ export const BookLabTestPage: React.FC = () => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TestCard
+// TestCard  — unchanged
 // ─────────────────────────────────────────────────────────────────────────────
 
 function TestCard({
@@ -454,7 +475,6 @@ function TestCard({
             {Number(test.price).toFixed(0)}
           </div>
         </div>
-
         <div className="space-y-2.5 mb-5">
           <InfoRow
             icon={<FlaskConical size={14} />}
@@ -482,14 +502,12 @@ function TestCard({
             />
           )}
         </div>
-
         <div className="bg-slate-50 rounded-xl p-3 text-sm text-slate-600">
           <p className="line-clamp-2">
             {test.description || "No description provided for this test."}
           </p>
         </div>
       </div>
-
       <div className="border-t border-slate-100 p-4 bg-slate-50 flex gap-3">
         <button
           onClick={onDetails}
@@ -535,7 +553,7 @@ function InfoRow({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TestDetailModal
+// TestDetailModal  — unchanged
 // ─────────────────────────────────────────────────────────────────────────────
 
 function TestDetailModal({
@@ -580,7 +598,6 @@ function TestDetailModal({
           <p className="text-xs text-slate-400 mt-0.5">base price</p>
         </div>
       </div>
-
       <div className="p-6 overflow-y-auto flex-1">
         <div className="grid grid-cols-2 gap-4 mb-8">
           <MetaTile
@@ -611,7 +628,6 @@ function TestDetailModal({
             </div>
           )}
         </div>
-
         <div className="mb-8">
           <h4 className="text-lg font-bold text-slate-800 mb-2 border-b border-slate-100 pb-2">
             Description
@@ -620,7 +636,6 @@ function TestDetailModal({
             {test.description || "No detailed description available."}
           </p>
         </div>
-
         {test.parameters && test.parameters.length > 0 && (
           <div>
             <h4 className="text-lg font-bold text-slate-800 mb-3 border-b border-slate-100 pb-2">
@@ -655,7 +670,6 @@ function TestDetailModal({
           </div>
         )}
       </div>
-
       <div className="p-4 border-t border-slate-100 bg-slate-50 flex gap-3 justify-end rounded-b-2xl">
         <button
           onClick={onClose}
@@ -695,8 +709,8 @@ function BookingWizardModal({
   setSlotDate,
   selectedSlotId,
   setSelectedSlotId,
-  selectedSlot, // FIX: receive full slot object
-  setSelectedSlot, // FIX: receive setter for full slot object
+  selectedSlot,
+  setSelectedSlot,
   collectionType,
   setCollectionType,
   homeAddress,
@@ -709,6 +723,10 @@ function BookingWizardModal({
   booking,
   onConfirm,
   onClose,
+  createdBookingId, // ← add
+  patientEmail, // ← add
+  onPaymentSuccess, // ← add
+  onPaymentError, // ← add
 }: {
   wizardState: BookingWizardState;
   step: WizardStep;
@@ -731,6 +749,10 @@ function BookingWizardModal({
   booking: boolean;
   onConfirm: () => void;
   onClose: () => void;
+  createdBookingId: string | null; // ← add
+  patientEmail: string; // ← add
+  onPaymentSuccess: (referenceId: string) => void; // ← add
+  onPaymentError: (msg: string) => void; // ← add
 }) {
   const steps: { key: WizardStep; label: string }[] = [
     { key: "slot", label: "Pick Slot" },
@@ -788,19 +810,11 @@ function BookingWizardModal({
               <X size={16} />
             </button>
           </div>
-
-          {/* Step pills */}
           <div className="flex gap-2 mt-4">
             {steps.map((s, i) => (
               <div key={s.key} className="flex items-center gap-1.5">
                 <div
-                  className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                    i === stepIndex
-                      ? "bg-white text-emerald-700"
-                      : i < stepIndex
-                        ? "bg-emerald-500/60 text-white"
-                        : "bg-white/20 text-emerald-100"
-                  }`}
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all ${i === stepIndex ? "bg-white text-emerald-700" : i < stepIndex ? "bg-emerald-500/60 text-white" : "bg-white/20 text-emerald-100"}`}
                 >
                   {i < stepIndex ? (
                     <CheckCircle size={11} />
@@ -826,7 +840,6 @@ function BookingWizardModal({
               setSlotDate={setSlotDate}
               selectedSlotId={selectedSlotId}
               setSelectedSlotId={setSelectedSlotId}
-              // FIX: pass slot object setter so SlotStep can store the full slot
               setSelectedSlot={setSelectedSlot}
             />
           )}
@@ -844,7 +857,6 @@ function BookingWizardModal({
             <SummaryStep
               wizardState={wizardState}
               slotDate={slotDate}
-              // FIX: pass full slot object instead of bare slot ID
               selectedSlot={selectedSlot}
               collectionType={collectionType}
               homeAddress={homeAddress}
@@ -874,21 +886,41 @@ function BookingWizardModal({
               Continue <ChevronRight size={15} />
             </button>
           ) : (
-            <button
-              onClick={onConfirm}
-              disabled={booking}
-              className="px-6 py-2.5 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700 disabled:opacity-60 transition-colors text-sm flex items-center gap-2 shadow-sm"
-            >
-              {booking ? (
-                <>
-                  <Loader2 size={15} className="animate-spin" /> Booking…
-                </>
+            // ── Payment footer: two-step — create booking first, then pay ──
+            <div className="flex items-center gap-3">
+              {" "}
+              {/* ← changed */}
+              {!createdBookingId ? (
+                // Step 1: Create the booking record
+                <button
+                  onClick={onConfirm}
+                  disabled={booking}
+                  className="px-6 py-2.5 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700 disabled:opacity-60 transition-colors text-sm flex items-center gap-2 shadow-sm"
+                >
+                  {booking ? (
+                    <>
+                      <Loader2 size={15} className="animate-spin" /> Booking…
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle size={15} /> Confirm Booking
+                    </>
+                  )}
+                </button>
               ) : (
-                <>
-                  <CheckCircle size={15} /> Confirm Booking
-                </>
+                // Step 2: Booking created — now pay with the real booking_id
+                <PaymentButton
+                  paymentFor="LAB_TEST"
+                  referenceId={createdBookingId}
+                  label={`Pay ₹${totalAmount}`}
+                  patientName={patientEmail}
+                  patientEmail={patientEmail}
+                  patientPhone=""
+                  onSuccess={onPaymentSuccess}
+                  onError={onPaymentError}
+                />
               )}
-            </button>
+            </div>
           )}
         </div>
       </div>
@@ -896,7 +928,7 @@ function BookingWizardModal({
   );
 }
 
-// ── Step 1: Slot selection ────────────────────────────────────────────────────
+// ── Step 1: Slot selection  — unchanged ──────────────────────────────────────
 
 function SlotStep({
   labId,
@@ -904,7 +936,7 @@ function SlotStep({
   setSlotDate,
   selectedSlotId,
   setSelectedSlotId,
-  setSelectedSlot, // FIX: new prop to store the full slot object
+  setSelectedSlot,
 }: {
   labId: string;
   slotDate: string;
@@ -929,7 +961,6 @@ function SlotStep({
         <Calendar size={18} className="text-emerald-600" />
         Select Date & Time Slot
       </h3>
-
       <div className="mb-6">
         <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
           Appointment Date
@@ -941,17 +972,14 @@ function SlotStep({
           onChange={(e) => {
             setSlotDate(e.target.value);
             setSelectedSlotId(null);
-            // FIX: clear the stored slot when date changes
             setSelectedSlot(null);
           }}
           className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-slate-700 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50 text-sm transition-all"
         />
       </div>
-
       <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
         Available Time Slots
       </label>
-
       {isLoading ? (
         <div className="flex flex-col items-center py-8 text-slate-400 gap-2">
           <Loader2 className="animate-spin text-emerald-500" size={24} />
@@ -980,14 +1008,9 @@ function SlotStep({
                 key={slot.slot_id}
                 onClick={() => {
                   setSelectedSlotId(slot.slot_id);
-                  // FIX: store the full slot object when the user selects a slot
                   setSelectedSlot(slot);
                 }}
-                className={`p-3 rounded-xl border-2 text-left transition-all ${
-                  isSelected
-                    ? "border-emerald-500 bg-emerald-50 shadow-sm shadow-emerald-100"
-                    : "border-slate-200 bg-white hover:border-emerald-300 hover:bg-emerald-50/50"
-                }`}
+                className={`p-3 rounded-xl border-2 text-left transition-all ${isSelected ? "border-emerald-500 bg-emerald-50 shadow-sm shadow-emerald-100" : "border-slate-200 bg-white hover:border-emerald-300 hover:bg-emerald-50/50"}`}
               >
                 <p
                   className={`font-bold text-sm ${isSelected ? "text-emerald-700" : "text-slate-700"}`}
@@ -1007,7 +1030,6 @@ function SlotStep({
           })}
         </div>
       )}
-
       {!selectedSlotId && (
         <p className="text-xs text-slate-400 mt-4 flex items-center gap-1">
           <AlertCircle size={12} /> Please select a time slot to continue.
@@ -1017,7 +1039,7 @@ function SlotStep({
   );
 }
 
-// ── Step 2: Collection ────────────────────────────────────────────────────────
+// ── Step 2: Collection  — unchanged ──────────────────────────────────────────
 
 function CollectionStep({
   collectionType,
@@ -1046,7 +1068,6 @@ function CollectionStep({
         <MapPin size={18} className="text-emerald-600" />
         Collection Method
       </h3>
-
       <div className="grid grid-cols-2 gap-3 mb-6">
         {(["lab_visit", "home"] as CollectionType[]).map((t) => {
           const active = collectionType === t;
@@ -1054,11 +1075,7 @@ function CollectionStep({
             <button
               key={t}
               onClick={() => setCollectionType(t)}
-              className={`p-4 rounded-xl border-2 text-left transition-all ${
-                active
-                  ? "border-emerald-500 bg-emerald-50"
-                  : "border-slate-200 bg-white hover:border-slate-300"
-              }`}
+              className={`p-4 rounded-xl border-2 text-left transition-all ${active ? "border-emerald-500 bg-emerald-50" : "border-slate-200 bg-white hover:border-slate-300"}`}
             >
               <div
                 className={`mb-2 ${active ? "text-emerald-600" : "text-slate-400"}`}
@@ -1083,7 +1100,6 @@ function CollectionStep({
           );
         })}
       </div>
-
       {collectionType === "home" && (
         <div className="space-y-3 mb-6 p-4 bg-amber-50 rounded-xl border border-amber-100">
           <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider flex items-center gap-1">
@@ -1118,7 +1134,6 @@ function CollectionStep({
           />
         </div>
       )}
-
       <div>
         <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
           Notes / Special Instructions (optional)
@@ -1135,12 +1150,12 @@ function CollectionStep({
   );
 }
 
-// ── Step 3: Summary ───────────────────────────────────────────────────────────
+// ── Step 3: Summary  — unchanged ─────────────────────────────────────────────
 
 function SummaryStep({
   wizardState,
   slotDate,
-  selectedSlot, // FIX: receives full LabSlot object instead of bare ID
+  selectedSlot,
   collectionType,
   homeAddress,
   notes,
@@ -1164,8 +1179,6 @@ function SummaryStep({
         <Stethoscope size={18} className="text-emerald-600" />
         Booking Summary
       </h3>
-
-      {/* Test info */}
       <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
           Test
@@ -1178,8 +1191,6 @@ function SummaryStep({
           <Building2 size={11} /> {wizardState.labName}
         </p>
       </div>
-
-      {/* Appointment — FIX: show actual time from selectedSlot */}
       <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
           Appointment
@@ -1191,7 +1202,6 @@ function SummaryStep({
           </div>
           <div>
             <p className="text-xs text-slate-400">Time</p>
-            {/* FIX: show start–end time instead of opaque slot ID number */}
             <p className="font-semibold text-slate-700">
               {selectedSlot
                 ? `${fmt12(selectedSlot.start_time)} – ${fmt12(selectedSlot.end_time)}`
@@ -1200,8 +1210,6 @@ function SummaryStep({
           </div>
         </div>
       </div>
-
-      {/* Collection */}
       <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
           Collection
@@ -1223,8 +1231,6 @@ function SummaryStep({
           </p>
         )}
       </div>
-
-      {/* Pricing */}
       <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
         <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wider mb-3">
           Price Breakdown
@@ -1255,7 +1261,6 @@ function SummaryStep({
           </div>
         </div>
       </div>
-
       {notes && (
         <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
           <p className="text-xs font-semibold text-blue-500 uppercase tracking-wider mb-1">

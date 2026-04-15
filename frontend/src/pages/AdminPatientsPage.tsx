@@ -42,7 +42,7 @@ const AdminPatientsPage: React.FC = () => {
   const itemsPerPage = 10;
   const toast = useToast();
   const { hasPermission } = useAuth();
-  const canToggle = hasPermission("patient : toggle_status");
+  const canActions = hasPermission("patient : actions");
 
   const [actionModalOpen, setActionModalOpen] = useState(false);
   const [actionData, setActionData] = useState<{
@@ -137,9 +137,11 @@ const AdminPatientsPage: React.FC = () => {
                   <th className="text-left py-3 px-4 text-slate-700 font-semibold">
                     Status
                   </th>
-                  <th className="text-left py-3 px-4 text-slate-700 font-semibold">
-                    Actions
-                  </th>
+                  {canActions && (
+                    <th className="text-left py-3 px-4 text-slate-700 font-semibold">
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -163,19 +165,19 @@ const AdminPatientsPage: React.FC = () => {
                     <td className="py-3 px-4">
                       <StatusBadge type="active" status={patient.is_active} />
                     </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => {
-                            setSelectedPatient(patient);
-                            setIsDetailOpen(true);
-                          }}
-                          className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100"
-                          title="View Details"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        {canToggle && (
+                    {canActions && (
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              setSelectedPatient(patient);
+                              setIsDetailOpen(true);
+                            }}
+                            className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100"
+                            title="View Details"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
                           <button
                             onClick={() => handleToggleRequest(patient)}
                             disabled={actionLoading}
@@ -188,15 +190,15 @@ const AdminPatientsPage: React.FC = () => {
                               <UserCheck className="w-4 h-4" />
                             )}
                           </button>
-                        )}
-                      </div>
-                    </td>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
                 {currentPatients.length === 0 && (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={canActions ? 6 : 5}
                       className="py-10 text-center text-slate-400"
                     >
                       No patients found.
@@ -242,7 +244,7 @@ const AdminPatientsPage: React.FC = () => {
                   Patient ID: {selectedPatient.patient_id}
                 </p>
               </div>
-              {canToggle && (
+              {canActions && (
                 <button
                   onClick={() => handleToggleRequest(selectedPatient)}
                   disabled={actionLoading}

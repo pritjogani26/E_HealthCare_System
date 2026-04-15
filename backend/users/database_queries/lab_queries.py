@@ -27,6 +27,7 @@ def _normalize_lab(row: dict) -> dict:
 
 def get_lab_by_user_id(user_id: str) -> dict | None:
     row = fn_fetchone("l_get_full_lab_profile", [str(user_id)])
+    # print("\nFetched lab row:", row)  # Debug print
     return _normalize_lab(row) if row else None
 
 
@@ -86,6 +87,25 @@ def get_lab_operating_hours(lab_user_id: str) -> list:
 
 def delete_lab_operating_hours(lab_user_id: str):
     execute("DELETE FROM lab_operating_hours WHERE lab_id=%s", [str(lab_user_id)])
+
+
+def delete_future_unbooked_lab_slots(lab_user_id: str) -> int:
+    """Delete future lab test slots that have no bookings yet.
+
+    Called whenever operating hours change so that stale slots do not
+    remain available to patients.  Returns the number of rows deleted.
+    """
+    deleted = execute(
+        """
+        DELETE FROM lab_test_slots
+        WHERE  lab_id = %s
+          AND  slot_date >= CURRENT_DATE
+          AND  booked_count = 0
+        """,
+        [str(lab_user_id)],
+    )
+    return deleted or 0
+
 
 
 def insert_lab_operating_hour(

@@ -35,6 +35,7 @@ import LabTestManagementPage from "./pages/LabTestManagementPage";
 import BookLabTestPage from "./pages/BookLabTestPage";
 import MyLabBookingsPage from "./pages/MyLabBookingsPage";
 import LabBookingsPage from "./pages/LabBookingsPage";
+import LabOperatingHoursPage from "./pages/LabOperatingHoursPage";
 
 // Components
 import Dashboard from "./components/Dashboard";
@@ -164,6 +165,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <LabBookingsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/lab/operating-hours"
+                  element={
+                    <ProtectedRoute>
+                      <LabOperatingHoursPage />
                     </ProtectedRoute>
                   }
                 />

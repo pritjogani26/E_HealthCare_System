@@ -427,6 +427,9 @@ export type AuditAction =
   | "DOCTOR_DEACTIVATED"
   | "LAB_ACTIVATED"
   | "LAB_DEACTIVATED"
+  | "TOGGLE_PATIENT_STATUS"
+  | "TOGGLE_DOCTOR_STATUS"
+  | "TOGGLE_LAB_STATUS"
   | "ADMIN_ACTION"
   | "SYSTEM_ERROR";
 
@@ -434,19 +437,21 @@ export type AuditEntityType = "Patient" | "Doctor" | "Lab" | "User" | "System";
 export type AuditStatus = "SUCCESS" | "FAILURE";
 
 export interface AuditLog {
-  log_id: number;
+  audit_id: number;
+  user_id: string;
+  user_email: string | null;
+  targeted_user_id: string | null;
+  targeted_user_email: string | null;
+  table_name: string | null;
+  row_id: string | null;
   action: AuditAction;
-  entity_type: AuditEntityType | null;
-  entity_name: string | null;
-  details: string;
   status: AuditStatus;
-  performed_by: string | null;
-  target_user: string | null;
+  old_data: Record<string, unknown> | null;
+  new_data: Record<string, unknown> | null;
+  failure_reason: string | null;
   ip_address: string | null;
   user_agent: string | null;
-  duration_ms: number | null;
-  request_path: string | null;
-  timestamp: string;
+  created_at: string;
 }
 
 // ── Appointments ──────────────────────────────────────────────────────────────
@@ -475,6 +480,7 @@ export interface DoctorAppointment {
   status: "pending" | "confirmed" | "cancelled" | "completed" | "no_show";
   reason: string | null;
   cancellation_reason: string | null;
+  consultation_fee: string | number | null;
   created_at: string;
   updated_at: string;
 }
@@ -574,3 +580,5 @@ export class ReAuthError extends Error {
     this.code = code;
   }
 }
+
+

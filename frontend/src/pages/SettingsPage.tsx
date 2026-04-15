@@ -275,7 +275,7 @@ const SettingsPage: React.FC = () => {
             <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
               #{item.role_id}
             </td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-amber-600">
+            <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-800">
               {item.role}
             </td>
             <td className="px-6 py-4 text-sm text-slate-600">
