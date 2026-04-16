@@ -62,9 +62,6 @@ E:\E-Health Care
 |   |   |-- hooks/
 |   |   |-- services/
 |   |-- package.json
-|-- scripts/
-|   |-- collect_backend_code.py
-|   |-- collect_frontend_code.py
 |-- requirements.txt
 |-- PROJECT_EXECUTION_GUIDE.txt
 ```
@@ -275,14 +272,7 @@ cd "E:\E-Health Care\frontend"
 npm test
 ```
 
-## Utility Scripts
-
-Available helper scripts:
-
-- `scripts/collect_backend_code.py`
-- `scripts/collect_frontend_code.py`
-
 ## Notes
 
-- Some client-side or script paths still contain legacy local path references (for example, `E:\New_Folder`). These should be normalized if you want fully portable developer tooling.
+- Some local path references still contain legacy values (for example, `E:\New_Folder`). These should be normalized for fully portable developer tooling.
 - SQL bootstrap is required for full functionality; without schema/functions, many APIs will fail at runtime.
