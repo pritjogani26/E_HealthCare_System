@@ -1,270 +1,165 @@
-# Healthcare Management Platform
+# E-Health Care Platform
 
-A full-stack healthcare management platform with role-based workflows for patients, doctors, labs, and administrators. The project combines a Django REST backend, a React TypeScript frontend, and a PostgreSQL database layer built heavily around custom SQL tables and functions.
+Full-stack healthcare platform for multi-role care operations: patient onboarding, doctor appointments, lab test workflows, admin verification, RBAC controls, and online payments.
 
-## Overview
+## Project Snapshot
 
-This project supports:
-
-- Patient registration, login, profile management, and appointment booking
-- Doctor registration, verification, schedule management, and appointment handling
-- Lab registration, verification, lab test catalog management, slot generation, and test bookings
-- Admin and superadmin dashboards for verification, user management, audit activity, and role/permission control
-- Email verification, password reset, JWT authentication, refresh-token cookie flow, and Google OAuth login
+- Multi-role support: `PATIENT`, `DOCTOR`, `LAB`, `ADMIN`, `STAFF`, `SUPERADMIN`
+- Authentication: JWT access + refresh-cookie flow, Google OAuth, email verification, forgot/reset password
+- Clinical workflows: doctor slot/appointment management and complete lab test booking lifecycle
+- Admin operations: user verification, activation/deactivation, audit activity, settings master data
+- Payments: Razorpay order creation, payment verification, refunds, payment history, webhook handling
 
 ## Tech Stack
 
-### Frontend
+### Frontend (`frontend/`)
 
-- React 19
-- TypeScript
+- React 19 + TypeScript
 - React Router
 - TanStack Query
 - Axios
 - Formik + Yup
 - Tailwind CSS
 - React Hot Toast
-- Google OAuth for React
 
-### Backend
+### Backend (`backend/`)
 
 - Django 5
 - Django REST Framework
 - `django-cors-headers`
-- PyJWT-based custom authentication
-- Waitress for production-style serving on Windows
+- Custom PyJWT authentication
+- Waitress server support (`backend/serve.py`)
 
 ### Database and Integrations
 
 - PostgreSQL
-- Custom SQL functions and table scripts under `backend/users/sql_tables_and_funs/`
-- SMTP email flow
+- SQL-first data layer with raw SQL query modules and SQL function scripts
+- SMTP email delivery
 - Google OAuth token verification
+- Razorpay payment gateway
 
 ## Architecture
 
-The repo is split into three main areas:
-
-- `frontend/`: React application for user-facing UI
-- `backend/`: Django API server and domain logic
-- `scripts/`: helper scripts for code collection and SQL execution
-
-The backend does **not** rely primarily on standard Django ORM models for business entities. Instead, it uses:
-
-- thin Django/DRF views
-- serializers for request/response validation
-- service modules for business rules
-- query modules under `backend/users/database_queries/`
-- SQL tables/functions stored as `.sql` files
-
-This means the database layer is a core part of the application design and should be treated as part of the source code, not just infrastructure.
-
-## Major Functional Areas
-
-### Authentication and Security
-
-- Email/password login
-- Google login
-- Refresh-token rotation using cookies
-- Email verification
-- Forgot-password and reset-password flow
-- Inactivity timeout and re-authentication support on the frontend
-- Custom exception middleware and consistent JSON error responses
-
-### Role-Based Access
-
-Roles visible in the project include:
-
-- `PATIENT`
-- `DOCTOR`
-- `ADMIN`
-- `STAFF`
-- `SUPERADMIN`
-- lab role support exists in both frontend and backend, though naming differs in places:
-  - frontend commonly uses `LAB`
-  - backend `UserRole` currently defines `LAB_TECHNICIAN`
-
-The system also includes RBAC endpoints for listing roles, listing permissions, and granting/revoking/syncing role permissions.
-
-### Patient Features
-
-- register as a patient
-- manage profile
-- browse doctors
-- view available doctor slots
-- book appointments
-- cancel appointments
-- book lab tests
-- view personal lab bookings and reports
-
-### Doctor Features
-
-- register as a doctor
-- upload/update profile data
-- manage qualification and specialization details
-- manage schedule and generate slots
-- view appointments
-
-### Lab Features
-
-- register as a lab
-- maintain lab profile
-- define lab test categories and tests
-- define test parameters
-- generate available lab slots
-- accept patient bookings
-- mark bookings complete
-- upload booking reports
-
-### Admin Features
-
-- view patients, doctors, and labs
-- activate/deactivate user accounts
-- verify/reject doctors and labs
-- see pending approval counts
-- view recent audit activity
-- manage settings data such as genders, blood groups, qualifications, verification types, and roles
-- manage role permissions
-
-## Repository Structure
+The repository is organized as:
 
 ```text
-E:\New_Folder
+E:\E-Health Care
 |-- backend/
 |   |-- backend/                   # Django project config
 |   |-- users/
 |   |   |-- views/                # API endpoints
-|   |   |-- serializers/          # input/output validation
+|   |   |-- serializers/          # validation/response shaping
 |   |   |-- services/             # business logic
-|   |   |-- database_queries/     # SQL execution modules
-|   |   |-- sql_tables_and_funs/  # SQL schema and database functions
-|   |   |-- permissions/
-|   |   |-- middleware/
-|   |   |-- helpers/
+|   |   |-- database_queries/     # raw SQL execution modules
+|   |   |-- sql_tables_and_funs/  # schema + SQL functions
 |   |-- manage.py
-|   |-- serve.py                  # Waitress entrypoint
+|   |-- serve.py
 |-- frontend/
 |   |-- src/
 |   |   |-- pages/
 |   |   |-- components/
-|   |   |-- services/
 |   |   |-- context/
 |   |   |-- hooks/
-|   |   |-- validation/
-|   |   |-- utils/
-|   |-- public/
+|   |   |-- services/
 |   |-- package.json
 |-- scripts/
+|   |-- collect_backend_code.py
+|   |-- collect_frontend_code.py
 |-- requirements.txt
-|-- Run.txt
+|-- PROJECT_EXECUTION_GUIDE.txt
 ```
 
-## Key Backend Entry Points
+The backend follows a `views -> services -> database_queries` design. Most business-critical operations are SQL-driven, so database functions/scripts are part of the core codebase.
 
-- API root is mounted at `/api/`
-- backend URL configuration: `backend/backend/urls.py`
-- app routes: `backend/users/urls.py`
-- Waitress entrypoint: `backend/serve.py`
-- Django settings: `backend/backend/settings.py`
+## Core Functional Areas
 
-Example local backend base URL:
+### Authentication and Security
+
+- Email/password login, logout, refresh token, re-auth verification
+- Google OAuth login support
+- Email verification and resend verification flow
+- Forgot-password/reset-password with token verification
+- Account lock handling, password validators, custom exception middleware
+- Frontend inactivity timeout modal with controlled session continuation/logout
+
+### Role and Permission Control
+
+- Roles managed centrally (including lab role as `LAB`)
+- Superadmin-only RBAC APIs
+- Role-permission listing, grant, revoke, and sync flows
+- Frontend protected routes with role-aware access checks
+
+### Patient Features
+
+- Registration and profile management
+- Doctor discovery and slot viewing
+- Appointment booking and cancellation
+- Lab test booking and booking history
+- Access to uploaded lab reports (role-based visibility)
+
+### Doctor Features
+
+- Registration and profile updates
+- Schedule slot generation and availability management
+- Appointment listing and handling
+
+### Lab Features
+
+- Lab registration/profile and operating-hours setup
+- Test categories, tests, and test-parameter management
+- Slot generation based on operating hours
+- Booking management (list/detail/cancel/complete)
+- Report upload and report listing for completed bookings
+
+### Admin and Superadmin Features
+
+- Patient/doctor/lab listing endpoints
+- Doctor/lab verification workflows
+- Account status toggles for users
+- Pending approval counters and recent audit activity
+- Settings master data management (blood groups, genders, qualifications, specializations, verification types, user roles)
+
+### Payment Features
+
+- Razorpay order creation
+- Payment signature verification
+- Refund initiation
+- Payment history APIs
+- Webhook endpoint for asynchronous payment updates
+
+## API Overview
+
+API base path is mounted at:
 
 ```text
 http://localhost:8000/api
 ```
 
-## Key Frontend Entry Points
-
-- app root: `frontend/src/App.tsx`
-- auth state: `frontend/src/context/AuthContext.tsx`
-- shared HTTP client: `frontend/src/services/api.ts`
-- admin dashboard UI: `frontend/src/components/Dashboard.tsx`
-
-The frontend defaults to:
-
-```text
-REACT_APP_API_URL=http://localhost:8000/api
-```
-
-if no environment variable is provided.
-
-## API Surface Summary
-
-The project exposes a fairly broad API. Major groups include:
+Major route groups:
 
 - `users/auth/*`
-  - login
-  - google login
-  - logout
-  - token refresh
-  - email verification
-  - resend verification
-  - forgot/reset password
 - `users/profile/*`
-  - current profile
-  - admin/staff profile
 - `users/admin/*`
-  - list patients/doctors/labs
-  - toggle status
-  - verify doctor/lab
-  - pending approvals count
-  - recent activity
 - `users/settings/*`
-  - blood groups
-  - genders
-  - specializations
-  - qualifications
-  - verification types
-  - roles
 - `users/rbac/*`
-  - roles
-  - permissions
-  - role permission assignment/sync
 - `patients/*`
-  - registration
-  - patient profile
 - `doctors/*`
-  - registration
-  - public doctor list/detail
-  - slot listing/generation
-  - appointments
 - `labs/*`
-  - registration
-  - profile
-  - categories
-  - tests
-  - test parameters
-  - bookings
-  - reports
-  - slots
+- `payments/*`
 
-## Database Design Notes
+Primary URL definitions:
 
-This project is database-centric.
-
-Important folders:
-
-- `backend/users/sql_tables_and_funs/tables/`
-- `backend/users/sql_tables_and_funs/functions/`
-- `backend/users/sql_tables_and_funs/functions/lab_functions/`
-
-The backend query helpers in `backend/users/database_queries/connection.py` execute raw SQL and SQL functions through Django database connections. Because of that:
-
-- database schema and SQL functions must exist before major features work
-- API behavior depends on the PostgreSQL function contracts
-- onboarding is incomplete unless the database initialization process is documented and run
+- `backend/backend/urls.py`
+- `backend/users/urls.py`
 
 ## Environment Variables
 
-The backend reads configuration from environment variables through `python-dotenv`.
+Backend values are loaded via `python-dotenv` (`backend/backend/settings.py`).
 
-### Backend
-
-Create a `.env` file in or above the backend settings resolution path with values like:
+### Backend `.env` (example)
 
 ```env
 SECRET_KEY=change-me
-DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
 
 DB_ENGINE=django.db.backends.postgresql
@@ -286,108 +181,108 @@ EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 EMAIL_USE_TLS=True
 EMAIL_HOST_USER=your-email@example.com
-EMAIL_HOST_PASSWORD=your-email-password
+EMAIL_HOST_PASSWORD=your-app-password
 DEFAULT_FROM_EMAIL=your-email@example.com
 
 FRONTEND_URL=http://localhost:3000
+
 GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+RAZORPAY_KEY_ID=your-razorpay-key-id
+RAZORPAY_KEY_SECRET=your-razorpay-key-secret
+RAZORPAY_WEBHOOK_SECRET=your-razorpay-webhook-secret
 ```
 
-### Frontend
+### Frontend `.env` (example)
 
-Create `frontend/.env` with:
+Create `frontend/.env`:
 
 ```env
 REACT_APP_API_URL=http://localhost:8000/api
 ```
 
-## Local Setup
+If unset, frontend services default to `http://localhost:8000/api`.
 
-### 1. Create and activate Python virtual environment
+## Local Setup (Windows PowerShell)
 
-Windows PowerShell:
+### 1) Install Python dependencies
 
 ```powershell
-cd E:\New_Folder
+cd "E:\E-Health Care"
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-### 2. Install frontend dependencies
+### 2) Install frontend dependencies
 
 ```powershell
-cd E:\New_Folder\frontend
+cd "E:\E-Health Care\frontend"
 npm install
 ```
 
-### 3. Prepare PostgreSQL
+### 3) Prepare PostgreSQL database
 
-At minimum, ensure:
+Before running the app:
 
-- PostgreSQL is running
-- the configured database exists
-- the SQL table scripts and SQL function scripts have been applied
+- ensure PostgreSQL is running
+- create the target database
+- apply required SQL table/function scripts from `backend/users/sql_tables_and_funs/`
 
-The repo contains SQL assets, but no single fully documented bootstrap command was found during analysis, so database setup may currently require manually applying the SQL files or using the helper script in `scripts/execute_sql.py`.
-
-### 4. Run the backend
+### 4) Run backend
 
 Development server:
 
 ```powershell
-cd E:\New_Folder\backend
+cd "E:\E-Health Care\backend"
 ..\venv\Scripts\python.exe manage.py runserver
 ```
 
 Waitress server:
 
 ```powershell
-cd E:\New_Folder\backend
+cd "E:\E-Health Care\backend"
 ..\venv\Scripts\python.exe serve.py
 ```
 
-### 5. Run the frontend
+### 5) Run frontend
 
 ```powershell
-cd E:\New_Folder\frontend
+cd "E:\E-Health Care\frontend"
 npm start
 ```
 
-## Typical Local URLs
+## Local URLs
 
 - Frontend: `http://localhost:3000`
 - Backend API: `http://localhost:8000/api`
 - Django admin: `http://localhost:8000/admin/`
 
-## Scripts and Utilities
-
-The repo includes helper scripts such as:
-
-- `scripts/execute_sql.py`
-- `scripts/collect_backend_code.py`
-- `scripts/collect_frontend_code.py`
-- `scripts/test.py`
-- `backend/serve.py`
-- `Run.txt` for some Windows/NSSM and Waitress notes
-
 ## Testing
 
-Visible testing-related assets include:
-
-- Django default-style test file: `backend/users/tests.py`
-- frontend React test stubs
-- generated or external test artifacts under `backend/testsprite_tests/`
-
-There is no single documented project-wide test workflow in the repo root yet. Recommended starting points:
+Backend:
 
 ```powershell
-cd E:\New_Folder\backend
+cd "E:\E-Health Care\backend"
 ..\venv\Scripts\python.exe manage.py test
 ```
 
+Frontend:
+
 ```powershell
-cd E:\New_Folder\frontend
+cd "E:\E-Health Care\frontend"
 npm test
 ```
+
+## Utility Scripts
+
+Available helper scripts:
+
+- `scripts/collect_backend_code.py`
+- `scripts/collect_frontend_code.py`
+
+## Notes
+
+- Some client-side or script paths still contain legacy local path references (for example, `E:\New_Folder`). These should be normalized if you want fully portable developer tooling.
+- SQL bootstrap is required for full functionality; without schema/functions, many APIs will fail at runtime.
