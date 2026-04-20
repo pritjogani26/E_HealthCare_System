@@ -42,3 +42,5 @@ def update_patient(patient_id: str, **fields) -> dict:
     )
     new_patient_data = get_patient_by_id(patient_id)
     return new_patient_data
+
+get_full_patient_profile = get_patient_by_id

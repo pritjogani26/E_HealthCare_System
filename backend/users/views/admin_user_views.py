@@ -78,7 +78,7 @@ class AdminTogglePatientStatusView(generics.GenericAPIView):
 
         reason = request.data.get("reason", "")
         old_data = pq.get_patient_by_id(str(user_id))
-        print(request.data)
+        # print(request.data)
         patient, action = AdminService.toggle_patient_status(
             patient_id=str(user_id),
             reason=reason,

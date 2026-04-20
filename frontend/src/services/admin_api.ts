@@ -96,8 +96,9 @@ export async function getPendingApprovalsCount(): Promise<{
 };
 
 export async function getRecentActivity(): Promise<AuditLog[]> {
+  
   const res = await api.get<ApiResponse<AuditLog[]>>(
-    "/users/admin/recent-activity/",
+    "/users/recent-activity/",
   );
   return unwrap(res.data) ?? [];
 };
@@ -107,7 +108,7 @@ export async function downloadAuditLogs(
   type: "PDF" | "CSV",
 ): Promise<void> {
   const res = await api.post(
-    `/users/admin/recent-activity/`,
+    `/users/recent-activity/`,
     { status, type },
     {
       responseType: "blob",

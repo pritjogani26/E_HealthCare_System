@@ -100,12 +100,19 @@ const MyLabBookingsPage: React.FC = () => {
 
   // ── derived ───────────────────────────────────────────────────────────────
 
-  const filtered = filter === "ALL" ? bookings : bookings.filter((b) => b.booking_status === filter);
+  const normalizedBookings = bookings.map(b => ({
+    ...b,
+    booking_status: (b.booking_status as string) === "CONFIRMED" ? ("BOOKED" as BookingStatus) : b.booking_status
+  }));
+
+  const filtered = (filter === "ALL" ? normalizedBookings : normalizedBookings.filter((b) => b.booking_status === filter))
+    .slice()
+    .sort((a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime());
   const counts = {
-    ALL:       bookings.length,
-    BOOKED:    bookings.filter((b) => b.booking_status === "BOOKED").length,
-    COMPLETED: bookings.filter((b) => b.booking_status === "COMPLETED").length,
-    CANCELLED: bookings.filter((b) => b.booking_status === "CANCELLED").length,
+    ALL:       normalizedBookings.length,
+    BOOKED:    normalizedBookings.filter((b) => b.booking_status === "BOOKED").length,
+    COMPLETED: normalizedBookings.filter((b) => b.booking_status === "COMPLETED").length,
+    CANCELLED: normalizedBookings.filter((b) => b.booking_status === "CANCELLED").length,
   };
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -280,7 +287,9 @@ function BookingCard({
   onToggle: () => void;
   onCancelClick: () => void;
 }) {
-  const sc = STATUS_STYLES[booking.booking_status] ?? STATUS_STYLES.BOOKED;
+  const rawStatus = booking.booking_status as string;
+  const displayStatus = rawStatus === "CONFIRMED" ? "BOOKED" : rawStatus;
+  const sc = STATUS_STYLES[rawStatus as BookingStatus] ?? STATUS_STYLES.BOOKED;
   const { data: reports = [], isLoading: reportsLoading } = useQuery<LabReport[], Error>({
     queryKey: ["bookingReports", booking.booking_id],
     queryFn: () => fetchBookingReports(booking.booking_id),
@@ -363,10 +372,10 @@ function BookingCard({
             background: sc.bg, color: sc.text, border: `1px solid ${sc.border}`,
             whiteSpace: "nowrap",
           }}>
-            {sc.icon} {booking.booking_status}
+            {sc.icon} {displayStatus}
           </span>
 
-          {booking.booking_status === "BOOKED" && (
+          {displayStatus === "BOOKED" && new Date(`${booking.slot_date}T${booking.start_time}`) > new Date() && (
             <button
               onClick={(e) => { e.stopPropagation(); onCancelClick(); }}
               style={{

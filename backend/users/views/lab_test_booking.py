@@ -11,6 +11,7 @@ Design principles:
     and expected output.
 """
 
+import json
 import logging
 
 from rest_framework import generics, status
@@ -285,11 +286,13 @@ class LabOwnBookingsView(generics.GenericAPIView):
         _ensure_lab_or_admin(request.user)
 
         bookings = bq.list_lab_bookings(str(request.user.user_id))
-
+        # print(type(bookings))
+        # print(f"\n\nBooking :")
+        # print(json.dumps(bookings, indent=4, default=str))
         for b in bookings:
             patient = PatientProfileService.get_patient_profile(b["patient_id"])
             b["patient"] = patient
-            print(f"\nBooking : {b}")
+            # print(f"\nBooking : {b}")
 
         return Response(
             {

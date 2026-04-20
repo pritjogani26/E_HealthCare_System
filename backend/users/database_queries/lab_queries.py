@@ -101,6 +101,7 @@ def delete_future_unbooked_lab_slots(lab_user_id: str) -> int:
         WHERE  lab_id = %s
           AND  slot_date >= CURRENT_DATE
           AND  booked_count = 0
+          AND  slot_id NOT IN (SELECT slot_id FROM lab_test_slot_bookings WHERE slot_id IS NOT NULL)
         """,
         [str(lab_user_id)],
     )

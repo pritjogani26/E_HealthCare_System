@@ -19,7 +19,6 @@ import {
   fetchLabTestDetails,
   generateLabSlots,
 } from "../services/labService";
-import { OperatingHours } from "../components/lab/OperatingHours";
 import { useToast } from "../hooks/useToast";
 import { Calendar, Clock, Loader2, CheckCircle } from "lucide-react";
 
@@ -108,9 +107,9 @@ const SlotManagement: React.FC = () => {
 };
 
 const LabTestManagementPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<
-    "tests" | "categories" | "slots" | "operating-hours"
-  >("tests");
+  const [activeTab, setActiveTab] = useState<"tests" | "categories" | "slots">(
+    "tests",
+  );
 
   const [categories, setCategories] = useState<LabTestCategory[]>([]);
   const [tests, setTests] = useState<LabTest[]>([]);
@@ -228,25 +227,6 @@ const LabTestManagementPage: React.FC = () => {
         >
           Manage Slots
         </button>
-        <button
-          className="px-4 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors"
-          style={
-            activeTab === "operating-hours"
-              ? { backgroundColor: "#1a3c6e", color: "#ffffff" }
-              : { backgroundColor: "#e8f0f7", color: "#1a3c6e" }
-          }
-          onClick={() => setActiveTab("operating-hours")}
-          onMouseEnter={(e) => {
-            if (activeTab !== "operating-hours")
-              e.currentTarget.style.backgroundColor = "#d0dff0";
-          }}
-          onMouseLeave={(e) => {
-            if (activeTab !== "operating-hours")
-              e.currentTarget.style.backgroundColor = "#e8f0f7";
-          }}
-        >
-          Operating Hours
-        </button>
       </div>
 
       {error && (
@@ -278,10 +258,8 @@ const LabTestManagementPage: React.FC = () => {
             <CategoryList categories={categories} reload={loadData} />
           ) : activeTab === "tests" ? (
             <TestList tests={tests} categories={categories} reload={loadData} />
-          ) : activeTab === "slots" ? (
-            <SlotManagement />
           ) : (
-            <OperatingHours />
+            <SlotManagement />
           )}
         </div>
       )}

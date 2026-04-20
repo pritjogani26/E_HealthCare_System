@@ -510,6 +510,6 @@ BEGIN
     WHERE
         (p_doctor_id  IS NULL OR da.doctor_id  = p_doctor_id)
         AND (p_patient_id IS NULL OR da.patient_id = p_patient_id)
-    ORDER BY da.created_at DESC;
+    ORDER BY da.created_at ASC;
 END;
 $$;

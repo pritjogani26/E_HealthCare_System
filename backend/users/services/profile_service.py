@@ -29,20 +29,20 @@ class PatientProfileService(BaseProfileService):
 
     @staticmethod
     def update_patient_profile(patient_dict: dict, serializer, request=None) -> dict:
-        print("\n\nInside update_patient_profile.")
+        # print("\n\nInside update_patient_profile.")
         patient_id = str(patient_dict.get("patient_id") or patient_dict.get("user_id"))
         data = serializer.validated_data
-        print(f"\nPatient data : {data}")
+        # print(f"\nPatient data : {data}")
         addr = data.get("address") or {}
         address_fields = {
             k: addr.get(k) if k in addr else data.get(k)
             for k in ("address_line", "city", "state", "pincode")
         }
-        print(f"\n\nAddress Fields : {address_fields}")
+        # print(f"\n\nAddress Fields : {address_fields}")
 
         if any(v is not None for v in address_fields.values()):
             if patient_dict.get("address_line"):
-                print("\nYes Address is available. Updating.")
+                # print("\nYes Address is available. Updating.")
                 uq.update_address_by_user_id(
                     patient_id,
                     **{k: v for k, v in address_fields.items() if v is not None},
@@ -86,7 +86,7 @@ class LabProfileService(BaseProfileService):
         if not lab:
             return None
         lab["operating_hours"] = lq.get_lab_operating_hours(user_id)
-        print(f"\nLab operating hours: {lab['operating_hours']}")  # Debug print
+        # print(f"\nLab operating hours: {lab['operating_hours']}")  # Debug print
         # lab["services"] = lq.get_lab_services(user_id)
         return lab
 

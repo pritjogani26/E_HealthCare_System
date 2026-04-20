@@ -112,7 +112,7 @@ class AppointmentService:
             patient_id=patient_user_id,
             slot_id=slot_id,
             appointment_type=appointment_type,
-            status=AppointmentStatus.CONFIRMED,
+            status="confirmed",
             reason=reason,
         )
 

@@ -1,8 +1,8 @@
-// src/pages/DoctorAppointmentsPage.tsx
+// // src/pages/DoctorAppointmentsPage.tsx
 
 import React, { useEffect, useState } from "react";
-import { Calendar, Clock, RefreshCw, User } from "lucide-react";
-import { useNavigate } from "react-router-dom";          // ← add
+import { Calendar, Clock, RefreshCw, User, FileText } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { handleApiError } from "../services/api";
 import {
   cancelAppointment,
@@ -12,8 +12,6 @@ import { DoctorAppointment } from "../types";
 import toast from "react-hot-toast";
 import { PageHeader } from "../components/common/PageHeader";
 import { FilterTabs } from "../components/common/FilterTabs";
-import PaymentButton from "../components/PaymentButton";
-import { useAuth } from "../context/AuthContext";         // ← add
 
 const statusColors: Record<
   string,
@@ -47,8 +45,7 @@ const DoctorAppointmentsPage: React.FC = () => {
   const [cancellingId, setCancellingId] = useState<number | null>(null);
   const [filter, setFilter] = useState<string>("all");
 
-  const navigate = useNavigate();          // ← add
-  const { user } = useAuth();              // ← add
+  const navigate = useNavigate();
 
   const load = async () => {
     setLoading(true);
@@ -84,7 +81,7 @@ const DoctorAppointmentsPage: React.FC = () => {
       ? appointments
       : appointments.filter((a) => a.status === filter);
 
-  // Group by date for a calendar-like view
+  // Group by date
   const grouped: Record<string, DoctorAppointment[]> = {};
   filtered.forEach((a) => {
     const key = a.slot_date || "Unscheduled";
@@ -94,7 +91,7 @@ const DoctorAppointmentsPage: React.FC = () => {
 
   return (
     <>
-      {/* Page header — matches AdminDoctorsPage / MyAppointmentsPage pattern */}
+      {/* Page header */}
       <div
         style={{
           display: "flex",
@@ -135,7 +132,7 @@ const DoctorAppointmentsPage: React.FC = () => {
         </button>
       </div>
 
-      {/* Filter tabs — reuses shared FilterTabs component */}
+      {/* Filter tabs */}
       <FilterTabs
         tabs={FILTER_TABS}
         activeTab={filter}
@@ -171,7 +168,7 @@ const DoctorAppointmentsPage: React.FC = () => {
           .sort(([a], [b]) => a.localeCompare(b))
           .map(([date, apts]) => (
             <div key={date} style={{ marginBottom: "28px" }}>
-              {/* Date group heading */}
+              {/* Date heading */}
               <div
                 style={{
                   display: "flex",
@@ -204,13 +201,6 @@ const DoctorAppointmentsPage: React.FC = () => {
               >
                 {apts.map((apt) => {
                   const sc = statusColors[apt.status] || statusColors.pending;
-
-                  // ── Payment helpers ───────────────────────────────────────
-                  const fee = apt.consultation_fee
-                    ? parseFloat(String(apt.consultation_fee))
-                    : 0;
-                  const feeLabel = fee > 0 ? `Pay ₹${fee}` : "Pay";
-                  // ─────────────────────────────────────────────────────────
 
                   return (
                     <div
@@ -318,14 +308,16 @@ const DoctorAppointmentsPage: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* Right: status badge + actions */}
+                        {/* Right: status badge + action buttons */}
                         <div
                           style={{
                             display: "flex",
                             alignItems: "center",
                             gap: "10px",
+                            flexWrap: "wrap",
                           }}
                         >
+                          {/* Status badge */}
                           <span
                             style={{
                               padding: "4px 12px",
@@ -342,64 +334,77 @@ const DoctorAppointmentsPage: React.FC = () => {
                               apt.status.slice(1).replace("_", " ")}
                           </span>
 
+                          {/* ── Complete & Prescribe button ─────────────── */}
                           {(apt.status === "confirmed" ||
                             apt.status === "pending") && (
-                            <>
-                              {/* ── PaymentButton: all props now resolved ── */}
-                              <PaymentButton
-                                paymentFor="APPOINTMENT"
-                                referenceId={apt.appointment_id}
-                                label={feeLabel}
-                                patientName={user?.email ?? ""}
-                                patientEmail={user?.email ?? ""}
-                                patientPhone=""
-                                onSuccess={() => {
-                                  toast.success("Payment successful!");
-                                  navigate(
-                                    `/appointments/${apt.appointment_id}/confirmed`
-                                  );
-                                  load();
-                                }}
-                                onError={(msg) => toast.error(msg)}
-                              />
-                              {/* ────────────────────────────────────────── */}
+                            <button
+                              onClick={() =>
+                                navigate(
+                                  `/appointments/${apt.appointment_id}/prescribe`,
+                                )
+                              }
+                              style={{
+                                padding: "6px 14px",
+                                borderRadius: "7px",
+                                border: "1px solid #bfdbfe",
+                                background: "#eff6ff",
+                                color: "#2563eb",
+                                cursor: "pointer",
+                                fontWeight: 600,
+                                fontSize: "12px",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "5px",
+                                whiteSpace: "nowrap",
+                                transition: "background 0.15s",
+                              }}
+                              onMouseEnter={(e) =>
+                                (e.currentTarget.style.background = "#dbeafe")
+                              }
+                              onMouseLeave={(e) =>
+                                (e.currentTarget.style.background = "#eff6ff")
+                              }
+                            >
+                              <FileText size={12} />
+                              Complete &amp; Prescribe
+                            </button>
+                          )}
 
-                              <button
-                                onClick={() => handleCancel(apt.appointment_id)}
-                                disabled={cancellingId === apt.appointment_id}
-                                style={{
-                                  padding: "6px 14px",
-                                  borderRadius: "7px",
-                                  border: "1px solid #fecaca",
-                                  background: "#fef2f2",
-                                  color: "#dc2626",
-                                  cursor:
-                                    cancellingId === apt.appointment_id
-                                      ? "not-allowed"
-                                      : "pointer",
-                                  fontWeight: 600,
-                                  fontSize: "12px",
-                                  opacity:
-                                    cancellingId === apt.appointment_id
-                                      ? 0.6
-                                      : 1,
-                                  transition: "background 0.15s",
-                                  whiteSpace: "nowrap",
-                                }}
-                                onMouseEnter={(e) => {
-                                  if (cancellingId !== apt.appointment_id)
-                                    e.currentTarget.style.background =
-                                      "#fee2e2";
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.background = "#fef2f2";
-                                }}
-                              >
-                                {cancellingId === apt.appointment_id
-                                  ? "Cancelling…"
-                                  : "Cancel"}
-                              </button>
-                            </>
+                          {/* ── Cancel button ──────────────────────────── */}
+                          {(apt.status === "confirmed" ||
+                            apt.status === "pending") && (
+                            <button
+                              onClick={() => handleCancel(apt.appointment_id)}
+                              disabled={cancellingId === apt.appointment_id}
+                              style={{
+                                padding: "6px 14px",
+                                borderRadius: "7px",
+                                border: "1px solid #fecaca",
+                                background: "#fef2f2",
+                                color: "#dc2626",
+                                cursor:
+                                  cancellingId === apt.appointment_id
+                                    ? "not-allowed"
+                                    : "pointer",
+                                fontWeight: 600,
+                                fontSize: "12px",
+                                opacity:
+                                  cancellingId === apt.appointment_id ? 0.6 : 1,
+                                transition: "background 0.15s",
+                                whiteSpace: "nowrap",
+                              }}
+                              onMouseEnter={(e) => {
+                                if (cancellingId !== apt.appointment_id)
+                                  e.currentTarget.style.background = "#fee2e2";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = "#fef2f2";
+                              }}
+                            >
+                              {cancellingId === apt.appointment_id
+                                ? "Cancelling…"
+                                : "Cancel"}
+                            </button>
                           )}
                         </div>
                       </div>

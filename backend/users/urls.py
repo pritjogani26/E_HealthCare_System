@@ -97,6 +97,11 @@ from .views.payment_views import (
     PaymentHistoryView,
     RazorpayWebhookView,
 )
+from .views.prescription_view import (
+    PrescribeAppointmentView,
+    AppointmentPrescriptionView,
+    MyPrescriptionsView,
+)
 
 app_name = "users"
 
@@ -195,6 +200,11 @@ urlpatterns = [
         "users/admin/recent-activity/",
         AuditLogsView.as_view(),
         name="admin-recent-activity",
+    ),
+    path(
+        "users/recent-activity/",
+        AuditLogsView.as_view(),
+        name="recent-activity",
     ),
     # path(
     #     "users/admin/download-audit-logs/",
@@ -357,4 +367,20 @@ urlpatterns = [
     path("payments/refund/",       RefundPaymentView.as_view(),  name="payment-refund"),
     path("payments/history/",      PaymentHistoryView.as_view(), name="payment-history"),
     path("payments/webhook/",      RazorpayWebhookView.as_view(),name="payment-webhook"),
+    # ── Prescriptions ────────────────────────────────────────────────────────
+    path(
+        "appointments/<int:appointment_id>/prescribe/",
+        PrescribeAppointmentView.as_view(),
+        name="prescribe-appointment",
+    ),
+    path(
+        "appointments/<int:appointment_id>/prescription/",
+        AppointmentPrescriptionView.as_view(),
+        name="appointment-prescription",
+    ),
+    path(
+        "prescriptions/my/",
+        MyPrescriptionsView.as_view(),
+        name="my-prescriptions",
+    ),
 ]

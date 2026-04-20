@@ -13,6 +13,8 @@ import {
 import { AuditLog, AuditAction } from "../types";
 import { downloadAuditLogs, getRecentActivity } from "../services/admin_api";
 import { useToast } from "../hooks/useToast";
+import { useAuth } from "../context/AuthContext";
+import { getUserRole } from "../utils/roles";
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -45,6 +47,10 @@ function actionLabel(action: AuditAction): string {
     TOGGLE_LAB_STATUS: "Lab status changed",
     ADMIN_ACTION: "Admin action",
     SYSTEM_ERROR: "System error",
+    POST_AUTH_LOGOUT: "Logged out",
+    POST_PAYMENT_VERIFY: "Payment verified",
+    POST_PAYMENT_CREATE_ORDER: "Payment order created",
+    POST_LAB_BOOKINGS: "Lab test booked",
   };
   return map[action] ?? action;
 }
@@ -205,6 +211,10 @@ const DownloadModal: React.FC<DownloadModalProps> = ({
 // ── Main Component ────────────────────────────────────────────────────────────
 
 const AuditLogs: React.FC = () => {
+  const { user } = useAuth();
+  const role = getUserRole(user);
+  const isAdminOrStaff = role === "ADMIN" || role === "STAFF" || role === "SUPERADMIN";
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const toast = useToast();
 
@@ -291,10 +301,12 @@ const AuditLogs: React.FC = () => {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-semibold mb-1" style={{ color: "#1a3c6e" }}>
-            Audit Logs
+            Recent Activity
           </h2>
           <p className="text-sm" style={{ color: "#555555" }}>
-            Monitor system activity and security events.
+            {isAdminOrStaff 
+              ? "Monitor system activity and security events." 
+              : "Monitor your account activity and security events."}
           </p>
         </div>
 

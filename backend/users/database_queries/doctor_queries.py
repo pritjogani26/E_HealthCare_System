@@ -14,6 +14,15 @@ def get_doctor_by_user_id(user_id: str) -> dict | None:
     return dict(row) if row else None
 
 
+def get_full_doctor_profile(doctor_user_id: str) -> dict:
+    result = get_doctor_by_user_id(doctor_user_id)
+    if not result:
+        return {}
+    result["qualifications"] = get_doctor_qualifications(doctor_user_id)
+    result["specializations"] = get_doctor_specializations(doctor_user_id)
+    return result
+
+
 def get_all_doctors() -> list:
     rows = fn_fetchall("d_list_doctors", [])
     return [dict(r) for r in rows]
@@ -147,7 +156,13 @@ def delete_future_unbooked_slots(schedule_id: int):
     from django.utils import timezone
     today = timezone.localdate()
     execute(
-        "DELETE FROM appointment_slots WHERE schedule_id=%s AND slot_date >= %s AND is_booked=FALSE",
+        """
+        DELETE FROM appointment_slots 
+         WHERE schedule_id=%s 
+           AND slot_date >= %s 
+           AND is_booked=FALSE
+           AND slot_id NOT IN (SELECT slot_id FROM doctor_appointments WHERE slot_id IS NOT NULL)
+        """,
         [schedule_id, today],
     )
 
@@ -257,6 +272,8 @@ def create_appointment(
     status: str,
     reason: str = "",
 ) -> dict:
+    # print("\n\n")
+    # print(str(patient_id), str(doctor_id), slot_id, appointment_type, reason)
     fn_scalar(
         "d_book_appointment",
         [str(patient_id), str(doctor_id), slot_id, appointment_type, reason],
@@ -303,7 +320,7 @@ def lock_appointment_for_update(appointment_id: int) -> dict | None:
             JOIN doctors d ON d.doctor_id = da.doctor_id
             JOIN users pu ON pu.user_id = da.patient_id
             LEFT JOIN appointment_slots s ON s.slot_id = da.slot_id
-            WHERE da.appointment_id = %s FOR UPDATE
+            WHERE da.appointment_id = %s FOR UPDATE OF da
             """,
             [appointment_id],
         )

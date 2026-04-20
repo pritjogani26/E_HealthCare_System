@@ -64,6 +64,10 @@ function actionLabel(action: AuditAction): string {
     TOGGLE_LAB_STATUS: "Lab status changed",
     ADMIN_ACTION: "Admin action",
     SYSTEM_ERROR: "System error",
+    POST_AUTH_LOGOUT: "Logged out",
+    POST_PAYMENT_VERIFY: "Payment verified",
+    POST_PAYMENT_CREATE_ORDER: "Payment order created",
+    POST_LAB_BOOKINGS: "Lab test booked",
   };
   return map[action] ?? action;
 }
@@ -71,7 +75,8 @@ function actionLabel(action: AuditAction): string {
 function formatValue(value: unknown): string {
   if (value === null || value === undefined) return "null";
   if (typeof value === "string") return value;
-  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (typeof value === "number" || typeof value === "boolean")
+    return String(value);
   return JSON.stringify(value);
 }
 
@@ -79,10 +84,15 @@ function buildDetails(log: AuditLog): string {
   if (log.failure_reason) return log.failure_reason;
   const oldData = log.old_data ?? {};
   const newData = log.new_data ?? {};
-  const keys = Array.from(new Set([...Object.keys(oldData), ...Object.keys(newData)]));
+  const keys = Array.from(
+    new Set([...Object.keys(oldData), ...Object.keys(newData)]),
+  );
   if (keys.length === 0) return "";
   return keys
-    .map((key) => `${key}: ${formatValue(oldData[key])} -> ${formatValue(newData[key])}`)
+    .map(
+      (key) =>
+        `${key}: ${formatValue(oldData[key])} -> ${formatValue(newData[key])}`,
+    )
     .join(", ");
 }
 
@@ -155,6 +165,24 @@ function actionMeta(action: AuditAction): {
       bg: "bg-rose-100",
       iconColor: "text-rose-700",
     };
+  if (action === "POST_LAB_BOOKINGS")
+    return {
+      icon: <FlaskConical size={16} />,
+      bg: "bg-purple-100",
+      iconColor: "text-purple-700",
+    };
+  if (action.includes("PAYMENT"))
+    return {
+      icon: <CheckCircle size={16} />,
+      bg: "bg-emerald-100",
+      iconColor: "text-emerald-700",
+    };
+  if (action === "POST_AUTH_LOGOUT")
+    return {
+      icon: <LogOut size={16} />,
+      bg: "bg-slate-100",
+      iconColor: "text-slate-600",
+    };
   return {
     icon: <Activity size={16} />,
     bg: "bg-slate-100",
@@ -190,7 +218,6 @@ const INITIAL_STATS: StatCardProps[] = [
     trend: "up",
     color: "from-purple-500 to-purple-600",
     link: "/admin/doctors",
-
   },
   {
     icon: FlaskConical,
@@ -249,6 +276,7 @@ const Dashboard: React.FC = () => {
   const [activityLoading, setActivityLoading] = useState(true);
   const [activityError, setActivityError] = useState<string | null>(null);
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+
 
   const fetchPendingCounts = useCallback(async () => {
     if (!isAdminOrStaff) return;
@@ -336,9 +364,7 @@ const Dashboard: React.FC = () => {
     loadCounts();
   }, [loadCounts]);
 
-  // ── Load recent activity (admin only) ─────────────────────────────────────
-  // FIX: Added `toast` to the dependency array of useCallback – it was a stale
-  //      closure before (toast object never changes identity so this is safe).
+  // ── Load recent activity (all users) ─────────────────────────────────────
   const loadActivity = useCallback(async () => {
     setActivityLoading(true);
     setActivityError(null);
@@ -358,17 +384,19 @@ const Dashboard: React.FC = () => {
   }, [toast]);
 
   useEffect(() => {
-    if (isAdminOrStaff) loadActivity();
-  }, [isAdminOrStaff, loadActivity]);
+    loadActivity();
+  }, [loadActivity]);
 
   return (
     <>
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-slate-800 mb-2">
-          Platform Dashboard
+          {isAdminOrStaff ? "Platform Dashboard" : "My Dashboard"}
         </h2>
         <p className="text-slate-600">
-          Manage registrations, verifications, and monitor platform activity.
+          {isAdminOrStaff
+            ? "Manage registrations, verifications, and monitor platform activity."
+            : "Overview of your recent activity and health services."}
         </p>
       </div>
 
@@ -461,7 +489,8 @@ const Dashboard: React.FC = () => {
               !activityError &&
               recentActivity.slice(0, 5).map((log) => {
                 const { icon, bg, iconColor } = actionMeta(log.action);
-                const actor = log.user_email ?? log.targeted_user_email ?? "System";
+                const actor =
+                  log.user_email ?? log.targeted_user_email ?? "System";
                 const isFailure = log.status === "FAILURE";
                 const details = buildDetails(log);
                 return (

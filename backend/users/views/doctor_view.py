@@ -229,6 +229,7 @@ class MyAppointmentsView(generics.GenericAPIView):
 
         if role == UserRole.PATIENT:
             appointments = dq.get_patient_appointments(user_id)
+            # print(appointments)
         elif role == UserRole.DOCTOR:
             appointments = dq.get_doctor_appointments(user_id)
         else:

@@ -21,7 +21,11 @@ class AuditLogsView(generics.GenericAPIView):
     serializer_class = AuditLogsDownload
 
     def get(self, request):
-        rows = aq.get_audit_logs(limit=100)
+        # If user is admin/staff, show all. Otherwise show only their logs.
+        is_admin = request.user.role in ["ADMIN", "SUPERADMIN", "STAFF"]
+        user_id = None if is_admin else request.user.user_id
+
+        rows = aq.get_audit_logs(user_id=user_id, limit=100)
         # print(json.dumps(rows, indent=4))
         # print("\n\n\n\n")
         data = [
@@ -44,7 +48,7 @@ class AuditLogsView(generics.GenericAPIView):
             }
             for r in rows
         ]
-        print(json.dumps(data, indent=4))
+        # print(json.dumps(data, indent=4))
         return send_success_msg(data)
 
 
@@ -54,7 +58,12 @@ class AuditLogsView(generics.GenericAPIView):
         status = serializer.validated_data["status"]
         file_type = serializer.validated_data["type"]
 
+        # If user is admin/staff, show all. Otherwise show only their logs.
+        is_admin = request.user.role in ["ADMIN", "SUPERADMIN", "STAFF"]
+        user_id = None if is_admin else request.user.user_id
+
         rows = aq.get_audit_logs(
+            user_id=user_id,
             status=None if status == "ALL" else status,
             limit=100,
         )

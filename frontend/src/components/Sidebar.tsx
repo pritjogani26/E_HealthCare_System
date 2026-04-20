@@ -131,10 +131,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           },
         ]
       : []),
-    // Audit Logs — ADMIN and SUPERADMIN only
-    ...(isAdminOrSuper
-      ? [{ icon: ClipboardList, label: "Audit Logs", route: "/audit-logs" }]
-      : []),
+    // Recent Activity — for all users
+    { icon: ClipboardList, label: "Recent Activity", route: "/audit-logs" },
     // Settings
     ...(can("settings : view") || admin
       ? [{ icon: Settings, label: "Settings", route: "/settings" }]

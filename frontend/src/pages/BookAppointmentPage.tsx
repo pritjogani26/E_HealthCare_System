@@ -10,7 +10,9 @@ import {
   getDoctorSlots,
   getDoctorsList,
 } from "../services/doctor_api";
-import { DoctorListItem, AppointmentSlot } from "../types";
+import { DoctorListItem, AppointmentSlot, DoctorAppointment } from "../types";
+import PaymentButton from "../components/PaymentButton";
+import { useAuth } from "../context/AuthContext";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -26,7 +28,7 @@ function formatTime(t: string) {
 function getNext7Days(): Date[] {
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
-    d.setDate(d.getDate() + i);
+    d.setDate(d.getDate() + i + 1);
     return d;
   });
 }
@@ -51,6 +53,7 @@ const QK = {
 const BookAppointmentPage: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const [_sidebarOpen, setSidebarOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -59,7 +62,11 @@ const BookAppointmentPage: React.FC = () => {
   const [selectedDoctor, setSelectedDoctor] = useState<DoctorListItem | null>(
     null,
   );
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d;
+  });
 
   // Booking modal state
   const [bookingSlot, setBookingSlot] = useState<AppointmentSlot | null>(null);
@@ -67,6 +74,7 @@ const BookAppointmentPage: React.FC = () => {
   const [appointmentType, setAppointmentType] = useState<
     "in_person" | "online"
   >("in_person");
+  const [createdAppointment, setCreatedAppointment] = useState<DoctorAppointment | null>(null);
 
   const dates = useMemo(() => getNext7Days(), []);
 
@@ -117,15 +125,26 @@ const BookAppointmentPage: React.FC = () => {
         reason,
         appointment_type: appointmentType,
       }),
-    onSuccess: () => {
-      toast.success("Appointment booked successfully!");
+    onSuccess: (data) => {
       // Invalidate slots so the booked slot disappears immediately
       queryClient.invalidateQueries({
         queryKey: QK.slots(selectedDoctor!.doctor_id, toISODate(selectedDate)),
       });
-      setBookingSlot(null);
-      setReason("");
-      navigate("/my-appointments");
+
+      const fee = selectedDoctor?.consultation_fee
+        ? parseFloat(String(selectedDoctor.consultation_fee))
+        : 0;
+
+      if (fee > 0) {
+        toast.success("Appointment booked successfully! Proceed to payment.");
+        setCreatedAppointment(data);
+      } else {
+        toast.success("Appointment booked successfully!");
+        setBookingSlot(null);
+        setReason("");
+        setCreatedAppointment(null);
+        navigate("/my-appointments");
+      }
     },
     onError: (e: unknown) => toast.error(handleApiError(e)),
   });
@@ -242,7 +261,9 @@ const BookAppointmentPage: React.FC = () => {
                   key={doc.doctor_id}
                   onClick={() => {
                     setSelectedDoctor(doc);
-                    setSelectedDate(new Date());
+                    const nextDay = new Date();
+                    nextDay.setDate(nextDay.getDate() + 1);
+                    setSelectedDate(nextDay);
                   }}
                   style={{
                     backgroundColor: "#ffffff",
@@ -641,7 +662,10 @@ const BookAppointmentPage: React.FC = () => {
                 Confirm Booking
               </h3>
               <button
-                onClick={() => setBookingSlot(null)}
+                onClick={() => {
+                  setBookingSlot(null);
+                  setCreatedAppointment(null);
+                }}
                 style={{
                   background: "none",
                   border: "none",
@@ -781,35 +805,54 @@ const BookAppointmentPage: React.FC = () => {
               />
             </div>
 
-            <button
-              onClick={() => bookMutation.mutate()}
-              disabled={bookMutation.isPending}
-              style={{
-                width: "100%",
-                padding: "12px",
-                borderRadius: "8px",
-                border: "none",
-                backgroundColor: bookMutation.isPending ? "#a0aec0" : "#1a3c6e",
-                color: "#fff",
-                fontSize: "14px",
-                fontWeight: 700,
-                cursor: bookMutation.isPending ? "not-allowed" : "pointer",
-                transition: "background 0.18s",
-                boxShadow: "0 4px 12px rgba(26,60,110,0.2)",
-              }}
-              onMouseEnter={(e) => {
-                if (!bookMutation.isPending)
-                  (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-                    "#2e5fa3";
-              }}
-              onMouseLeave={(e) => {
-                if (!bookMutation.isPending)
-                  (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-                    "#1a3c6e";
-              }}
-            >
-              {bookMutation.isPending ? "Booking..." : "Confirm Appointment"}
-            </button>
+            {createdAppointment ? (
+              <PaymentButton
+                paymentFor="APPOINTMENT"
+                referenceId={createdAppointment.appointment_id}
+                label={`Pay ₹${selectedDoctor?.consultation_fee || 0}`}
+                patientName={user?.email ?? ""}
+                patientEmail={user?.email ?? ""}
+                patientPhone=""
+                onSuccess={() => {
+                  toast.success("Payment successful!");
+                  setBookingSlot(null);
+                  setReason("");
+                  setCreatedAppointment(null);
+                  navigate("/my-appointments");
+                }}
+                onError={(msg) => toast.error(msg)}
+              />
+            ) : (
+              <button
+                onClick={() => bookMutation.mutate()}
+                disabled={bookMutation.isPending}
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  borderRadius: "8px",
+                  border: "none",
+                  backgroundColor: bookMutation.isPending ? "#a0aec0" : "#1a3c6e",
+                  color: "#fff",
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  cursor: bookMutation.isPending ? "not-allowed" : "pointer",
+                  transition: "background 0.18s",
+                  boxShadow: "0 4px 12px rgba(26,60,110,0.2)",
+                }}
+                onMouseEnter={(e) => {
+                  if (!bookMutation.isPending)
+                    (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                      "#2e5fa3";
+                }}
+                onMouseLeave={(e) => {
+                  if (!bookMutation.isPending)
+                    (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                      "#1a3c6e";
+                }}
+              >
+                {bookMutation.isPending ? "Booking..." : "Confirm Appointment"}
+              </button>
+            )}
           </div>
         </div>
       )}

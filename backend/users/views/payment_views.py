@@ -181,7 +181,7 @@ class RazorpayWebhookView(generics.GenericAPIView):
             _execute(
                 """
                 UPDATE doctor_appointments
-                   SET status = 'CONFIRMED', updated_at = NOW()
+                   SET status = 'confirmed', updated_at = NOW()
                  WHERE appointment_id = %s
                 """,
                 [payment["reference_id"]],
@@ -190,7 +190,7 @@ class RazorpayWebhookView(generics.GenericAPIView):
             _execute(
                 """
                 UPDATE lab_test_slot_bookings
-                   SET booking_status = 'CONFIRMED', updated_at = NOW()
+                   SET booking_status = 'BOOKED', updated_at = NOW()
                  WHERE booking_id = %s
                 """,
                 [payment["reference_id"]],

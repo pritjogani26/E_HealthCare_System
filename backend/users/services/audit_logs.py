@@ -2,7 +2,7 @@
 import json
 import uuid
 import threading
-from datetime import datetime, date
+from datetime import datetime, date, time
 from decimal import Decimal
 from users.database_queries.connection import fn_scalar, fn_fetchall
 
@@ -12,7 +12,7 @@ _thread_locals = threading.local()
 
 class AuditJSONEncoder(json.JSONEncoder):
     def default(self, obj):
-        if isinstance(obj, (datetime, date)):
+        if isinstance(obj, (datetime, date, time)):
             return obj.isoformat()
         if isinstance(obj, uuid.UUID):
             return str(obj)

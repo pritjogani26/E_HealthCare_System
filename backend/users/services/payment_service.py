@@ -57,9 +57,10 @@ class PaymentService:
     def _fetch_appointment(reference_id, patient_id):
         row = _execute(
             """
-            SELECT appointment_id, consultation_fee, patient_id, status
-              FROM doctor_appointments
-             WHERE appointment_id = %s
+            SELECT da.appointment_id, d.consultation_fee, da.patient_id, da.status
+              FROM doctor_appointments da
+              JOIN doctors d ON da.doctor_id = d.doctor_id
+             WHERE da.appointment_id = %s
             """,
             [reference_id],
             fetch="one",
@@ -243,7 +244,7 @@ class PaymentService:
             _execute(
                 """
                 UPDATE doctor_appointments
-                   SET status = 'CONFIRMED', updated_at = NOW()
+                   SET status = 'confirmed', updated_at = NOW()
                  WHERE appointment_id = %s
                 """,
                 [payment["reference_id"]],
@@ -252,7 +253,7 @@ class PaymentService:
             _execute(
                 """
                 UPDATE lab_test_slot_bookings
-                   SET booking_status = 'CONFIRMED', updated_at = NOW()
+                   SET booking_status = 'BOOKED', updated_at = NOW()
                  WHERE booking_id = %s
                 """,
                 [payment["reference_id"]],

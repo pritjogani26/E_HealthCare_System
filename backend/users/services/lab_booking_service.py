@@ -153,14 +153,17 @@ class LabBookingService:
             raise PermissionException("You are not authorised to cancel this booking.")
 
         # ── Step 3: Status check ─────────────────────────────────────────────
-        if booking["booking_status"] != "BOOKED":
+        if booking["booking_status"] not in ("BOOKED", "CONFIRMED"):
             raise ValidationException(
                 f"Cannot cancel a booking with status '{booking['booking_status']}'."
             )
 
         # ── Step 4: Date check ───────────────────────────────────────────────
-        # FIX: was `date_type.today()` — `date_type` was never defined
-        if booking["slot_date"] < date.today():
+        slot_date = booking["slot_date"]
+        if isinstance(slot_date, str):
+            slot_date = datetime.strptime(slot_date, "%Y-%m-%d").date()
+        
+        if slot_date < date.today():
             raise ValidationException(
                 "Cannot cancel a booking whose slot date has already passed."
             )

@@ -51,8 +51,10 @@ function fmt12(t?: string | null) {
   return `${hr % 12 || 12}:${m} ${hr >= 12 ? "PM" : "AM"}`;
 }
 
-function todayISO() {
-  return new Date().toISOString().slice(0, 10);
+function tomorrowISO() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().slice(0, 10);
 }
 
 const HOME_COLLECTION_FEE = 50;
@@ -89,7 +91,7 @@ export const BookLabTestPage: React.FC = () => {
   const [wizardStep, setWizardStep] = useState<WizardStep>("slot");
 
   // slot selection
-  const [slotDate, setSlotDate] = useState<string>(todayISO());
+  const [slotDate, setSlotDate] = useState<string>(tomorrowISO());
   const [selectedSlotId, setSelectedSlotId] = useState<number | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<LabSlot | null>(null);
 
@@ -181,7 +183,7 @@ export const BookLabTestPage: React.FC = () => {
       const labName = test.created_by_name ?? "Unknown Lab";
       setWizardState({ test, labId, labName });
       setWizardStep("slot");
-      setSlotDate(todayISO());
+      setSlotDate(tomorrowISO());
       setSelectedSlotId(null);
       setSelectedSlot(null);
       setCollectionType("lab_visit");
@@ -967,7 +969,7 @@ function SlotStep({
         </label>
         <input
           type="date"
-          min={todayISO()}
+          min={tomorrowISO()}
           value={slotDate}
           onChange={(e) => {
             setSlotDate(e.target.value);

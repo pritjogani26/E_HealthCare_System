@@ -36,6 +36,8 @@ import BookLabTestPage from "./pages/BookLabTestPage";
 import MyLabBookingsPage from "./pages/MyLabBookingsPage";
 import LabBookingsPage from "./pages/LabBookingsPage";
 import LabOperatingHoursPage from "./pages/LabOperatingHoursPage";
+import LabBookingConfirmationPage from "./pages/LabBookingConfirmationPage";
+import PrescriptionFormPage from "./pages/PrescriptionFormPage";
 
 // Components
 import Dashboard from "./components/Dashboard";
@@ -83,6 +85,8 @@ console.log("COMPONENT CHECK:", {
   DoctorAppointmentsPage,
   SettingsPage,
   BookLabTestPage,
+  LabBookingConfirmationPage,
+  PrescriptionFormPage,
   AuthProvider,
   ThemeProvider,
   ProtectedRoute,
@@ -201,6 +205,14 @@ function App() {
                   }
                 />
                 <Route
+                  path="/lab-bookings/:bookingId/confirmed"
+                  element={
+                    <ProtectedRoute>
+                      <LabBookingConfirmationPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/my-lab-bookings"
                   element={
                     <ProtectedRoute>
@@ -221,6 +233,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <DoctorAppointmentsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/appointments/:appointmentId/prescribe"
+                  element={
+                    <ProtectedRoute>
+                      <PrescriptionFormPage />
                     </ProtectedRoute>
                   }
                 />

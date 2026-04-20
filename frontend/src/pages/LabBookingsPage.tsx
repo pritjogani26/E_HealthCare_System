@@ -161,9 +161,9 @@ const LabBookingsPage: React.FC = () => {
         ? bookings
         : bookings.filter((b) => b.booking_status === filter);
     return [...list].sort((a, b) => {
-      const da = (a.slot_date || "").localeCompare(b.slot_date || "");
-      if (da !== 0) return da;
-      return (a.start_time || "").localeCompare(b.start_time || "");
+      const ta = new Date(a.created_at || 0).getTime();
+      const tb = new Date(b.created_at || 0).getTime();
+      return tb - ta;
     });
   }, [bookings, filter]);
 

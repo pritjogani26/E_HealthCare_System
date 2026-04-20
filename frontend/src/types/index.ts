@@ -431,7 +431,11 @@ export type AuditAction =
   | "TOGGLE_DOCTOR_STATUS"
   | "TOGGLE_LAB_STATUS"
   | "ADMIN_ACTION"
-  | "SYSTEM_ERROR";
+  | "SYSTEM_ERROR"
+  | "POST_AUTH_LOGOUT"
+  | "POST_PAYMENT_VERIFY"
+  | "POST_PAYMENT_CREATE_ORDER"
+  | "POST_LAB_BOOKINGS";
 
 export type AuditEntityType = "Patient" | "Doctor" | "Lab" | "User" | "System";
 export type AuditStatus = "SUCCESS" | "FAILURE";
