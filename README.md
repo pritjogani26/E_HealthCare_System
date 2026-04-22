@@ -229,13 +229,13 @@ http://localhost:8000/api
 
 ---
 
-### 4.4.1 Authentication Module
+### 1. Authentication Module
 
 The authentication module provides a secure gateway for all user types — patients, doctors, laboratory staff, and administrators — to access the platform.
 
 ---
 
-#### 1. Login Page
+#### 1.1 Login Page
 
 > Securely sign in to access your healthcare dashboard
 
@@ -243,7 +243,7 @@ The authentication module provides a secure gateway for all user types — patie
 
 ---
 
-#### 2. Patient Registration Page
+#### 1.2 Patient Registration Page
 
 > Create a patient account with essential medical and personal details
 
@@ -251,7 +251,7 @@ The authentication module provides a secure gateway for all user types — patie
 
 ---
 
-#### 3. Doctor Registration Page
+#### 1.3 Doctor Registration Page
 
 > Register as a doctor with professional credentials and consultation details
 
@@ -259,7 +259,7 @@ The authentication module provides a secure gateway for all user types — patie
 
 ---
 
-#### 4. Laboratory Registration Page
+#### 1.4 Laboratory Registration Page
 
 > Set up a laboratory profile with licensing and operational information
 
@@ -267,7 +267,7 @@ The authentication module provides a secure gateway for all user types — patie
 
 ---
 
-#### 5. Forgot Password Page
+#### 1.5 Forgot Password Page
 
 > Recover your account securely using password reset options
 
@@ -275,13 +275,13 @@ The authentication module provides a secure gateway for all user types — patie
 
 ---
 
-### 4.4.2 Admin Module
+### 2. Admin Module
 
 The admin module provides administrators and superadmins with centralized control over all platform users, activities, and system configurations.
 
 ---
 
-#### 1. Admin Dashboard
+#### 2.1 Admin Dashboard
 
 > Monitor system activities, user statistics, and audit logs in one place
 
@@ -289,7 +289,7 @@ The admin module provides administrators and superadmins with centralized contro
 
 ---
 
-#### 2. Patient Management Page
+#### 2.2 Patient Management Page
 
 > View and manage all registered patient records
 
@@ -297,7 +297,7 @@ The admin module provides administrators and superadmins with centralized contro
 
 ---
 
-#### 3. Laboratory Management Page
+#### 2.3 Laboratory Management Page
 
 > Manage laboratory profiles and operational details
 
@@ -305,7 +305,7 @@ The admin module provides administrators and superadmins with centralized contro
 
 ---
 
-#### 4. Doctor Management Page
+#### 2.4 Doctor Management Page
 
 > Access and control all registered doctor accounts
 
@@ -313,7 +313,7 @@ The admin module provides administrators and superadmins with centralized contro
 
 ---
 
-#### 5. Pending Approvals Page
+#### 2.5 Pending Approvals Page
 
 > Review and approve new doctor and laboratory registrations
 
@@ -321,7 +321,7 @@ The admin module provides administrators and superadmins with centralized contro
 
 ---
 
-#### 6. Audit Logs Page
+#### 2.6 Audit Logs Page
 
 > Track system activities with options to review and download logs
 
@@ -329,7 +329,7 @@ The admin module provides administrators and superadmins with centralized contro
 
 ---
 
-#### 7. Roles & Permissions Page
+#### 2.7 Roles & Permissions Page
 
 > Define and manage access control for different user roles
 
@@ -337,13 +337,13 @@ The admin module provides administrators and superadmins with centralized contro
 
 ---
 
-### 4.4.3 Doctor Module
+### 3. Doctor Module
 
 The doctor module equips healthcare professionals with tools to manage their schedules, handle appointments, and issue digital prescriptions.
 
 ---
 
-#### 1. Doctor Dashboard
+#### 3.1 Doctor Dashboard
 
 > Get an overview of appointments, activities, and personal insights
 
@@ -351,7 +351,7 @@ The doctor module equips healthcare professionals with tools to manage their sch
 
 ---
 
-#### 2. Schedule Management Page
+#### 3.2 Schedule Management Page
 
 > View and update availability for patient appointments
 
@@ -359,7 +359,7 @@ The doctor module equips healthcare professionals with tools to manage their sch
 
 ---
 
-#### 3. Appointments Page
+#### 3.3 Appointments Page
 
 > Manage and review all booked patient appointments
 
@@ -367,7 +367,7 @@ The doctor module equips healthcare professionals with tools to manage their sch
 
 ---
 
-#### 4. Prescription Management Page
+#### 3.4 Prescription Management Page
 
 > Create and manage digital prescriptions for patients
 
@@ -375,7 +375,7 @@ The doctor module equips healthcare professionals with tools to manage their sch
 
 ---
 
-#### 5. Doctor Profile Page
+#### 3.5 Doctor Profile Page
 
 > View and update professional and personal information
 
@@ -383,13 +383,13 @@ The doctor module equips healthcare professionals with tools to manage their sch
 
 ---
 
-### 4.4.4 Laboratory Module
+### 4. Laboratory Module
 
 The laboratory module enables lab staff to manage their services, handle test bookings, generate reports, and configure operational hours.
 
 ---
 
-#### 1. Laboratory Dashboard
+#### 4.1 Laboratory Dashboard
 
 > Access key insights, bookings, and activity logs
 
@@ -397,7 +397,7 @@ The laboratory module enables lab staff to manage their services, handle test bo
 
 ---
 
-#### 2. Test Bookings Page
+#### 4.2 Test Bookings Page
 
 > View and manage all incoming lab test bookings
 
@@ -405,7 +405,7 @@ The laboratory module enables lab staff to manage their services, handle test bo
 
 ---
 
-#### 3. Test Report Entry Page
+#### 4.3 Test Report Entry Page
 
 > Enter test results and generate laboratory reports
 
@@ -413,7 +413,7 @@ The laboratory module enables lab staff to manage their services, handle test bo
 
 ---
 
-#### 4. Operating Hours Management Page
+#### 4.4 Operating Hours Management Page
 
 > Configure available time slots for lab services
 
@@ -421,7 +421,7 @@ The laboratory module enables lab staff to manage their services, handle test bo
 
 ---
 
-#### 5. Lab Test Management Page
+#### 4.5 Lab Test Management Page
 
 > Add, update, or remove laboratory test offerings
 
@@ -429,7 +429,7 @@ The laboratory module enables lab staff to manage their services, handle test bo
 
 ---
 
-#### 6. Test Categories Management Page
+#### 4.6 Test Categories Management Page
 
 > Organize lab tests into categories for better accessibility
 
@@ -437,7 +437,7 @@ The laboratory module enables lab staff to manage their services, handle test bo
 
 ---
 
-#### 7. Laboratory Profile Page
+#### 4.7 Laboratory Profile Page
 
 > Manage laboratory information and branding details
 
@@ -445,13 +445,13 @@ The laboratory module enables lab staff to manage their services, handle test bo
 
 ---
 
-### 4.4.5 Patient Module
+### 5. Patient Module
 
 The patient module empowers patients to discover doctors, book appointments, access lab services, view prescriptions, and manage their health records — all in one place.
 
 ---
 
-#### 1. Patient Dashboard
+#### 5.1 Patient Dashboard
 
 > View appointments, reports, and personal health activity
 
@@ -459,7 +459,7 @@ The patient module empowers patients to discover doctors, book appointments, acc
 
 ---
 
-#### 2. Doctor Listing Page
+#### 5.2 Doctor Listing Page
 
 > Browse and select doctors for appointment booking
 
@@ -467,7 +467,7 @@ The patient module empowers patients to discover doctors, book appointments, acc
 
 ---
 
-#### 3. Appointment Slot Selection Page
+#### 5.3 Appointment Slot Selection Page
 
 > Choose available time slots for doctor consultations
 
@@ -475,7 +475,7 @@ The patient module empowers patients to discover doctors, book appointments, acc
 
 ---
 
-#### 4. Appointment Confirmation Page
+#### 5.4 Appointment Confirmation Page
 
 > Review and confirm appointment booking details
 
@@ -483,7 +483,7 @@ The patient module empowers patients to discover doctors, book appointments, acc
 
 ---
 
-#### 5. Payment Page
+#### 5.5 Payment Page
 
 > Complete secure payments for consultations and services
 
@@ -491,7 +491,7 @@ The patient module empowers patients to discover doctors, book appointments, acc
 
 ---
 
-#### 6. Appointment History Page
+#### 5.6 Appointment History Page
 
 > Track past and upcoming doctor appointments
 
@@ -499,7 +499,7 @@ The patient module empowers patients to discover doctors, book appointments, acc
 
 ---
 
-#### 7. Prescription View Page
+#### 5.7 Prescription View Page
 
 > Access prescriptions provided by doctors
 
@@ -507,7 +507,7 @@ The patient module empowers patients to discover doctors, book appointments, acc
 
 ---
 
-#### 8. Lab Test Booking Page
+#### 5.8 Lab Test Booking Page
 
 > Search and select lab tests based on categories and laboratories
 
@@ -515,7 +515,7 @@ The patient module empowers patients to discover doctors, book appointments, acc
 
 ---
 
-#### 9. Lab Slot Booking Page
+#### 5.9 Lab Slot Booking Page
 
 > Choose time slots and test preferences (home visit or lab visit)
 
@@ -523,7 +523,7 @@ The patient module empowers patients to discover doctors, book appointments, acc
 
 ---
 
-#### 10. Lab Booking History Page
+#### 5.10 Lab Booking History Page
 
 > View history of all lab test bookings
 
@@ -531,7 +531,7 @@ The patient module empowers patients to discover doctors, book appointments, acc
 
 ---
 
-#### 11. Lab Reports Page
+#### 5.11 Lab Reports Page
 
 > Access and download laboratory test reports
 
@@ -539,7 +539,7 @@ The patient module empowers patients to discover doctors, book appointments, acc
 
 ---
 
-#### 12. Patient Profile Page
+#### 5.12 Patient Profile Page
 
 > Manage personal, medical, and contact information
 
