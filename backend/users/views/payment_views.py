@@ -109,11 +109,6 @@ class PaymentHistoryView(generics.GenericAPIView):
 
 @method_decorator(csrf_exempt, name="dispatch")
 class RazorpayWebhookView(generics.GenericAPIView):
-    """
-    Async fallback — Razorpay calls this if the user closes
-    the browser before the frontend hits /verify/.
-    No authentication; verified via HMAC signature.
-    """
     authentication_classes = []
     permission_classes = [AllowAny]
 
@@ -129,7 +124,7 @@ class RazorpayWebhookView(generics.GenericAPIView):
 
         digest = hmac.new(
             webhook_secret.encode(),
-            request.body,                # already bytes
+            request.body,
             hashlib.sha256,
         ).hexdigest()
 

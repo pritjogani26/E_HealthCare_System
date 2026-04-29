@@ -4,7 +4,6 @@ import React from "react";
 import { AlertCircle } from "lucide-react";
 
 interface FieldErrorProps {
-  /** The error message to display. Renders nothing when undefined / empty. */
   message?: string;
 }
 

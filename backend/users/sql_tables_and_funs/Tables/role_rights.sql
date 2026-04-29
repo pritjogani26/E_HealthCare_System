@@ -30,7 +30,6 @@ create table if not EXISTS permissions (
 );
 
 
--- Your original DDL has a missing comma before UNIQUE — apply this fix:
 CREATE TABLE IF NOT EXISTS role_permissions (
     role_id         INT         NOT NULL REFERENCES user_roles(role_id) ON DELETE CASCADE,
     permission_id   INT         NOT NULL REFERENCES permissions(permission_id) ON DELETE CASCADE,
@@ -67,13 +66,6 @@ ON CONFLICT (role) DO NOTHING;
 
 
 
-
-
--- ================================================================
--- DEFAULT PERMISSIONS ASSIGNMENT
--- Safe to re-run (idempotent via ON CONFLICT DO NOTHING)
--- ================================================================
-
 DO $$
 BEGIN
 
@@ -95,7 +87,6 @@ BEGIN
         ('SUPERADMIN', 'settings',    'view'),
         ('SUPERADMIN', 'settings',    'edit'),
 
-        -- ── ADMIN → all except settings:edit ─────────────────────
         ('ADMIN', 'patient',     'view'),
         ('ADMIN', 'patient',     'toggle_status'),
         ('ADMIN', 'doctor',      'view'),
@@ -110,7 +101,6 @@ BEGIN
         ('ADMIN', 'appointment', 'view_all'),
         ('ADMIN', 'settings',    'view'),
 
-        -- ── STAFF → manage patients, doctors, labs + appointments ─
         ('STAFF', 'patient',     'view'),
         ('STAFF', 'patient',     'toggle_status'),
         ('STAFF', 'doctor',      'view'),
@@ -119,17 +109,14 @@ BEGIN
         ('STAFF', 'appointment', 'cancel'),
         ('STAFF', 'appointment', 'view_all'),
 
-        -- ── DOCTOR → view patients + own appointments ─────────────
         ('DOCTOR', 'patient',     'view'),
         ('DOCTOR', 'appointment', 'view_own'),
         ('DOCTOR', 'appointment', 'cancel'),
 
-        -- ── PATIENT → own appointments only ──────────────────────
         ('PATIENT', 'appointment', 'book'),
         ('PATIENT', 'appointment', 'cancel'),
         ('PATIENT', 'appointment', 'view_own'),
 
-        -- ── LAB → labs + view patients ─────────────────
         ('LAB', 'patient', 'view'),
         ('LAB', 'lab',     'view')
 

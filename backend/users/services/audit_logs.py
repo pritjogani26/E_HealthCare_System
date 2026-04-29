@@ -87,8 +87,8 @@ def insert_audit_log(
             str(row_id) if row_id else None,
             action,
             status,
-            to_json(old_diff),         # properly serialized
-            to_json(new_diff),         # properly serialized
+            to_json(old_diff),
+            to_json(new_diff),
             failure_reason,
             ip_address,
             user_agent,

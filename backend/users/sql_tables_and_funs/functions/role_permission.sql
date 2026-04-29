@@ -1,6 +1,3 @@
--- Roles
-
-
 CREATE OR REPLACE FUNCTION r_create_role(
     p_role             VARCHAR(30),
     p_role_description TEXT        DEFAULT NULL,
@@ -91,7 +88,6 @@ $$ LANGUAGE plpgsql;
 
 
 
--- permission
 CREATE OR REPLACE FUNCTION r_create_permission(
     p_module      VARCHAR(50),
     p_action      VARCHAR(50),
@@ -160,7 +156,6 @@ $$ LANGUAGE plpgsql;
 
 
 
--- permission to a role
 
 CREATE OR REPLACE FUNCTION r_grant_permission_to_role(
     p_role_id       INT,

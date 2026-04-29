@@ -35,7 +35,6 @@ def create_prescription(
             pdf_path,
         ),
     )
-    # fetchone returns a dict; the single column is the UUID scalar
     return str(list(result.values())[0])
 
 
@@ -48,7 +47,6 @@ def add_prescription_medicine(
     instructions: str = None,
     sort_order: int = 0,
 ) -> int:
-    """Inserts a medicine row; returns medicine_id."""
     result = fetchone(
         "SELECT doc_add_prescription_medicine(%s, %s, %s, %s, %s, %s, %s)",
         (prescription_id, medicine_name, dosage, frequency, duration, instructions, sort_order),

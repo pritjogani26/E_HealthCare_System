@@ -1,3 +1,4 @@
+# users\database_queries\patient_queries.py
 from users.database_queries.connection import (
     fn_fetchone,
     fn_fetchall,

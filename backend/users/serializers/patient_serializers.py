@@ -1,3 +1,4 @@
+# users\serializers\patient_serializers.py
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from datetime import date
@@ -55,8 +56,6 @@ class PatientProfileSerializer(serializers.Serializer):
         return obj if isinstance(obj, dict) else vars(obj)
 
     def get_user(self, obj):
-        # print(f"\n\nUser : {obj}")
-        # return _UserOut(self._src(obj)).data
         return obj
 
     def get_gender(self, obj):

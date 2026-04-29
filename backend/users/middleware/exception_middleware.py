@@ -27,7 +27,6 @@ class ExceptionMiddleware:
 
     def process_exception(self, request, exception):
 
-        # ── 1. Our own AppException hierarchy ────────────────────────────────
         if isinstance(exception, AppException):
             logger.warning(
                 "%s on %s %s: %s",
@@ -41,7 +40,6 @@ class ExceptionMiddleware:
                 status=exception.status_code,
             )
 
-        # ── 2. DRF built-in auth exceptions ──────────────────────────────────
         if isinstance(exception, (NotAuthenticated, AuthenticationFailed)):
             logger.warning(
                 "Auth failure on %s %s: %s",
@@ -69,7 +67,6 @@ class ExceptionMiddleware:
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # ── 3. Database-level errors ──────────────────────────────────────────
         from django.db import DatabaseError, IntegrityError
 
         if isinstance(exception, IntegrityError):

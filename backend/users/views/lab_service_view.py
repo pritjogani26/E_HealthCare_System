@@ -24,11 +24,6 @@ def ensure_admin(user):
         raise PermissionException("Access denied. Admin role required.")
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  CATEGORY
-# ─────────────────────────────────────────────────────────────────────────────
-
-
 class LabTestCategoryListView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = LabTestCategorySerializer
@@ -245,7 +240,6 @@ class LabTestDetailView(generics.GenericAPIView):
                     if p.get("parameter_id")
                 }
 
-                # Delete parameters that were removed by the user
                 for param_id in existing_ids - received_ids:
                     tpq.delete_test_parameter(param_id)
 

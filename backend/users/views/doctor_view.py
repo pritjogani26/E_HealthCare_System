@@ -119,11 +119,9 @@ class DoctorListView(generics.GenericAPIView):
             doc["specializations"] = dq.get_doctor_specializations(
                 str(doc["doctor_id"])
             )
-        # print(doctors)
         serializer = self.get_serializer(data=doctors, many=True)
         serializer.is_valid(raise_exception=True)
         return send_success_msg(serializer.validated_data)
-        # return doctors
 
 
 class DoctorDetailView(generics.GenericAPIView):

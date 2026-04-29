@@ -103,10 +103,6 @@ class AppointmentService:
 
         doctor_user_id = str(slot["doctor_id"])
 
-        # ── DO NOT call mark_slot_booked here ──
-        # d_book_appointment() handles marking the slot as booked internally.
-        # Calling mark_slot_booked() first causes SLOT_ALREADY_BOOKED from the DB function.
-
         return dq.create_appointment(
             doctor_id=doctor_user_id,
             patient_id=patient_user_id,

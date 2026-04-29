@@ -10,11 +10,8 @@ from django.db import connection
 from users.middleware.exceptions import (
     NotFoundException,
     PermissionException,
-    ValidationException,  # add this to your exceptions if not present
+    ValidationException,
 )
-
-
-# ─── Raw SQL helper (mirrors your existing pattern) ───────────────────────────
 
 
 def _execute(sql, params=None, fetch="none"):
@@ -32,9 +29,6 @@ def _execute(sql, params=None, fetch="none"):
     return None
 
 
-# ─── Razorpay client (lazy singleton) ─────────────────────────────────────────
-
-
 def _get_razorpay_client():
     key_id = settings.RAZORPAY_KEY_ID
     key_secret = settings.RAZORPAY_KEY_SECRET
@@ -46,12 +40,7 @@ def _get_razorpay_client():
     return razorpay.Client(auth=(key_id, key_secret))
 
 
-# ─── PaymentService ────────────────────────────────────────────────────────────
-
-
 class PaymentService:
-
-    # ── Helpers ────────────────────────────────────────────────────────────────
 
     @staticmethod
     def _fetch_appointment(reference_id, patient_id):
@@ -96,14 +85,12 @@ class PaymentService:
             )
         return row
 
-    # ── Create Order ───────────────────────────────────────────────────────────
 
     @staticmethod
     def create_order(validated_data, patient_id):
         payment_for = validated_data["payment_for"]
         reference_id = validated_data["reference_id"]
 
-        # Check if a PENDING or SUCCESS payment already exists
         existing = _execute(
             """
             SELECT payment_id, status
@@ -118,7 +105,6 @@ class PaymentService:
         if existing and existing["status"] == "SUCCESS":
             raise ValidationException("This booking has already been paid.")
 
-        # Fetch amount from correct table
         if payment_for == "APPOINTMENT":
             record = PaymentService._fetch_appointment(reference_id, patient_id)
             amount = float(record["consultation_fee"] or 0)
@@ -129,7 +115,6 @@ class PaymentService:
         if amount <= 0:
             raise ValidationException("Payable amount must be greater than zero.")
 
-        # Create Razorpay order
         client = _get_razorpay_client()
         receipt = f"rcpt_{str(reference_id).replace('-', '')}"[:40]
 
@@ -146,7 +131,6 @@ class PaymentService:
             }
         )
 
-        # Upsert payment record (reuse if PENDING already exists)
         if existing and existing["status"] == "PENDING":
             _execute(
                 """
@@ -183,7 +167,6 @@ class PaymentService:
             "reference_id": str(reference_id),
         }
 
-    # ── Verify Payment ─────────────────────────────────────────────────────────
 
     @staticmethod
     def verify_payment(validated_data, patient_id):
@@ -191,7 +174,6 @@ class PaymentService:
         payment_id = validated_data["razorpay_payment_id"]
         signature = validated_data["razorpay_signature"]
 
-        # Verify HMAC-SHA256 signature
         body = f"{order_id}|{payment_id}".encode()  # encode to bytes
         expected = hmac.new(
             settings.RAZORPAY_KEY_SECRET.encode(),
@@ -226,7 +208,6 @@ class PaymentService:
         if payment["status"] == "SUCCESS":
             raise ValidationException("This payment has already been verified.")
 
-        # Mark payment SUCCESS
         _execute(
             """
             UPDATE payments
@@ -239,7 +220,6 @@ class PaymentService:
             [payment_id, signature, order_id],
         )
 
-        # Confirm the booking in respective table
         if payment["payment_for"] == "APPOINTMENT":
             _execute(
                 """
@@ -266,7 +246,6 @@ class PaymentService:
             "amount": float(payment["amount"]),
         }
 
-    # ── Refund ─────────────────────────────────────────────────────────────────
 
     @staticmethod
     def refund_payment(validated_data, patient_id):
@@ -309,7 +288,6 @@ class PaymentService:
             [refund["id"], str(payment["payment_id"])],
         )
 
-        # Cancel the associated booking
         if payment_for == "APPOINTMENT":
             _execute(
                 """
@@ -336,7 +314,6 @@ class PaymentService:
             "refunded_amount": float(payment["amount"]),
         }
 
-    # ── History ────────────────────────────────────────────────────────────────
 
     @staticmethod
     def get_payment_history(patient_id, filters):
@@ -370,7 +347,7 @@ class PaymentService:
 
         total = _execute(
             f"SELECT COUNT(*) AS cnt FROM payments WHERE {where}",
-            params[:-2],  # exclude LIMIT/OFFSET
+            params[:-2],
             fetch="one",
         )
 

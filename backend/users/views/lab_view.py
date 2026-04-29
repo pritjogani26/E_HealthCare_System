@@ -113,13 +113,6 @@ class LabProfileView(generics.GenericAPIView):
 
 
 class LabOperatingHoursView(generics.GenericAPIView):
-    """Dedicated endpoint for reading and replacing lab operating hours.
-
-    GET  /labs/operating-hours/  – returns the current configured hours.
-    PUT  /labs/operating-hours/  – replaces all hours, deletes stale future
-                                   slots, and auto-regenerates new ones.
-    """
-
     permission_classes = [IsAuthenticated]
 
     def _require_lab(self, request):
@@ -140,15 +133,12 @@ class LabOperatingHoursView(generics.GenericAPIView):
         serializer = LabOperatingHourSerializer(data=request.data, many=True)
         serializer.is_valid(raise_exception=True)
 
-        # Delegate to the profile service so slot-regeneration logic runs once
         from ..services.profile_service import LabProfileService
 
-        # Retrieve full lab dict (needed by update_lab_profile signature)
         lab = LabProfileService.get_lab_profile(request.user)
         if not lab:
             raise NotFoundException("Lab profile not found.")
 
-        # Build a minimal serializer-shaped object carrying only operating_hours
         class _MinimalSerializer:
             validated_data = {"operating_hours": serializer.validated_data}
 

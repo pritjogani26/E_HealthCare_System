@@ -15,7 +15,6 @@ class RoleListView(generics.GenericAPIView):
 
     def get(self, request):
         roles = rpq.get_all_roles()
-        # Serialise datetime fields so they are JSON-safe
         for r in roles:
             for key in ("created_at", "updated_at"):
                 if r.get(key):

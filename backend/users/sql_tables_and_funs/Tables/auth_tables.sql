@@ -61,5 +61,3 @@ CREATE TABLE IF NOT EXISTS public.user_refresh_tokens
         ON UPDATE NO ACTION
         ON DELETE CASCADE
 );
-
-

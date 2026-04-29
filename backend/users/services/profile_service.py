@@ -29,20 +29,16 @@ class PatientProfileService(BaseProfileService):
 
     @staticmethod
     def update_patient_profile(patient_dict: dict, serializer, request=None) -> dict:
-        # print("\n\nInside update_patient_profile.")
         patient_id = str(patient_dict.get("patient_id") or patient_dict.get("user_id"))
         data = serializer.validated_data
-        # print(f"\nPatient data : {data}")
         addr = data.get("address") or {}
         address_fields = {
             k: addr.get(k) if k in addr else data.get(k)
             for k in ("address_line", "city", "state", "pincode")
         }
-        # print(f"\n\nAddress Fields : {address_fields}")
 
         if any(v is not None for v in address_fields.values()):
             if patient_dict.get("address_line"):
-                # print("\nYes Address is available. Updating.")
                 uq.update_address_by_user_id(
                     patient_id,
                     **{k: v for k, v in address_fields.items() if v is not None},
@@ -72,7 +68,6 @@ class PatientProfileService(BaseProfileService):
             )
             if k in data
         }
-        # Removed profile_fields["address_id"] = address_id
         updated = pq.update_patient(patient_id, **profile_fields)
         return PatientProfileSerializer(updated).data
 
@@ -86,8 +81,6 @@ class LabProfileService(BaseProfileService):
         if not lab:
             return None
         lab["operating_hours"] = lq.get_lab_operating_hours(user_id)
-        # print(f"\nLab operating hours: {lab['operating_hours']}")  # Debug print
-        # lab["services"] = lq.get_lab_services(user_id)
         return lab
 
     @staticmethod
@@ -135,7 +128,6 @@ class LabProfileService(BaseProfileService):
                     oh.get("is_closed", False),
                 )
 
-            # Purge future unbooked slots and regenerate from new hours
             deleted = lq.delete_future_unbooked_lab_slots(user_id)
             logger.info(
                 "Deleted %d future unbooked slot(s) for lab %s after hours update.",
@@ -151,20 +143,8 @@ class LabProfileService(BaseProfileService):
                 user_id,
             )
 
-        # if "services" in data:
-        #     lq.delete_lab_services(user_id)
-        #     for svc in data["services"]:
-        #         lq.insert_lab_service(
-        #             user_id,
-        #             svc["service_name"],
-        #             svc.get("description"),
-        #             svc.get("price"),
-        #             svc.get("turnaround_hours"),
-        #         )
-
         updated = lq.get_lab_by_user_id(user_id)
         updated["operating_hours"] = lq.get_lab_operating_hours(user_id)
-        # updated["services"] = lq.get_lab_services(user_id)
 
         return LabProfileSerializer(updated).data
 

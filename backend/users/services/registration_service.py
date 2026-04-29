@@ -52,8 +52,6 @@ class RegistrationService:
         )
 
         address_id = RegistrationService.register_address(data, user_dict["user_id"])
-        print(f"\nAddress Id : {address_id}")
-        print(f"Response After Register Patient : {user_dict}")
         return RegistrationService._post_register(user_dict, "patient", request=request)
 
     @staticmethod

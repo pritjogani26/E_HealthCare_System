@@ -3,8 +3,6 @@
 from rest_framework import serializers
 
 
-# ── Input ─────────────────────────────────────────────────────
-
 FREQUENCY_CHOICES = [
     "once_daily",
     "twice_daily",
@@ -39,8 +37,6 @@ class PrescriptionCreateSerializer(serializers.Serializer):
     advice         = serializers.CharField(required=False, allow_blank=True)
     follow_up_date = serializers.DateField(required=False, allow_null=True)
 
-
-# ── Output ────────────────────────────────────────────────────
 
 class MedicineOutputSerializer(serializers.Serializer):
     medicine_id   = serializers.IntegerField()

@@ -105,7 +105,6 @@ export const DoctorFields: React.FC<DoctorFieldsProps> = ({
 
   return (
     <div className="space-y-4 animate-fadeIn">
-      {/* Full Name */}
       <div>
         <label className="block text-sm font-semibold text-slate-700 mb-2">
           Full Name <span className="text-red-500">*</span>
@@ -127,7 +126,6 @@ export const DoctorFields: React.FC<DoctorFieldsProps> = ({
         <FieldError name="full_name" errors={fieldErrors} touched={touched} />
       </div>
 
-      {/* Gender / Experience / Fee */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -199,7 +197,6 @@ export const DoctorFields: React.FC<DoctorFieldsProps> = ({
         </div>
       </div>
 
-      {/* Phone / Registration Number */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -245,7 +242,6 @@ export const DoctorFields: React.FC<DoctorFieldsProps> = ({
         </div>
       </div>
 
-      {/* Joining Date / Profile Image */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-2">

@@ -1,18 +1,3 @@
--- =============================================================
---  lab_test_orders  ·  PL/pgSQL CRUD FUNCTIONS
--- =============================================================
---  1. l_lab_test_orders_insert
---  2. l_lab_test_orders_update
---  3. l_lab_test_orders_delete       → soft-delete (order_status = 'CANCELLED')
---  4. l_lab_test_orders_select       → single row by order_id
---  5. l_lab_test_orders_select_all   → all orders (optional patient/lab filter)
--- =============================================================
-
-
--- ─────────────────────────────────────────────────────────────
--- 1. INSERT
--- ─────────────────────────────────────────────────────────────
-
 CREATE OR REPLACE FUNCTION public.l_lab_test_orders_insert(
     p_patient_id      UUID,
     p_lab_id          UUID,

@@ -1,3 +1,4 @@
+# users\database_queries\doctor_queries.py
 from users.database_queries.connection import (
     fn_fetchone,
     fn_fetchall,
@@ -243,17 +244,6 @@ def mark_slot_booked(slot_id: int, booked: bool):
     )
 
 
-# def get_slot(slot_id: int) -> dict | None:
-#     return fetchone(
-#         """
-#         SELECT s.*, ds.doctor_id
-#         FROM appointment_slots s
-#         JOIN doctor_schedules ds ON ds.schedule_id = s.schedule_id
-#         WHERE s.slot_id=%s
-#         """,
-#         [slot_id],
-#     )
-
 
 def slot_exists(slot_id: int) -> bool:
     return (
@@ -272,8 +262,6 @@ def create_appointment(
     status: str,
     reason: str = "",
 ) -> dict:
-    # print("\n\n")
-    # print(str(patient_id), str(doctor_id), slot_id, appointment_type, reason)
     fn_scalar(
         "d_book_appointment",
         [str(patient_id), str(doctor_id), slot_id, appointment_type, reason],

@@ -53,10 +53,8 @@ class EmailService:
     @staticmethod
     def verify_email_token(token: str) -> None:
         record = eq.get_verification_record(token)
-        # print(f"\n\n\nRecords  : {record}")
         if not record:
             raise ValidationException("Invalid or already used verification token.")
-        # print(f"\n\n\nRecords  : {record}")
         return record
 
     @staticmethod

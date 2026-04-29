@@ -63,10 +63,6 @@ def toggle_lab_is_active(user_id: str, reason: str) -> dict:
 def update_lab_verification(
     user_id: str, status: str, notes: str, verified_by_id: str
 ) -> dict:
-    """
-    Calls a_verify_lab(p_admin_id, p_lab_id, p_status, p_notes).
-    NOTE: admin_id must be the FIRST argument.
-    """
     fn_scalar(
         "a_verify_lab",
         [str(verified_by_id), str(user_id), status, notes],
@@ -90,11 +86,6 @@ def delete_lab_operating_hours(lab_user_id: str):
 
 
 def delete_future_unbooked_lab_slots(lab_user_id: str) -> int:
-    """Delete future lab test slots that have no bookings yet.
-
-    Called whenever operating hours change so that stale slots do not
-    remain available to patients.  Returns the number of rows deleted.
-    """
     deleted = execute(
         """
         DELETE FROM lab_test_slots
@@ -120,27 +111,3 @@ def insert_lab_operating_hour(
         "l_upsert_operating_hours",
         [str(lab_user_id), day_of_week, open_time, close_time, is_closed],
     )
-
-
-# def get_lab_services(lab_user_id: str) -> list:
-#     return fn_fetchall("l_get_services", [str(lab_user_id)])
-
-
-# def delete_lab_services(lab_user_id: str):
-#     execute("DELETE FROM lab_services WHERE lab_id=%s", [str(lab_user_id)])
-
-
-# def insert_lab_service(
-#     lab_user_id: str,
-#     service_name: str,
-#     description: str = None,
-#     price=None,
-#     turnaround_hours: int = None,
-# ):
-#     """
-#     Calls l_add_service — 5 params only (is_active is always TRUE in the DB function).
-#     """
-#     fn_scalar(
-#         "l_add_service",
-#         [str(lab_user_id), service_name, description, price, turnaround_hours],
-#     )

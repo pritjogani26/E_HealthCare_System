@@ -1,16 +1,4 @@
 # backend/users/views/prescription_view.py
-#
-# URL wiring (add to users/urls.py):
-#
-#   path("appointments/<int:appointment_id>/prescribe/",
-#        PrescribeAppointmentView.as_view()),
-#
-#   path("appointments/<int:appointment_id>/prescription/",
-#        AppointmentPrescriptionView.as_view()),
-#
-#   path("prescriptions/my/",
-#        MyPrescriptionsView.as_view()),
-
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -36,22 +24,15 @@ from users.serializers.prescription_serializers import (
 
 
 class PrescribeAppointmentView(generics.GenericAPIView):
-    """
-    POST /appointments/<appointment_id>/prescribe/
-    Doctor submits prescription → PDF generated → appointment marked completed.
-    """
-
     permission_classes = [IsAuthenticated]
     serializer_class   = PrescriptionCreateSerializer
 
     def post(self, request, appointment_id: int):
-        # ── auth guard ────────────────────────────────────────
         if getattr(request.user, "role", None) != UserRole.DOCTOR:
             raise PermissionException("Only doctors can prescribe.")
 
         doctor_user_id = str(request.user.user_id)
 
-        # ── fetch appointment ─────────────────────────────────
         appointment = dq.get_appointment_by_id(appointment_id)
         if not appointment:
             raise NotFoundException("Appointment not found.")
@@ -62,16 +43,13 @@ class PrescribeAppointmentView(generics.GenericAPIView):
         if appointment["status"] == "cancelled":
             raise ValidationException("Cannot prescribe for a cancelled appointment.")
 
-        # ── validate input ────────────────────────────────────
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        # ── fetch doctor & patient profiles for PDF ───────────
         doctor  = dq.get_full_doctor_profile(doctor_user_id)
         patient = _get_patient_profile(str(appointment["patient_id"]))
 
-        # ── persist prescription (no PDF path yet) ────────────
         presc_number = generate_prescription_number()
         prescription_id = pq.create_prescription(
             appointment_id  = appointment_id,
@@ -84,7 +62,6 @@ class PrescribeAppointmentView(generics.GenericAPIView):
             follow_up_date  = data.get("follow_up_date"),
         )
 
-        # ── persist medicines ──────────────────────────────────
         medicines_input = data.get("medicines", [])
         for idx, med in enumerate(medicines_input):
             pq.add_prescription_medicine(
@@ -97,7 +74,6 @@ class PrescribeAppointmentView(generics.GenericAPIView):
                 sort_order      = idx,
             )
 
-        # ── generate PDF ──────────────────────────────────────
         medicines_saved = pq.get_prescription_medicines(prescription_id)
         prescription_row = {
             "prescription_id":     prescription_id,
@@ -118,11 +94,9 @@ class PrescribeAppointmentView(generics.GenericAPIView):
             )
             pq.update_prescription_pdf(prescription_id, rel_path)
         except Exception as exc:
-            # PDF failure is non-fatal — prescription is still saved
             rel_path = None
             print(f"[PrescriptionPDF] generation failed: {exc}")
 
-        # ── build response ────────────────────────────────────
         full_prescription = pq.get_prescription_by_appointment(appointment_id)
         full_prescription["medicines"] = pq.get_prescription_medicines(prescription_id)
 
@@ -138,11 +112,6 @@ class PrescribeAppointmentView(generics.GenericAPIView):
 
 
 class AppointmentPrescriptionView(generics.GenericAPIView):
-    """
-    GET /appointments/<appointment_id>/prescription/
-    Doctor or Patient can fetch the prescription for an appointment.
-    """
-
     permission_classes = [IsAuthenticated]
 
     def get(self, request, appointment_id: int):
@@ -175,11 +144,6 @@ class AppointmentPrescriptionView(generics.GenericAPIView):
 
 
 class MyPrescriptionsView(generics.GenericAPIView):
-    """
-    GET /prescriptions/my/
-    Patient gets their full prescription history.
-    """
-
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -193,10 +157,8 @@ class MyPrescriptionsView(generics.GenericAPIView):
         return send_success_msg(out)
 
 
-# ── helpers ───────────────────────────────────────────────────
 
 def _get_patient_profile(patient_id: str) -> dict:
-    """Fetch a minimal patient dict used only for PDF rendering."""
     from users.database_queries import patient_queries as patq
     try:
         return patq.get_full_patient_profile(patient_id) or {}

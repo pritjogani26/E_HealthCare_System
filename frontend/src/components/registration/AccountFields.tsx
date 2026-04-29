@@ -3,14 +3,11 @@ import React from "react";
 import { Mail, Lock, AlertCircle, CheckCircle2 } from "lucide-react";
 
 interface AccountFieldsProps {
-  // Values
   email: string;
   password: string;
   passwordConfirm: string;
-  // Formik handlers — passed directly so onChange/onBlur wire to formik
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
-  // Error / touched state from formik (each value may be undefined if untouched)
   errors: {
     email?: string;
     password?: string;
@@ -21,11 +18,9 @@ interface AccountFieldsProps {
     password?: boolean;
     password_confirm?: boolean;
   };
-  // Extra
   readOnlyEmail?: boolean;
 }
 
-/** Returns border colour based on touched+error state */
 function fieldCls(
   name: "email" | "password" | "password_confirm",
   errors: AccountFieldsProps["errors"],
@@ -66,7 +61,6 @@ export const AccountFields: React.FC<AccountFieldsProps> = ({
 }) => {
   return (
     <>
-      {/* ── Email ─────────────────────────────────────────────────────── */}
       <div>
         <label
           htmlFor="reg-email"
@@ -103,7 +97,6 @@ export const AccountFields: React.FC<AccountFieldsProps> = ({
         />
       </div>
 
-      {/* ── Password ──────────────────────────────────────────────────── */}
       <div>
         <label
           htmlFor="reg-password"

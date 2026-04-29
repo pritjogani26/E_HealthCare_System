@@ -1,11 +1,3 @@
--- backend\users\sql_tables_and_funs\functions\prescription_functions.sql
--- ============================================================
--- Prescription Functions
--- ============================================================
-
-
--- ── Create prescription header ───────────────────────────────
-
 CREATE OR REPLACE FUNCTION doc_create_prescription(
     p_appointment_id      INTEGER,
     p_doctor_id           UUID,
@@ -22,7 +14,6 @@ LANGUAGE plpgsql AS $$
 DECLARE
     v_id UUID;
 BEGIN
-    -- Guard: appointment must belong to this doctor & patient
     IF NOT EXISTS (
         SELECT 1 FROM doctor_appointments
         WHERE appointment_id = p_appointment_id
@@ -32,7 +23,6 @@ BEGIN
         RAISE EXCEPTION 'APPOINTMENT_NOT_FOUND_OR_MISMATCH';
     END IF;
 
-    -- Guard: one prescription per appointment
     IF EXISTS (SELECT 1 FROM prescriptions WHERE appointment_id = p_appointment_id) THEN
         RAISE EXCEPTION 'PRESCRIPTION_ALREADY_EXISTS';
     END IF;
@@ -46,7 +36,6 @@ BEGIN
     )
     RETURNING prescription_id INTO v_id;
 
-    -- Mark appointment as completed
     UPDATE doctor_appointments
     SET status = 'completed', updated_at = NOW()
     WHERE appointment_id = p_appointment_id;
@@ -56,7 +45,6 @@ END;
 $$;
 
 
--- ── Add a medicine row ───────────────────────────────────────
 
 CREATE OR REPLACE FUNCTION doc_add_prescription_medicine(
     p_prescription_id UUID,
@@ -84,7 +72,6 @@ END;
 $$;
 
 
--- ── Update pdf_path after file is written ────────────────────
 
 CREATE OR REPLACE FUNCTION doc_update_prescription_pdf(
     p_prescription_id UUID,
@@ -105,7 +92,6 @@ END;
 $$;
 
 
--- ── Fetch a prescription by appointment ─────────────────────
 
 CREATE OR REPLACE FUNCTION doc_get_prescription_by_appointment(
     p_appointment_id INTEGER
@@ -137,7 +123,6 @@ END;
 $$;
 
 
--- ── Fetch all medicines for a prescription ───────────────────
 
 CREATE OR REPLACE FUNCTION doc_get_prescription_medicines(
     p_prescription_id UUID
@@ -163,7 +148,6 @@ END;
 $$;
 
 
--- ── Patient: list all their prescriptions ───────────────────
 
 CREATE OR REPLACE FUNCTION doc_get_patient_prescriptions(p_patient_id UUID)
 RETURNS TABLE(

@@ -1,20 +1,3 @@
--- =============================================================
---  lab_test_categories  ·  PL/pgSQL CRUD FUNCTIONS
--- =============================================================
---  Functions
---    1. l_create_lab_test_category   → INSERT
---    2. l_update_lab_test_category   → UPDATE
---    3. l_delete_lab_test_category   → soft-delete (is_active = false)
---    4. l_list_lab_test_categories   → SELECT (with optional filters)
--- =============================================================
-
-
--- ─────────────────────────────────────────────────────────────
--- 1. CREATE
--- ─────────────────────────────────────────────────────────────
--- Returns the full newly inserted row.
--- Raises an exception if category_name already exists.
--- ─────────────────────────────────────────────────────────────
 create or replace function public.l_get_lab_test_category(
     p_category_id int
 )
@@ -61,13 +44,11 @@ AS $$
 DECLARE
     v_row public.lab_test_categories;
 BEGIN
-    -- Guard: name must not be blank
     IF TRIM(p_category_name) = '' THEN
         RAISE EXCEPTION 'category_name cannot be empty'
             USING ERRCODE = 'invalid_parameter_value';
     END IF;
 
-    -- Guard: duplicate name check (case-insensitive)
     IF EXISTS (
         SELECT 1
         FROM public.lab_test_categories
@@ -101,23 +82,6 @@ BEGIN
 END;
 $$;
 
-/*
-USAGE:
-    SELECT * FROM public.l_create_lab_test_category(
-        'Haematology',
-        'Blood-related diagnostic tests',
-        'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'::uuid
-    );
-*/
-
-
--- ─────────────────────────────────────────────────────────────
--- 2. UPDATE
--- ─────────────────────────────────────────────────────────────
--- Only updates fields that are explicitly passed (non-NULL).
--- Raises an exception if the category does not exist and on a
--- duplicate name collision.
--- ─────────────────────────────────────────────────────────────
 
 CREATE OR REPLACE FUNCTION public.l_update_lab_test_category(
     p_category_id     INTEGER,
@@ -132,7 +96,6 @@ AS $$
 DECLARE
     v_row public.lab_test_categories;
 BEGIN
-    -- Guard: category must exist
     SELECT * INTO v_row
     FROM public.lab_test_categories
     WHERE category_id = p_category_id;
@@ -142,7 +105,6 @@ BEGIN
             USING ERRCODE = 'no_data_found';
     END IF;
 
-    -- Guard: duplicate name check when name is being changed
     IF p_category_name IS NOT NULL
        AND TRIM(p_category_name) <> ''
        AND LOWER(TRIM(p_category_name)) <> LOWER(v_row.category_name)
@@ -172,31 +134,6 @@ BEGIN
 END;
 $$;
 
-/*
-USAGE — update name only:
-    SELECT * FROM public.l_update_lab_test_category(
-        p_category_id   => 1,
-        p_updated_by    => 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'::uuid,
-        p_category_name => 'Haematology & Coagulation'
-    );
-
-USAGE — update multiple fields:
-    SELECT * FROM public.l_update_lab_test_category(
-        p_category_id => 1,
-        p_updated_by  => 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'::uuid,
-        p_description => 'Updated description here',
-        p_is_active   => true
-    );
-*/
-
-
--- ─────────────────────────────────────────────────────────────
--- 3. SOFT DELETE
--- ─────────────────────────────────────────────────────────────
--- Sets is_active = FALSE. Does NOT remove the row.
--- Raises an exception if the category does not exist or
--- is already inactive.
--- ─────────────────────────────────────────────────────────────
 
 CREATE OR REPLACE FUNCTION public.l_delete_lab_test_category(
     p_category_id INTEGER,
@@ -208,7 +145,6 @@ AS $$
 DECLARE
     v_row public.lab_test_categories;
 BEGIN
-    -- Guard: must exist
     SELECT * INTO v_row
     FROM public.lab_test_categories
     WHERE category_id = p_category_id;
@@ -218,7 +154,6 @@ BEGIN
             USING ERRCODE = 'no_data_found';
     END IF;
 
-    -- Guard: already inactive
     IF NOT v_row.is_active THEN
         RAISE EXCEPTION 'Category with id % is already inactive', p_category_id
             USING ERRCODE = 'invalid_parameter_value';
@@ -235,32 +170,6 @@ BEGIN
     RETURN v_row;
 END;
 $$;
-
-/*
-USAGE:
-    SELECT * FROM public.l_delete_lab_test_category(
-        1,
-        'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'::uuid
-    );
-*/
-
-
--- ─────────────────────────────────────────────────────────────
--- 4. LIST
--- ─────────────────────────────────────────────────────────────
--- Returns a paginated, optionally filtered list.
---
--- Parameters
---   p_search          ILIKE match on category_name / description
---   p_is_active       NULL  = all rows
---                     TRUE  = active only  (default)
---                     FALSE = inactive only
---   p_limit           page size  (default 20, max 100)
---   p_offset          page start (default 0)
---
--- Result columns
---   all category columns + total_count (window function)
--- ─────────────────────────────────────────────────────────────
 
 CREATE OR REPLACE FUNCTION public.l_list_lab_test_categories(
     p_search    TEXT    DEFAULT NULL,
@@ -282,7 +191,6 @@ RETURNS TABLE (
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    -- Clamp limit between 1 and 100 to prevent abuse
     p_limit  := GREATEST(1, LEAST(p_limit, 100));
     p_offset := GREATEST(0, p_offset);
 
@@ -310,21 +218,3 @@ BEGIN
     OFFSET p_offset;
 END;
 $$;
-
-/*
-USAGE — active categories, first page (default):
-    SELECT * FROM public.l_list_lab_test_categories();
-
-USAGE — search across all statuses:
-    SELECT * FROM public.l_list_lab_test_categories(
-        p_search    => 'blood',
-        p_is_active => NULL
-    );
-
-USAGE — paginate inactive only:
-    SELECT * FROM public.l_list_lab_test_categories(
-        p_is_active => FALSE,
-        p_limit     => 10,
-        p_offset    => 0
-    );
-*/

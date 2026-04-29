@@ -1,10 +1,5 @@
 -- backend\users\sql_tables_and_funs\functions\lab_functions\lab_booking_fun.sql
 
--- ── lab_booking_fun.sql ──────────────────────────────────────────────────────
--- Atomic slot counter: increment booked_count only when capacity is available.
--- Raises an exception (caught by application) if the slot is full / inactive.
--- ─────────────────────────────────────────────────────────────────────────────
-
 CREATE OR REPLACE FUNCTION increment_slot_booked_count(p_slot_id INT)
 RETURNS VOID
 LANGUAGE plpgsql AS $$
@@ -12,7 +7,6 @@ DECLARE
     v_slot_rec     RECORD;
     v_max_bookings INT;
 BEGIN
-    -- FIX: LEFT JOIN so missing operating-hours row doesn't cause NOT FOUND
     SELECT
         s.slot_id,
         s.lab_id,
@@ -55,11 +49,6 @@ $$;
  
 
 
--- ─────────────────────────────────────────────────────────────────────────────
--- Atomic slot counter: decrement booked_count (floor at 0).
--- Called on booking cancellation.
--- ─────────────────────────────────────────────────────────────────────────────
-
 CREATE OR REPLACE FUNCTION decrement_slot_booked_count(p_slot_id INT)
 RETURNS VOID
 LANGUAGE plpgsql AS $$
@@ -75,11 +64,6 @@ BEGIN
 END;
 $$;
 
-
--- ─────────────────────────────────────────────────────────────────────────────
--- Create a new lab test slot booking.
--- Returns the full booking row joined with test / slot details.
--- ─────────────────────────────────────────────────────────────────────────────
 
 CREATE OR REPLACE FUNCTION l_create_lab_booking(
     p_patient_id        UUID,
@@ -113,7 +97,6 @@ RETURNS TABLE (
     cancelled_by            UUID,
     created_at              TIMESTAMPTZ,
     updated_at              TIMESTAMPTZ,
-    -- joined fields
     test_name               VARCHAR(255),
     test_code               VARCHAR(30),
     sample_type             VARCHAR(50),
@@ -163,9 +146,6 @@ END;
 $$;
 
 
--- ─────────────────────────────────────────────────────────────────────────────
--- Fetch a single booking (with joined details) by booking_id.
--- ─────────────────────────────────────────────────────────────────────────────
 
 CREATE OR REPLACE FUNCTION l_get_lab_booking(p_booking_id UUID)
 RETURNS TABLE (
@@ -218,10 +198,6 @@ LANGUAGE sql STABLE AS $$
 $$;
 
 
--- ─────────────────────────────────────────────────────────────────────────────
--- List all bookings for a patient (ordered newest first).
--- ─────────────────────────────────────────────────────────────────────────────
-
 CREATE OR REPLACE FUNCTION l_list_patient_bookings(p_patient_id UUID)
 RETURNS TABLE (
     booking_id              UUID,
@@ -270,10 +246,6 @@ LANGUAGE sql STABLE AS $$
     ORDER BY b.created_at DESC;
 $$;
 
-
--- ─────────────────────────────────────────────────────────────────────────────
--- List all bookings for a lab (ordered newest first).
--- ─────────────────────────────────────────────────────────────────────────────
 
 CREATE OR REPLACE FUNCTION l_list_lab_bookings(p_lab_id UUID)
 RETURNS TABLE (
@@ -324,11 +296,6 @@ LANGUAGE sql STABLE AS $$
 $$;
 
 
--- ─────────────────────────────────────────────────────────────────────────────
--- Cancel a booking: set status, timestamp, and reason in a single UPDATE.
--- Returns the updated booking row for the caller to verify.
--- ─────────────────────────────────────────────────────────────────────────────
-
 CREATE OR REPLACE FUNCTION l_cancel_lab_booking(
     p_booking_id         UUID,
     p_cancelled_by       UUID,
@@ -365,11 +332,6 @@ BEGIN
 END;
 $$;
 
-
--- ─────────────────────────────────────────────────────────────────────────────
--- Upload / add a report for a booking.
--- Returns the newly inserted report row.
--- ─────────────────────────────────────────────────────────────────────────────
 
 CREATE OR REPLACE FUNCTION l_upload_lab_report(
     p_booking_id      UUID,
@@ -410,10 +372,6 @@ END;
 $$;
 
 
--- ─────────────────────────────────────────────────────────────────────────────
--- Fetch all reports for a given booking.
--- ─────────────────────────────────────────────────────────────────────────────
-
 CREATE OR REPLACE FUNCTION l_get_booking_reports(p_booking_id UUID)
 RETURNS TABLE (
     result_id        INT,
@@ -431,12 +389,6 @@ LANGUAGE sql STABLE AS $$
     WHERE r.booking_id = p_booking_id
     ORDER BY r.uploaded_at DESC;
 $$;
-
-
--- ─────────────────────────────────────────────────────────────────────────────
--- Update booking status to COMPLETED.
--- Only lab or admin should call this endpoint.
--- ─────────────────────────────────────────────────────────────────────────────
 
 CREATE OR REPLACE FUNCTION l_complete_lab_booking(p_booking_id UUID)
 RETURNS TABLE (

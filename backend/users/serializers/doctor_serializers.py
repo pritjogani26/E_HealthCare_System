@@ -146,7 +146,6 @@ class DoctorProfileSerializer(serializers.Serializer):
 
     def get_user(self, obj):
         return obj
-        # return _UserOut(self._d(obj)).data
 
     def get_gender(self, obj):
         d = self._d(obj)

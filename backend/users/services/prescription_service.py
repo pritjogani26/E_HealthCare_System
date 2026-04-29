@@ -7,8 +7,6 @@ from datetime import date, datetime
 from django.conf import settings
 
 
-# ── Prescription-number helper ───────────────────────────────────────────────
-
 def generate_prescription_number() -> str:
     """Returns a unique prescription number like  RX-20260417-A1B2C3"""
     today = date.today()
@@ -16,7 +14,6 @@ def generate_prescription_number() -> str:
     return f"RX-{today.strftime('%Y%m%d')}-{suffix}"
 
 
-# ── PDF generation ───────────────────────────────────────────────────────────
 
 def generate_prescription_pdf(
     prescription: dict,
@@ -25,13 +22,6 @@ def generate_prescription_pdf(
     medicines: list[dict],
     appointment: dict,
 ) -> tuple[str, str]:
-    """
-    Builds the PDF and saves it to:
-        MEDIA_ROOT/prescriptions/<doctor_id>/<filename>.pdf
-
-    Returns:
-        (absolute_path, relative_path_from_MEDIA_ROOT)
-    """
     from reportlab.lib.pagesizes import A4
     from reportlab.lib import colors
     from reportlab.lib.units import mm
@@ -42,7 +32,6 @@ def generate_prescription_pdf(
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
 
-    # ── directory & filename ─────────────────────────────────────────────────
     doctor_id = str(doctor.get("doctor_id", "unknown"))
     folder = os.path.join(settings.MEDIA_ROOT, "prescriptions", doctor_id)
     os.makedirs(folder, exist_ok=True)
@@ -53,7 +42,6 @@ def generate_prescription_pdf(
     abs_path = os.path.join(folder, filename)
     rel_path = os.path.join("prescriptions", doctor_id, filename)
 
-    # ── colour palette ───────────────────────────────────────────────────────
     NAVY   = colors.HexColor("#1a3c6e")
     BLUE2  = colors.HexColor("#2e5fa3")
     LGREY  = colors.HexColor("#f5f8fc")
@@ -62,7 +50,6 @@ def generate_prescription_pdf(
     GREEN  = colors.HexColor("#16a34a")
     WHITE  = colors.white
 
-    # ── document ─────────────────────────────────────────────────────────────
     doc = SimpleDocTemplate(
         abs_path,
         pagesize=A4,
@@ -72,7 +59,6 @@ def generate_prescription_pdf(
         bottomMargin=12 * mm,
     )
 
-    # ── styles ───────────────────────────────────────────────────────────────
     base = getSampleStyleSheet()
 
     def S(name, parent="Normal", **kw):
@@ -99,9 +85,6 @@ def generate_prescription_pdf(
     story = []
     W = 182 * mm   # usable width
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # HEADER BANNER
-    # ─────────────────────────────────────────────────────────────────────────
     qualifications = ", ".join(
         [q.get("qualification_code", "") for q in doctor.get("qualifications", [])]
     )
@@ -109,8 +92,6 @@ def generate_prescription_pdf(
         [s.get("specialization_name", "") for s in doctor.get("specializations", [])]
     )
     _raw_name   = doctor.get("full_name", "Doctor")
-    # Strip any existing "Dr." / "Dr " prefix stored in the DB
-    # so we never render "Dr. Dr. Patel".
     _stripped   = _raw_name.strip()
     if _stripped.lower().startswith("dr."):
         _stripped = _stripped[3:].strip()
@@ -148,7 +129,6 @@ def generate_prescription_pdf(
     ]))
     story.append(header_tbl)
 
-    # ── date strip ───────────────────────────────────────────────────────────
     today_str = datetime.now().strftime("%d %B %Y")
     date_data = [[
         Paragraph(prescription["prescription_number"], sBodyBold),
@@ -166,9 +146,6 @@ def generate_prescription_pdf(
     story.append(date_tbl)
     story.append(Spacer(1, 4 * mm))
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # PATIENT  +  APPOINTMENT  (two-column row)
-    # ─────────────────────────────────────────────────────────────────────────
     patient_name = patient.get("full_name", "—")
     dob          = patient.get("date_of_birth")
     age_str = ""
@@ -236,18 +213,12 @@ def generate_prescription_pdf(
     story.append(info_row)
     story.append(Spacer(1, 4 * mm))
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # CLINICAL NOTES
-    # ─────────────────────────────────────────────────────────────────────────
     if prescription.get("clinical_notes"):
         story.append(Paragraph("CLINICAL NOTES", sSection))
         story.append(HRFlowable(width="100%", thickness=0.5, color=MGREY, spaceAfter=3))
         story.append(Paragraph(prescription["clinical_notes"].replace("\n", "<br/>"), sBody))
         story.append(Spacer(1, 4 * mm))
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # PRESCRIPTION  (Rx)
-    # ─────────────────────────────────────────────────────────────────────────
     if medicines:
         rx_label = Table([[Paragraph("℞", sPrescRx)]], colWidths=[W])
         rx_label.setStyle(TableStyle([
@@ -309,27 +280,18 @@ def generate_prescription_pdf(
         story.append(med_tbl)
         story.append(Spacer(1, 4 * mm))
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # LAB TESTS
-    # ─────────────────────────────────────────────────────────────────────────
     if prescription.get("lab_tests"):
         story.append(Paragraph("LAB TESTS / INVESTIGATIONS", sSection))
         story.append(HRFlowable(width="100%", thickness=0.5, color=MGREY, spaceAfter=3))
         story.append(Paragraph(prescription["lab_tests"].replace("\n", "<br/>"), sBody))
         story.append(Spacer(1, 4 * mm))
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # ADVICE
-    # ─────────────────────────────────────────────────────────────────────────
     if prescription.get("advice"):
         story.append(Paragraph("DOCTOR'S ADVICE", sSection))
         story.append(HRFlowable(width="100%", thickness=0.5, color=MGREY, spaceAfter=3))
         story.append(Paragraph(prescription["advice"].replace("\n", "<br/>"), sBody))
         story.append(Spacer(1, 4 * mm))
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # FOLLOW-UP
-    # ─────────────────────────────────────────────────────────────────────────
     if prescription.get("follow_up_date"):
         fu_date = str(prescription["follow_up_date"])
         fu_tbl = Table(
@@ -348,9 +310,6 @@ def generate_prescription_pdf(
         story.append(fu_tbl)
         story.append(Spacer(1, 4 * mm))
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # SIGNATURE STRIP
-    # ─────────────────────────────────────────────────────────────────────────
     sig_tbl = Table(
         [[
             Paragraph(

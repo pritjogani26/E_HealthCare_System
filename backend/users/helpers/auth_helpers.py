@@ -5,7 +5,6 @@ from users.jwt_auth import generate_tokens
 
 
 def set_auth_response_with_tokens(user, message, permissions_list):
-    # print(f"\n\nUser : {user}")
     tokens = generate_tokens(user)
     response_dict = {
         "success": True,
