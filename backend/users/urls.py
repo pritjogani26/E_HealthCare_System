@@ -18,6 +18,8 @@ from .views.audit_views import (
     AuditLogsView,
     # DownloadAuditLogsView,
 )
+from .views.error_log_views import ErrorLogsView, ErrorLogDetailView
+
 
 from .views.auth_views import (
     LoginView,
@@ -205,6 +207,16 @@ urlpatterns = [
         "users/recent-activity/",
         AuditLogsView.as_view(),
         name="recent-activity",
+    ),
+    path(
+        "users/admin/error-logs/",
+        ErrorLogsView.as_view(),
+        name="admin-error-logs",
+    ),
+    path(
+        "users/admin/error-logs/<uuid:error_key>/",
+        ErrorLogDetailView.as_view(),
+        name="admin-error-log-detail",
     ),
     # path(
     #     "users/admin/download-audit-logs/",

@@ -196,6 +196,10 @@ class BookAppointmentView(generics.GenericAPIView):
                 "appointment_type", "in_person"
             ),
         )
+
+        from users.services.email_service import EmailService
+        EmailService.send_doctor_appointment_confirmation(str(request.user.user_id), appointment)
+
         return send_success_msg(
             DoctorAppointmentSerializer(appointment).data,
             message="Appointment booked successfully.",
@@ -212,6 +216,10 @@ class CancelAppointmentView(generics.GenericAPIView):
             cancelled_by_user_id=str(request.user.user_id),
             reason=request.data.get("reason", ""),
         )
+
+        from users.services.email_service import EmailService
+        EmailService.send_doctor_appointment_cancellation(str(appointment["patient_id"]), appointment)
+
         return send_success_msg(
             DoctorAppointmentSerializer(appointment).data,
             message="Appointment cancelled successfully.",

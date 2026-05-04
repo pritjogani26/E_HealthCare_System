@@ -70,6 +70,9 @@ class LabBookingListCreateView(generics.GenericAPIView):
             validated_data=serializer.validated_data,
         )
 
+        from users.services.email_service import EmailService
+        EmailService.send_lab_booking_confirmation(str(request.user.user_id), booking)
+
         return Response(
             {
                 "success": True,
@@ -118,6 +121,9 @@ class LabBookingCancelView(generics.GenericAPIView):
             cancellation_reason=serializer.validated_data.get("cancellation_reason"),
         )
 
+        from users.services.email_service import EmailService
+        EmailService.send_lab_booking_cancellation(str(booking["patient_id"]), booking)
+
         return Response(
             {
                 "success": True,
@@ -146,6 +152,9 @@ class LabBookingCompleteView(generics.GenericAPIView):
             result_notes=serializer.validated_data.get("result_notes"),
             parameter_results=serializer.validated_data.get("parameter_results"),
         )
+
+        from users.services.email_service import EmailService
+        EmailService.send_lab_report_completed(str(booking["patient_id"]), booking)
 
         return Response(
             {
@@ -213,6 +222,11 @@ class LabBookingReportListView(generics.GenericAPIView):
             result_notes=serializer.validated_data.get("result_notes"),
             uploaded_by=str(request.user.user_id),
         )
+
+        from users.services.email_service import EmailService
+        booking = bq.get_lab_booking(str(booking_id))
+        if booking:
+            EmailService.send_lab_report_completed(str(booking["patient_id"]), booking)
 
         return Response(
             {

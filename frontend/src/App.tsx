@@ -23,6 +23,7 @@ import ProfilePage from "./pages/ProfilePage";
 import AdminPatientsPage from "./pages/AdminPatientsPage";
 import AdminDoctorsPage from "./pages/AdminDoctorsPage";
 import AdminLabsPage from "./pages/AdminLabsPage";
+import AdminErrorLogsPage from "./pages/AdminErrorLogsPage";
 import DoctorSchedulePage from "./pages/DoctorSchedulePage";
 import BookAppointmentPage from "./pages/BookAppointmentPage";
 import MyAppointmentsPage from "./pages/MyAppointmentsPage";
@@ -257,6 +258,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <AuditLogs />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/error-logs"
+                  element={
+                    <ProtectedRoute allowedRoles={["ADMIN", "SUPERADMIN"]}>
+                      <AdminErrorLogsPage />
                     </ProtectedRoute>
                   }
                 />

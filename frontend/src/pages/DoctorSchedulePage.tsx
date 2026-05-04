@@ -210,7 +210,7 @@ const DoctorSchedulePage: React.FC = () => {
         gutter={10}
         containerStyle={{ top: 72, right: 20 }}
         toastOptions={{
-          duration: 4000,
+          duration: 3000,
           style: {
             fontFamily: "system-ui, sans-serif",
             fontSize: "0.875rem",
@@ -229,7 +229,7 @@ const DoctorSchedulePage: React.FC = () => {
             iconTheme: { primary: "#16a34a", secondary: "#f0fdf4" },
           },
           error: {
-            duration: 5000,
+            duration: 3000,
             style: {
               background: "#fff1f2",
               color: "#9f1239",

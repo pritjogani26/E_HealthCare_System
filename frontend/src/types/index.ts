@@ -585,4 +585,11 @@ export class ReAuthError extends Error {
   }
 }
 
-
+export interface ErrorLog {
+  error_id: number;
+  error_key: string;
+  ref_from: string | null;
+  description: string;
+  created_by: string | null;
+  created_at: string;
+}

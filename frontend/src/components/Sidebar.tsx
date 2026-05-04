@@ -133,6 +133,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       : []),
     // Recent Activity — for all users
     { icon: ClipboardList, label: "Recent Activity", route: "/audit-logs" },
+    // Error Logs - for admins
+    ...(isAdminOrSuper
+      ? [{ icon: AlertCircle, label: "System Errors", route: "/admin/error-logs" }]
+      : []),
     // Settings
     ...(can("settings : view") || admin
       ? [{ icon: Settings, label: "Settings", route: "/settings" }]

@@ -5,6 +5,7 @@ import {
   LabList,
   LabProfile,
   AuditLog,
+  ErrorLog,
   ApiResponse,
 } from "../types";
 
@@ -129,3 +130,15 @@ export async function downloadAuditLogs(
   a.click();
   URL.revokeObjectURL(url);
 };
+
+export async function getErrorLogs(limit?: number): Promise<ErrorLog[]> {
+  const params = new URLSearchParams();
+  if (limit) params.append("limit", limit.toString());
+  const res = await api.get<ApiResponse<ErrorLog[]>>(`/users/admin/error-logs/?${params.toString()}`);
+  return unwrap(res.data) ?? [];
+};
+
+export async function getErrorLogByKey(errorKey: string): Promise<ErrorLog> {
+  const res = await api.get<ApiResponse<ErrorLog>>(`/users/admin/error-logs/${errorKey}/`);
+  return unwrap(res.data);
+};

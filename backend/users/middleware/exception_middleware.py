@@ -13,6 +13,7 @@ from rest_framework.exceptions import (
 )
 
 from users.middleware.exceptions import AppException
+from users.database_queries.error_logs_queries import log_error_to_db
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,7 @@ class ExceptionMiddleware:
                 request.path,
                 exception.message,
             )
+            log_error_to_db(request, description=f"{type(exception).__name__}: {exception.message}", exception=exception)
             return JsonResponse(
                 {"success": False, "message": exception.message},
                 status=exception.status_code,
@@ -47,12 +49,14 @@ class ExceptionMiddleware:
                 request.path,
                 str(exception),
             )
+            log_error_to_db(request, description=f"Auth failure: {str(exception)}", exception=exception)
             return JsonResponse(
                 {"success": False, "message": str(exception.detail)},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
         if isinstance(exception, PermissionDenied):
+            log_error_to_db(request, description="PermissionDenied", exception=exception)
             return JsonResponse(
                 {
                     "success": False,
@@ -62,6 +66,7 @@ class ExceptionMiddleware:
             )
 
         if isinstance(exception, DRFValidationError):
+            log_error_to_db(request, description="DRFValidationError", exception=exception)
             return JsonResponse(
                 {"success": False, "message": "Validation failed."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -74,6 +79,7 @@ class ExceptionMiddleware:
             logger.error(
                 "IntegrityError on %s %s: %s", request.method, request.path, msg
             )
+            log_error_to_db(request, description=f"IntegrityError: {msg}", exception=exception)
 
             if "EMAIL_ALREADY_EXISTS" in msg:
                 return JsonResponse(
@@ -111,6 +117,7 @@ class ExceptionMiddleware:
                 request.path,
                 traceback.format_exc(),
             )
+            log_error_to_db(request, exception=exception)
             return JsonResponse(
                 {
                     "success": False,
@@ -120,6 +127,7 @@ class ExceptionMiddleware:
             )
 
         logger.exception("Unhandled exception on %s %s", request.method, request.path)
+        log_error_to_db(request, exception=exception)
         return JsonResponse(
             {
                 "success": False,
@@ -127,3 +135,5 @@ class ExceptionMiddleware:
             },
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
+

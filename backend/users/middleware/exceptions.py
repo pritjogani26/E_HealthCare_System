@@ -65,8 +65,15 @@ class ServiceUnavailableException(AppException):
 def custom_exception_handler(exc, context):
     from rest_framework.response import Response
     from rest_framework.views import exception_handler as drf_exception_handler
+    from users.database_queries.error_logs_queries import log_error_to_db
+
+    request = context.get('request')
 
     if isinstance(exc, AppException):
+        log_error_to_db(request, description=f"{type(exc).__name__}: {exc.message}", exception=exc)
+        print(f"\n\nHandle in custom_exception_handler.")
+        print(f"{type(exc).__name__}: {exc.message}")
+        print(exc)
         return Response(
             {"success": False, "message": exc.message},
             status=exc.status_code,
@@ -74,10 +81,15 @@ def custom_exception_handler(exc, context):
 
     response = drf_exception_handler(exc, context)
     if response is not None:
+        error_msg = _extract_message(response.data)
+        log_error_to_db(request, description=f"DRF Error: {error_msg}", exception=exc)
         response.data = {
             "success": False,
-            "message": _extract_message(response.data),
+            "message": error_msg,
         }
+    else:
+        # Unhandled by DRF, likely a 500 error
+        log_error_to_db(request, exception=exc)
     return response
 
 

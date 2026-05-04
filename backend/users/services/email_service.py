@@ -110,6 +110,174 @@ class EmailService:
             raise ValidationException("Invalid or expired password reset token.")
         return True
 
+    @staticmethod
+    def send_doctor_appointment_confirmation(patient_id: str, appointment: dict) -> bool:
+        user = uq.get_user_by_id(patient_id)
+        if not user or not user.get("email"):
+            return False
+            
+        subject = "Doctor Appointment Confirmed - E-Healthcare System"
+        doctor_name = appointment.get("doctor_name", "your doctor")
+        slot_date = appointment.get("slot_date", "")
+        start_time = appointment.get("start_time", "")
+        end_time = appointment.get("end_time", "")
+        
+        text_content = (
+            f"Hello,\n\n"
+            f"Your appointment with {doctor_name} has been confirmed.\n"
+            f"Date: {slot_date}\n"
+            f"Time: {start_time} to {end_time}\n\n"
+            f"Thank you for using E-Healthcare System.\n"
+            f"\nE-Healthcare System Team"
+        )
+        
+        try:
+            from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@ehealthcare.com")
+            msg = EmailMultiAlternatives(subject, text_content, from_email, [user["email"]])
+            msg.send(fail_silently=False)
+            logger.info("Appointment confirmation email sent to %s", user["email"])
+            return True
+        except Exception:
+            logger.exception("Failed to send appointment email to %s", user.get("email"))
+            return False
+
+    @staticmethod
+    def send_lab_booking_confirmation(patient_id: str, booking: dict) -> bool:
+        user = uq.get_user_by_id(patient_id)
+        if not user or not user.get("email"):
+            return False
+            
+        subject = "Lab Test Booking Confirmed - E-Healthcare System"
+        date = booking.get("slot_date") or booking.get("booking_date", "")
+        
+        text_content = (
+            f"Hello,\n\n"
+            f"Your lab test booking has been confirmed.\n"
+            f"Date: {date}\n\n"
+            f"Thank you for using E-Healthcare System.\n"
+            f"\nE-Healthcare System Team"
+        )
+        
+        try:
+            from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@ehealthcare.com")
+            msg = EmailMultiAlternatives(subject, text_content, from_email, [user["email"]])
+            msg.send(fail_silently=False)
+            logger.info("Lab booking confirmation email sent to %s", user["email"])
+            return True
+        except Exception:
+            logger.exception("Failed to send lab booking email to %s", user.get("email"))
+            return False
+
+    @staticmethod
+    def send_prescription_completed(patient_id: str, prescription: dict) -> bool:
+        user = uq.get_user_by_id(patient_id)
+        if not user or not user.get("email"):
+            return False
+            
+        subject = "Your Prescription is Ready - E-Healthcare System"
+        presc_number = prescription.get("prescription_number", "")
+        
+        text_content = (
+            f"Hello,\n\n"
+            f"Your doctor has generated a prescription for your recent appointment.\n"
+            f"Prescription Number: {presc_number}\n\n"
+            f"You can view and download it from your patient dashboard.\n\n"
+            f"Thank you for using E-Healthcare System.\n"
+            f"\nE-Healthcare System Team"
+        )
+        
+        try:
+            from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@ehealthcare.com")
+            msg = EmailMultiAlternatives(subject, text_content, from_email, [user["email"]])
+            msg.send(fail_silently=False)
+            logger.info("Prescription notification email sent to %s", user["email"])
+            return True
+        except Exception:
+            logger.exception("Failed to send prescription notification to %s", user.get("email"))
+            return False
+
+    @staticmethod
+    def send_lab_report_completed(patient_id: str, booking: dict) -> bool:
+        user = uq.get_user_by_id(patient_id)
+        if not user or not user.get("email"):
+            return False
+            
+        subject = "Your Lab Report is Ready - E-Healthcare System"
+        
+        text_content = (
+            f"Hello,\n\n"
+            f"Your lab report for your recent lab test is now available.\n"
+            f"You can view and download it from your patient dashboard.\n\n"
+            f"Thank you for using E-Healthcare System.\n"
+            f"\nE-Healthcare System Team"
+        )
+        
+        try:
+            from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@ehealthcare.com")
+            msg = EmailMultiAlternatives(subject, text_content, from_email, [user["email"]])
+            msg.send(fail_silently=False)
+            logger.info("Lab report notification email sent to %s", user["email"])
+            return True
+        except Exception:
+            logger.exception("Failed to send lab report notification to %s", user.get("email"))
+            return False
+
+    @staticmethod
+    def send_doctor_appointment_cancellation(patient_id: str, appointment: dict) -> bool:
+        user = uq.get_user_by_id(patient_id)
+        if not user or not user.get("email"):
+            return False
+            
+        subject = "Doctor Appointment Cancelled - E-Healthcare System"
+        doctor_name = appointment.get("doctor_name", "your doctor")
+        slot_date = appointment.get("slot_date", "")
+        
+        text_content = (
+            f"Hello,\n\n"
+            f"Your appointment with {doctor_name} on {slot_date} has been cancelled.\n"
+            f"If you did not request this cancellation or have any questions, please contact support.\n\n"
+            f"Thank you for using E-Healthcare System.\n"
+            f"\nE-Healthcare System Team"
+        )
+        
+        try:
+            from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@ehealthcare.com")
+            msg = EmailMultiAlternatives(subject, text_content, from_email, [user["email"]])
+            msg.send(fail_silently=False)
+            logger.info("Appointment cancellation email sent to %s", user["email"])
+            return True
+        except Exception:
+            logger.exception("Failed to send appointment cancellation email to %s", user.get("email"))
+            return False
+
+    @staticmethod
+    def send_lab_booking_cancellation(patient_id: str, booking: dict) -> bool:
+        user = uq.get_user_by_id(patient_id)
+        if not user or not user.get("email"):
+            return False
+            
+        subject = "Lab Test Booking Cancelled - E-Healthcare System"
+        date = booking.get("slot_date") or booking.get("booking_date", "")
+        
+        text_content = (
+            f"Hello,\n\n"
+            f"Your lab test booking scheduled for {date} has been cancelled.\n"
+            f"If you did not request this cancellation or have any questions, please contact support.\n\n"
+            f"Thank you for using E-Healthcare System.\n"
+            f"\nE-Healthcare System Team"
+        )
+        
+        try:
+            from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@ehealthcare.com")
+            msg = EmailMultiAlternatives(subject, text_content, from_email, [user["email"]])
+            msg.send(fail_silently=False)
+            logger.info("Lab booking cancellation email sent to %s", user["email"])
+            return True
+        except Exception:
+            logger.exception("Failed to send lab booking cancellation email to %s", user.get("email"))
+            return False
+
+
 
 def _build_verification_html(verify_link: str) -> str:
     return f"""<!DOCTYPE html>

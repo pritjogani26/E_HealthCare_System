@@ -4,7 +4,7 @@ import React from "react";
 import toast, { ToastOptions } from "react-hot-toast";
 
 const BASE: ToastOptions = {
-    duration: 4000,
+    duration: 3000,
     style: {
         fontFamily: "'Inter', 'Outfit', system-ui, sans-serif",
         fontSize: "0.875rem",
@@ -30,7 +30,7 @@ const SUCCESS: ToastOptions = {
 
 const ERROR: ToastOptions = {
     ...BASE,
-    duration: 5000,
+    duration: 3000,
     style: {
         ...BASE.style,
         background: "#fff1f2",
@@ -42,7 +42,7 @@ const ERROR: ToastOptions = {
 
 const LOADING: ToastOptions = {
     ...BASE,
-    duration: Infinity,
+    duration: 3000,
     style: {
         ...BASE.style,
         background: "#f8fafc",

@@ -100,6 +100,9 @@ class PrescribeAppointmentView(generics.GenericAPIView):
         full_prescription = pq.get_prescription_by_appointment(appointment_id)
         full_prescription["medicines"] = pq.get_prescription_medicines(prescription_id)
 
+        from users.services.email_service import EmailService
+        EmailService.send_prescription_completed(str(appointment["patient_id"]), full_prescription)
+
         out = PrescriptionOutputSerializer(
             full_prescription, context={"request": request}
         ).data
