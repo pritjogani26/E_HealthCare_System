@@ -12,7 +12,6 @@ class AppException(Exception):
         super().__init__(self.message)
 
 
-
 class ValidationException(AppException):
     status_code = status.HTTP_400_BAD_REQUEST
     default_message = "Validation failed."
@@ -53,13 +52,9 @@ class RateLimitException(AppException):
     default_message = "Too many requests. Please try again later."
 
 
-
-
 class ServiceUnavailableException(AppException):
     status_code = status.HTTP_503_SERVICE_UNAVAILABLE
     default_message = "Service temporarily unavailable. Please try again later."
-
-
 
 
 def custom_exception_handler(exc, context):
@@ -67,10 +62,12 @@ def custom_exception_handler(exc, context):
     from rest_framework.views import exception_handler as drf_exception_handler
     from users.database_queries.error_logs_queries import log_error_to_db
 
-    request = context.get('request')
+    request = context.get("request")
 
     if isinstance(exc, AppException):
-        log_error_to_db(request, description=f"{type(exc).__name__}: {exc.message}", exception=exc)
+        log_error_to_db(
+            request, description=f"{type(exc).__name__}: {exc.message}", exception=exc
+        )
         print(f"\n\nHandle in custom_exception_handler.")
         print(f"{type(exc).__name__}: {exc.message}")
         print(exc)
@@ -88,7 +85,6 @@ def custom_exception_handler(exc, context):
             "message": error_msg,
         }
     else:
-        # Unhandled by DRF, likely a 500 error
         log_error_to_db(request, exception=exc)
     return response
 

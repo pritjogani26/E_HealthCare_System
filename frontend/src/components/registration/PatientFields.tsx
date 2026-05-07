@@ -120,6 +120,7 @@ export const PatientFields: React.FC<PatientFieldsProps> = ({
           <div className="relative">
             <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
+            id = 'pt-dob'
               type="date"
               value={dateOfBirth ?? ""}
               onChange={(e) => setDateOfBirth(e.target.value || null)}
@@ -137,6 +138,7 @@ export const PatientFields: React.FC<PatientFieldsProps> = ({
             Gender <span className="text-red-500">*</span>
           </label>
           <select
+          id = 'pt-gender'
             value={genderId ?? ""}
             onChange={(e) =>
               setGenderId(e.target.value ? Number(e.target.value) : null)
@@ -161,6 +163,7 @@ export const PatientFields: React.FC<PatientFieldsProps> = ({
             Blood Group
           </label>
           <select
+          id = 'pt-blood-group'
             value={bloodGroup ?? ""}
             onChange={(e) =>
               setBloodGroup(e.target.value ? Number(e.target.value) : null)
@@ -209,6 +212,7 @@ export const PatientFields: React.FC<PatientFieldsProps> = ({
             Emergency Contact Name
           </label>
           <input
+            id="pt-emergency-name"
             type="text"
             value={emergencyName}
             onChange={(e) => setEmergencyName(e.target.value)}
@@ -225,6 +229,7 @@ export const PatientFields: React.FC<PatientFieldsProps> = ({
             Emergency Contact Phone
           </label>
           <input
+            id="pt-emergency-phone"
             type="tel"
             value={emergencyPhone}
             onChange={(e) => setEmergencyPhone(e.target.value)}
@@ -243,6 +248,7 @@ export const PatientFields: React.FC<PatientFieldsProps> = ({
             Profile Image
           </label>
           <input
+            id="pt-profile-image"
             type="file"
             accept="image/*"
             onChange={handleFileChange}
@@ -257,6 +263,7 @@ export const PatientFields: React.FC<PatientFieldsProps> = ({
           Address
         </label>
         <textarea
+          id="pt-address-line"
           value={addressLine}
           onChange={(e) => setAddressLine(e.target.value)}
           className="w-full py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
@@ -270,6 +277,7 @@ export const PatientFields: React.FC<PatientFieldsProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>
           <input
+          id="pt-pincode"
             value={pincode}
             maxLength={6}
             onBlur={blur("pincode")}
@@ -305,6 +313,7 @@ export const PatientFields: React.FC<PatientFieldsProps> = ({
         </div>
         <div>
           <input
+          id = "pt-city"
             value={city}
             onChange={(e) => setCity(e.target.value)}
             placeholder="City"
@@ -316,6 +325,7 @@ export const PatientFields: React.FC<PatientFieldsProps> = ({
         </div>
         <div>
           <input
+            id="pt-state"
             value={stateName}
             onChange={(e) => setStateName(e.target.value)}
             placeholder="State"

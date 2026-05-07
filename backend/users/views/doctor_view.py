@@ -47,11 +47,12 @@ class DoctorRegistrationView(generics.GenericAPIView):
             serializer.validated_data, request=request, image_path=image_path
         )
 
-        message = (
-            "Doctor registered successfully. Account pending verification. Please check your email."
-            if email_sent
-            else "Doctor registered successfully. Account pending verification. Verification email could not be sent."
-        )
+        # message = (
+        #     "Doctor registered successfully. Account pending verification. Please check your email."
+        #     if email_sent
+        #     else "Doctor registered successfully. Account pending verification. Verification email could not be sent."
+        # )
+        message = "Doctor registered successfully. Account pending verification. Please check your email."
 
         return Response(
             {

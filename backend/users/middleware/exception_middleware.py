@@ -118,10 +118,11 @@ class ExceptionMiddleware:
                 traceback.format_exc(),
             )
             log_error_to_db(request, exception=exception)
+            
             return JsonResponse(
                 {
                     "success": False,
-                    "message": "A database error occurred. Please try again.",
+                    "message": str(exception).split("\n")[0].strip().replace('_', ' '),
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
